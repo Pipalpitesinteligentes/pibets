@@ -58,8 +58,16 @@ st.image(logo, width=200)
 st.title("π - Palpites Inteligentes 🇧🇷⚽")
 
 # ========= ACESSO À PLANILHA =========
+import json
+import streamlit as st
+from oauth2client.service_account import ServiceAccountCredentials
+import gspread
+from gspread_dataframe import get_as_dataframe
+
+# Acesso à planilha
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-creds = ServiceAccountCredentials.from_json_keyfile_name("credentials_service.json", scope)
+service_account_info = json.loads(st.secrets["GCP_SERVICE_ACCOUNT"])
+creds = ServiceAccountCredentials.from_json_keyfile_dict(service_account_info, scope)
 gc = gspread.authorize(creds)
 sheet = gc.open("nova_tentativa_01").sheet1
 df = get_as_dataframe(sheet).dropna(how="all")
