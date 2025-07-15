@@ -118,15 +118,19 @@ if confronto:
         with col1:
             logo_mandante = logos_times.get(mandante)
             if logo_mandante:
+                st.markdown(f"<div style='text-align:center'>", unsafe_allow_html=True)
                 st.image(logo_mandante, width=120)
-            st.markdown(f"<div style='text-align:center;color:white'>{mandante}</div>", unsafe_allow_html=True)
+                st.markdown(f"<div style='color:white;font-weight:bold'>{mandante}</div>", unsafe_allow_html=True)
+                st.markdown("</div>", unsafe_allow_html=True)
         with col2:
             st.markdown("<div style='text-align:center;font-size:36px;'>⚔️</div>", unsafe_allow_html=True)
         with col3:
             logo_visitante = logos_times.get(visitante)
             if logo_visitante:
+                st.markdown(f"<div style='text-align:center'>", unsafe_allow_html=True)
                 st.image(logo_visitante, width=120)
-            st.markdown(f"<div style='text-align:center;color:white'>{visitante}</div>", unsafe_allow_html=True)
+                st.markdown(f"<div style='color:white;font-weight:bold'>{visitante}</div>", unsafe_allow_html=True)
+                st.markdown("</div>", unsafe_allow_html=True)
 
         st.markdown("---")
         st.markdown(f"### 📅 **Data do jogo:** <span style='color:#3DFB86'>{dados['Data']}</span>", unsafe_allow_html=True)
