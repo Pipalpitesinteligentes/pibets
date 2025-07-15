@@ -114,7 +114,7 @@ if confronto:
         dados = jogo.iloc[0]
         st.success("✅ Palpite gerado com sucesso!")
 
-        col1, col2, col3 = st.columns([3.5, 1, 4.5])
+        col1, col2, col3 = st.columns([4, 1, 4])
         with col1:
             logo_mandante = logos_times.get(mandante)
             if logo_mandante:
