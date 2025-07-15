@@ -116,17 +116,16 @@ if confronto:
 
         col1, col2, col3 = st.columns(3)
         with col1:
-            st.markdown(f"<div style='text-align: center;'>", unsafe_allow_html=True)
             logo_mandante = logos_times.get(mandante)
             if logo_mandante:
-                st.image(logo_mandante, width=80)
-            st.markdown(f"**{mandante}**")
-            st.image(logos_times.get(mandante), width=120)
+                st.image(logo_mandante, width=120)
             st.markdown(f"<div style='text-align:center;color:white'>{mandante}</div>", unsafe_allow_html=True)
         with col2:
             st.markdown("<div style='text-align:center;font-size:36px;'>⚔️</div>", unsafe_allow_html=True)
         with col3:
-            st.image(logos_times.get(visitante), width=120)
+            logo_visitante = logos_times.get(visitante)
+            if logo_visitante:
+                st.image(logo_visitante, width=120)
             st.markdown(f"<div style='text-align:center;color:white'>{visitante}</div>", unsafe_allow_html=True)
 
         st.markdown("---")
