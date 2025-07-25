@@ -48,6 +48,10 @@ if menu == "📊 Palpites":
 elif menu == "📢 Notícias do Futebol":
     st.markdown("## 📰 Últimas Notícias de Futebol - ESPN")
 
+elif menu == "📂 Sair":
+    st.warning("Você saiu da aplicação.")
+    st.stop()
+    
     from newspaper import Article
 import feedparser
 
@@ -116,9 +120,6 @@ for entry in feed.entries:
             </div>
         </div>
     """, unsafe_allow_html=True)
-elif menu == "📂 Sair":
-    st.warning("Você saiu da aplicação.")
-    st.stop()
 
 # ========= ESTILO VISUAL =========
 st.markdown("""
