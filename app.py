@@ -94,14 +94,18 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-for entry in feed.entries[:5]:
-    try:
-        article = Article(entry.link)
-        article.download()
-        article.parse()
-        image_url = article.top_image
-    except:
-        image_url = "https://static.vecteezy.com/system/resources/previews/009/636/862/original/soccer-ball-icon-clip-art-free-png.png"  # fallback
+for entry in feed.entries:
+    image_url = entry.media_content[0]['url'] if 'media_content' in entry else "https://logodownload.org/wp-content/uploads/2017/02/espn-logo-8.png"
+    
+    st.markdown(f"""
+        <div class="news-card">
+            <img src="{image_url}" class="news-image">
+            <div class="news-content">
+                <a href="{entry.link}" target="_blank">{entry.title}</a>
+                <div class="news-date">{entry.published}</div>
+            </div>
+        </div>
+    """, unsafe_allow_html=True)
 
     st.markdown(f"""
         <div class="news-card">
@@ -112,8 +116,8 @@ for entry in feed.entries[:5]:
             </div>
         </div>
     """, unsafe_allow_html=True)
-    
-elif menu == "🚪 Sair":
+
+elif menu == "📂 Sair":
     st.warning("Você saiu da aplicação.")
     st.stop()
 
