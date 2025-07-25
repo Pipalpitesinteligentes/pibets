@@ -6,5 +6,4 @@ gspread_dataframe
 pillow
 requests
 feedparser
-newspaper3k
 beautifulsoup4
