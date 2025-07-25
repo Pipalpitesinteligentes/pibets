@@ -112,7 +112,7 @@ for entry in feed.entries[:5]:
             </div>
         </div>
     """, unsafe_allow_html=True)
-
+    
 elif menu == "🚪 Sair":
     st.warning("Você saiu do sistema.")
 
