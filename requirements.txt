@@ -7,3 +7,5 @@ pillow
 requests
 feedparser
 newspaper3k
+requests
+beautifulsoup4
