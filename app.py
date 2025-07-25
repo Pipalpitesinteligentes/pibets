@@ -114,7 +114,8 @@ for entry in feed.entries[:5]:
     """, unsafe_allow_html=True)
     
 elif menu == "🚪 Sair":
-    st.warning("Você saiu do sistema.")
+    st.warning("Você saiu da aplicação.")
+    st.stop()
 
 # ========= ESTILO VISUAL =========
 st.markdown("""
