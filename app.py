@@ -6,6 +6,8 @@ import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 from gspread_dataframe import get_as_dataframe
 import re
+import requests
+from bs4 import BeautifulSoup
 
 # ========= SISTEMA DE LOGIN CASEIRO =========
 st.set_page_config(page_title="π - Palpites Inteligentes", page_icon="📊", layout="wide")
