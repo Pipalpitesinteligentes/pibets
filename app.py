@@ -87,7 +87,7 @@ if menu == "📊 Palpites":
     # (coloque aqui o conteúdo dos palpites)
 
 elif menu == "📢 Notícias do Futebol":
-    st.markdown("## 📰 Últimas Notícias de Futebol - ESPN")
+    st.markdown("## 📰 Últimas Notícias de Futebol")
 
     noticias = carregar_noticias_espn()
     image_url = "https://logodownload.org/wp-content/uploads/2017/02/espn-logo-8.png"
