@@ -76,8 +76,8 @@ st.sidebar.markdown("## 👋 Bem-vindo, felipesouza!")
 
 menu = st.sidebar.radio("Escolha uma opção:", ["📊 Palpites", "📢 Notícias do Futebol", "🚪 Sair"])
 
-def carregar_noticias_espn():
-    url = "https://www.espn.com.br/rss"
+def carregar_noticias_ge():
+    url = "https://ge.globo.com/rss/gloesporte/futebol/brasileirao-serie-a/"
     feed = feedparser.parse(url)
     return feed.entries
 
@@ -89,8 +89,8 @@ if menu == "📊 Palpites":
 elif menu == "📢 Notícias do Futebol":
     st.markdown("## 📰 Últimas Notícias de Futebol")
 
-    noticias = carregar_noticias_espn()
-    image_url = "https://logodownload.org/wp-content/uploads/2017/02/espn-logo-8.png"
+    noticias = carregar_noticias_ge()
+    image_url = "https://ge.globo.com/rss/gloesporte/futebol/brasileirao-serie-a/"
 
     for entry in noticias[:6]:  # exibe 6 últimas
         st.markdown(f"""
