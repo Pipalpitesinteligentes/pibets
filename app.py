@@ -36,9 +36,50 @@ if not st.session_state.logado:
     st.stop()
 
 # ========= CONTEÚDO LIBERADO APÓS LOGIN =========
+# Estilo dos cards de notícias
+st.markdown("""
+    <style>
+        .news-card {
+            background-color: #1e1e2f;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+            display: flex;
+            align-items: center;
+        }
+        .news-image {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            margin-right: 15px;
+            border-radius: 8px;
+        }
+        .news-content {
+            flex-grow: 1;
+        }
+        .news-content a {
+            font-size: 18px;
+            font-weight: bold;
+            text-decoration: none;
+            color: #3399ff;
+        }
+        .news-date {
+            font-size: 12px;
+            color: #aaa;
+            margin-top: 5px;
+        }
+    </style>
+""", unsafe_allow_html=True)
+
 st.sidebar.markdown("## 👋 Bem-vindo, felipesouza!")
 
 menu = st.sidebar.radio("Escolha uma opção:", ["📊 Palpites", "📢 Notícias do Futebol", "🚪 Sair"])
+
+def carregar_noticias_espn():
+    url = "https://www.espn.com.br/rss"
+    feed = feedparser.parse(url)
+    return feed.entries
 
 # ========== EXIBIR CONTEÚDO CONFORME O MENU ==========
 if menu == "📊 Palpites":
@@ -48,7 +89,21 @@ if menu == "📊 Palpites":
 elif menu == "📢 Notícias do Futebol":
     st.markdown("## 📰 Últimas Notícias de Futebol - ESPN")
 
-elif menu == "📂 Sair":
+    noticias = carregar_noticias_espn()
+    image_url = "https://logodownload.org/wp-content/uploads/2017/02/espn-logo-8.png"
+
+    for entry in noticias[:6]:  # exibe 6 últimas
+        st.markdown(f"""
+            <div class="news-card">
+                <img src="{image_url}" class="news-image">
+                <div class="news-content">
+                    <a href="{entry.link}" target="_blank">{entry.title}</a>
+                    <div class="news-date">{entry.published}</div>
+                </div>
+            </div>
+        """, unsafe_allow_html=True)
+
+elif menu == "🚪 Sair":
     st.warning("Você saiu da aplicação.")
     st.stop()
     
