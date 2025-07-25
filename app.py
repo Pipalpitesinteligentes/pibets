@@ -1,3 +1,4 @@
+import feedparser
 import streamlit as st
 from PIL import Image
 import pandas as pd
@@ -42,6 +43,14 @@ menu = st.sidebar.radio("Escolha uma opção:", ["📊 Palpites", "📢 Notícia
 if menu == "🚪 Sair":
     st.sidebar.warning("Você saiu do sistema.")
     st.stop()
+    # Notícias da ESPN
+with st.sidebar.expander("📰 Notícias de Futebol (ESPN)"):
+    feed_url = "https://www.espn.com.br/rss"
+    feed = feedparser.parse(feed_url)
+
+    for entry in feed.entries[:5]:  # Mostra as 5 últimas notícias
+        st.markdown(f"**[{entry.title}]({entry.link})**", unsafe_allow_html=True)
+        st.caption(entry.published)
 
 # ========= ESTILO VISUAL =========
 st.markdown("""
