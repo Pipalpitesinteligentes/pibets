@@ -76,11 +76,6 @@ st.sidebar.markdown("## 👋 Bem-vindo, felipesouza!")
 
 menu = st.sidebar.radio("Escolha uma opção:", ["📊 Palpites", "📢 Notícias do Futebol", "🚪 Sair"])
 
-def carregar_noticias_ge():
-    rss_url = "https://ge.globo.com/rss/gloesporte/futebol/brasileirao-serie-a/"
-    feed = feedparser.parse(url)
-    return feed.entries
-
 # ========== EXIBIR CONTEÚDO CONFORME O MENU ==========
 if menu == "📊 Palpites":
     st.title(" ")
