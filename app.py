@@ -81,9 +81,6 @@ menu = st.sidebar.radio("Escolha uma opção:", ["📊 Palpites", "📢 Notícia
 # ========== EXIBIR CONTEÚDO CONFORME O MENU ==========
 if menu == "📊 Palpites":
     st.title(" ")
-    st.image("logo.png", width=150)
-    st.write("Escolha um confronto abaixo e veja as previsões estatísticas.")
-    # ... (resto do conteúdo da aba Palpites)
 
 elif menu == "📢 Notícias do Futebol":
     st.markdown("## 📰 Últimas Notícias de Futebol - GE")
