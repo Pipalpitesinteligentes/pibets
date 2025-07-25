@@ -116,7 +116,6 @@ for entry in feed.entries:
             </div>
         </div>
     """, unsafe_allow_html=True)
-
 elif menu == "📂 Sair":
     st.warning("Você saiu da aplicação.")
     st.stop()
