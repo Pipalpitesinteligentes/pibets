@@ -42,7 +42,8 @@ menu = st.sidebar.radio("Escolha uma opção:", ["📊 Palpites", "📢 Notícia
 
 # ========== EXIBIR CONTEÚDO CONFORME O MENU ==========
 if menu == "📊 Palpites":
-    # ... seu código de palpites aqui ...
+    st.title("📊 Palpites Inteligentes BR")
+    # (coloque aqui o conteúdo dos palpites)
 
 elif menu == "📢 Notícias do Futebol":
     st.title("📰 Últimas Notícias de Futebol - ESPN")
@@ -54,7 +55,7 @@ elif menu == "📢 Notícias do Futebol":
     for entry in feed.entries[:5]:
         st.markdown(f"### [{entry.title}]({entry.link})", unsafe_allow_html=True)
         st.caption(entry.published)
-        st.markdown("---")  # linha divisória entre as notícias
+        st.markdown("---")
 
 elif menu == "🚪 Sair":
     st.warning("Você saiu do sistema.")
