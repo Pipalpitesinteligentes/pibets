@@ -82,20 +82,34 @@ menu = st.sidebar.radio("Escolha uma opção:", ["📊 Palpites", "📢 Notícia
 if menu == "📊 Palpites":
     st.title(" ")
 
+
 elif menu == "📢 Notícias do Futebol":
     st.markdown("## 📰 Últimas Notícias de Futebol - GE")
+
     url = "https://ge.globo.com/futebol/brasileirao-serie-a/"
     response = requests.get(url)
     soup = BeautifulSoup(response.content, 'html.parser')
     news_cards = soup.select('div.feed-post-body')
+
     for card in news_cards[:6]:
+        # Título e link
         title_tag = card.select_one('.feed-post-link')
         title = title_tag.get_text(strip=True) if title_tag else "Sem título"
         link = title_tag['href'] if title_tag else "#"
+
+        # Busca imagem (se existir no post)
+        parent = card.find_parent('div', class_='feed-post')
+        img_tag = parent.select_one('div.feed-media-wrapper img') if parent else None
+        img_url = img_tag['src'] if img_tag and 'src' in img_tag.attrs else ""
+
+        # Exibição no Streamlit
         st.markdown(f"""
-            <div style="background-color: #1e1e2f; padding: 15px; margin-bottom: 15px; border-radius: 10px;">
-                <a href="{link}" target="_blank" style="color: #4da6ff; font-size: 18px; font-weight: bold; text-decoration: none;">{title}</a>
+        <div style="display: flex; background-color: #1e1e2f; padding: 10px; margin-bottom: 15px; border-radius: 10px;">
+            {'<img src="' + img_url + '" style="width: 120px; height: 80px; object-fit: cover; border-radius: 8px; margin-right: 15px;" />' if img_url else ''}
+            <div>
+                <a href="{link}" target="_blank" style="text-decoration: none; color: #4da6ff; font-size: 18px; font-weight: bold;">{title}</a>
             </div>
+        </div>
         """, unsafe_allow_html=True)
 
 elif menu == "🚪 Sair":
