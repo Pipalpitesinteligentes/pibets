@@ -82,7 +82,6 @@ menu = st.sidebar.radio("Escolha uma opção:", ["📊 Palpites", "📢 Notícia
 if menu == "📊 Palpites":
     st.title(" ")
     # (coloque aqui o conteúdo dos palpites)
-
 import requests
 from bs4 import BeautifulSoup
 
