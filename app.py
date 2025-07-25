@@ -35,10 +35,13 @@ if not st.session_state.logado:
     st.stop()
 
 # ========= CONTEÚDO LIBERADO APÓS LOGIN =========
-st.sidebar.success(f"Bem-vindo, {st.session_state.usuario}!")
-if st.sidebar.button("Sair"):
-    st.session_state.logado = False
-    st.rerun()
+st.sidebar.markdown("## 👋 Bem-vindo, felipesouza!")
+
+menu = st.sidebar.radio("Escolha uma opção:", ["📊 Palpites", "📢 Notícias do Futebol", "🚪 Sair"])
+
+if menu == "🚪 Sair":
+    st.sidebar.warning("Você saiu do sistema.")
+    st.stop()
 
 # ========= ESTILO VISUAL =========
 st.markdown("""
