@@ -40,17 +40,24 @@ st.sidebar.markdown("## 👋 Bem-vindo, felipesouza!")
 
 menu = st.sidebar.radio("Escolha uma opção:", ["📊 Palpites", "📢 Notícias do Futebol", "🚪 Sair"])
 
-if menu == "🚪 Sair":
-    st.sidebar.warning("Você saiu do sistema.")
-    st.stop()
-    # Notícias da ESPN
-with st.sidebar.expander("📰 Notícias de Futebol (ESPN)"):
+# ========== EXIBIR CONTEÚDO CONFORME O MENU ==========
+if menu == "📊 Palpites":
+    # ... seu código de palpites aqui ...
+
+elif menu == "📢 Notícias do Futebol":
+    st.title("📰 Últimas Notícias de Futebol - ESPN")
+
+    import feedparser
     feed_url = "https://www.espn.com.br/rss"
     feed = feedparser.parse(feed_url)
 
-    for entry in feed.entries[:5]:  # Mostra as 5 últimas notícias
-        st.markdown(f"**[{entry.title}]({entry.link})**", unsafe_allow_html=True)
+    for entry in feed.entries[:5]:
+        st.markdown(f"### [{entry.title}]({entry.link})", unsafe_allow_html=True)
         st.caption(entry.published)
+        st.markdown("---")  # linha divisória entre as notícias
+
+elif menu == "🚪 Sair":
+    st.warning("Você saiu do sistema.")
 
 # ========= ESTILO VISUAL =========
 st.markdown("""
