@@ -46,11 +46,46 @@ if menu == "📊 Palpites":
     # (coloque aqui o conteúdo dos palpites)
 
 elif menu == "📢 Notícias do Futebol":
-    st.title("📰 Últimas Notícias de Futebol - ESPN")
+    st.markdown("## 📰 Últimas Notícias de Futebol - ESPN")
 
     import feedparser
-    feed_url = "https://www.espn.com.br/rss"
-    feed = feedparser.parse(feed_url)
+    feed = feedparser.parse("https://www.espn.com.br/rss")
+
+    # Estilo para os banners
+    st.markdown("""
+        <style>
+            .news-card {
+                background-color: #1e1e2f;
+                border-radius: 12px;
+                padding: 20px;
+                margin-bottom: 15px;
+                border-left: 5px solid #4f8df5;
+                box-shadow: 0 0 10px rgba(0,0,0,0.3);
+            }
+            .news-card a {
+                color: #4f8df5;
+                font-size: 18px;
+                font-weight: bold;
+                text-decoration: none;
+            }
+            .news-card a:hover {
+                text-decoration: underline;
+            }
+            .news-date {
+                font-size: 12px;
+                color: gray;
+                margin-top: 6px;
+            }
+        </style>
+    """, unsafe_allow_html=True)
+
+    for entry in feed.entries[:5]:
+        st.markdown(f"""
+            <div class="news-card">
+                <a href="{entry.link}" target="_blank">{entry.title}</a>
+                <div class="news-date">{entry.published}</div>
+            </div>
+        """, unsafe_allow_html=True)
 
     for entry in feed.entries[:5]:
         st.markdown(f"### [{entry.title}]({entry.link})", unsafe_allow_html=True)
