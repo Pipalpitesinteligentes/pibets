@@ -83,7 +83,7 @@ def carregar_noticias_espn():
 
 # ========== EXIBIR CONTEÚDO CONFORME O MENU ==========
 if menu == "📊 Palpites":
-    st.title("📊 Palpites Inteligentes BR")
+    st.title(" ")
     # (coloque aqui o conteúdo dos palpites)
 
 elif menu == "📢 Notícias do Futebol":
