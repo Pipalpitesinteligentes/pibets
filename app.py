@@ -87,12 +87,12 @@ if menu == "📊 Palpites":
     # (coloque aqui o conteúdo dos palpites)
 
 elif menu == "📢 Notícias do Futebol":
-    st.markdown("## 📰 Últimas Notícias de Futebol")
+    st.markdown("## 📰 Últimas Notícias de Futebol - GE")
 
     rss_url = "https://ge.globo.com/rss/gloesporte/futebol/brasileirao-serie-a/"
     feed = feedparser.parse(rss_url)
 
-        for entry in feed.entries[:6]:
+    for entry in feed.entries[:6]:
         title = entry.title
         link = entry.link
         published = entry.published
@@ -106,7 +106,7 @@ elif menu == "📢 Notícias do Futebol":
                 if 'image' in l.type:
                     image_url = l.href
                     break
-
+                    
         st.markdown(f"""
         <div style="display: flex; background-color: #1e1e2f; padding: 10px; margin-bottom: 10px; border-radius: 10px;">
             <img src="{image_url}" style="width: 120px; height: 80px; object-fit: cover; border-radius: 8px; margin-right: 15px;" />
