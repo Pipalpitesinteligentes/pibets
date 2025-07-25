@@ -81,22 +81,20 @@ menu = st.sidebar.radio("Escolha uma opção:", ["📊 Palpites", "📢 Notícia
 # ========== EXIBIR CONTEÚDO CONFORME O MENU ==========
 if menu == "📊 Palpites":
     st.title(" ")
-    # (coloque aqui o conteúdo dos palpites)
+    st.image("logo.png", width=150)
+    st.write("Escolha um confronto abaixo e veja as previsões estatísticas.")
+    # ... (resto do conteúdo da aba Palpites)
 
 elif menu == "📢 Notícias do Futebol":
     st.markdown("## 📰 Últimas Notícias de Futebol - GE")
-
     url = "https://ge.globo.com/futebol/brasileirao-serie-a/"
     response = requests.get(url)
     soup = BeautifulSoup(response.content, 'html.parser')
-
     news_cards = soup.select('div.feed-post-body')
-
     for card in news_cards[:6]:
         title_tag = card.select_one('.feed-post-link')
         title = title_tag.get_text(strip=True) if title_tag else "Sem título"
         link = title_tag['href'] if title_tag else "#"
-
         st.markdown(f"""
             <div style="background-color: #1e1e2f; padding: 15px; margin-bottom: 15px; border-radius: 10px;">
                 <a href="{link}" target="_blank" style="color: #4da6ff; font-size: 18px; font-weight: bold; text-decoration: none;">{title}</a>
@@ -106,6 +104,7 @@ elif menu == "📢 Notícias do Futebol":
 elif menu == "🚪 Sair":
     st.warning("Você saiu da aplicação.")
     st.stop()
+
     
     from newspaper import Article
 import feedparser
