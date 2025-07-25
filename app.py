@@ -92,15 +92,29 @@ elif menu == "📢 Notícias do Futebol":
     rss_url = "https://ge.globo.com/rss/gloesporte/futebol/brasileirao-serie-a/"
     feed = feedparser.parse(rss_url)
 
-    for entry in noticias[:6]:  # exibe 6 últimas
+        for entry in feed.entries[:6]:
+        title = entry.title
+        link = entry.link
+        published = entry.published
+
+        # Tenta pegar imagem (se existir)
+        image_url = ""
+        if 'media_content' in entry and entry.media_content:
+            image_url = entry.media_content[0]['url']
+        elif 'links' in entry:
+            for l in entry.links:
+                if 'image' in l.type:
+                    image_url = l.href
+                    break
+
         st.markdown(f"""
-            <div class="news-card">
-                <img src="{image_url}" class="news-image">
-                <div class="news-content">
-                    <a href="{entry.link}" target="_blank">{entry.title}</a>
-                    <div class="news-date">{entry.published}</div>
-                </div>
+        <div style="display: flex; background-color: #1e1e2f; padding: 10px; margin-bottom: 10px; border-radius: 10px;">
+            <img src="{image_url}" style="width: 120px; height: 80px; object-fit: cover; border-radius: 8px; margin-right: 15px;" />
+            <div>
+                <a href="{link}" target="_blank" style="text-decoration: none; color: #4da6ff; font-size: 18px; font-weight: bold;">{title}</a><br>
+                <span style="font-size: 13px; color: #ccc;">{published}</span>
             </div>
+        </div>
         """, unsafe_allow_html=True)
 
 elif menu == "🚪 Sair":
