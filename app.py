@@ -82,8 +82,6 @@ menu = st.sidebar.radio("Escolha uma opção:", ["📊 Palpites", "📢 Notícia
 if menu == "📊 Palpites":
     st.title(" ")
     # (coloque aqui o conteúdo dos palpites)
-import requests
-from bs4 import BeautifulSoup
 
 elif menu == "📢 Notícias do Futebol":
     st.markdown("## 📰 Últimas Notícias de Futebol - GE")
@@ -94,28 +92,16 @@ elif menu == "📢 Notícias do Futebol":
 
     news_cards = soup.select('div.feed-post-body')
 
-    if not news_cards:
-        st.warning("Nenhuma notícia foi encontrada no momento.")
-    else:
-        for post in news_cards[:5]:  # Mostrar até 5 notícias
-            title_tag = post.select_one(".feed-post-link")
-            image_tag = post.select_one("img")
-            date_tag = post.select_one(".feed-post-datetime")
+    for card in news_cards[:6]:
+        title_tag = card.select_one('.feed-post-link')
+        title = title_tag.get_text(strip=True) if title_tag else "Sem título"
+        link = title_tag['href'] if title_tag else "#"
 
-            title = title_tag.text.strip() if title_tag else "Sem título"
-            link = title_tag['href'] if title_tag else "#"
-            image = image_tag['src'] if image_tag else ""
-            date = date_tag.text.strip() if date_tag else ""
-
-            st.markdown(f"""
-                <div style="display: flex; background-color: #1e1e2f; padding: 10px; margin-bottom: 10px; border-radius: 10px;">
-                    <img src="{image}" style="width: 120px; height: 80px; object-fit: cover; border-radius: 8px; margin-right: 15px;" />
-                    <div>
-                        <a href="{link}" target="_blank" style="text-decoration: none; color: #4da6ff; font-size: 18px; font-weight: bold;">{title}</a><br>
-                        <span style="font-size: 13px; color: #ccc;">{date}</span>
-                    </div>
-                </div>
-            """, unsafe_allow_html=True)
+        st.markdown(f"""
+            <div style="background-color: #1e1e2f; padding: 15px; margin-bottom: 15px; border-radius: 10px;">
+                <a href="{link}" target="_blank" style="color: #4da6ff; font-size: 18px; font-weight: bold; text-decoration: none;">{title}</a>
+            </div>
+        """, unsafe_allow_html=True)
 
 elif menu == "🚪 Sair":
     st.warning("Você saiu da aplicação.")
