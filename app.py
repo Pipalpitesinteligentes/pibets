@@ -83,40 +83,40 @@ if menu == "📊 Palpites":
     st.title(" ")
     # (coloque aqui o conteúdo dos palpites)
 
+import requests
+from bs4 import BeautifulSoup
+
 elif menu == "📢 Notícias do Futebol":
     st.markdown("## 📰 Últimas Notícias de Futebol - GE")
 
-    import requests
-    from bs4 import BeautifulSoup
+    url = "https://ge.globo.com/futebol/brasileirao-serie-a/"
+    response = requests.get(url)
+    soup = BeautifulSoup(response.content, 'html.parser')
 
-    rss_url = "https://ge.globo.com/rss/gloesporte/futebol/brasileirao-serie-a/"
-    feed = feedparser.parse(rss_url)
+    news_cards = soup.select('div.feed-post-body')
 
-    for entry in feed.entries[:6]:
-        title = entry.title
-        link = entry.link
-        published = entry.published
+    if not news_cards:
+        st.warning("Nenhuma notícia foi encontrada no momento.")
+    else:
+        for post in news_cards[:5]:  # Mostrar até 5 notícias
+            title_tag = post.select_one(".feed-post-link")
+            image_tag = post.select_one("img")
+            date_tag = post.select_one(".feed-post-datetime")
 
-        # Tenta buscar imagem direto da notícia (via scraping leve)
-        image_url = ""
-        try:
-            response = requests.get(link, timeout=3)
-            soup = BeautifulSoup(response.content, 'html.parser')
-            og_image = soup.find("meta", property="og:image")
-            if og_image and og_image["content"]:
-                image_url = og_image["content"]
-        except:
-            image_url = ""
+            title = title_tag.text.strip() if title_tag else "Sem título"
+            link = title_tag['href'] if title_tag else "#"
+            image = image_tag['src'] if image_tag else ""
+            date = date_tag.text.strip() if date_tag else ""
 
-        st.markdown(f"""
-        <div class="news-card">
-            <img src="{image_url}" class="news-image"/>
-            <div class="news-content">
-                <a href="{link}" target="_blank">{title}</a>
-                <div class="news-date">{published}</div>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+            st.markdown(f"""
+                <div style="display: flex; background-color: #1e1e2f; padding: 10px; margin-bottom: 10px; border-radius: 10px;">
+                    <img src="{image}" style="width: 120px; height: 80px; object-fit: cover; border-radius: 8px; margin-right: 15px;" />
+                    <div>
+                        <a href="{link}" target="_blank" style="text-decoration: none; color: #4da6ff; font-size: 18px; font-weight: bold;">{title}</a><br>
+                        <span style="font-size: 13px; color: #ccc;">{date}</span>
+                    </div>
+                </div>
+            """, unsafe_allow_html=True)
 
 elif menu == "🚪 Sair":
     st.warning("Você saiu da aplicação.")
