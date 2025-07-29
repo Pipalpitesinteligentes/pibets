@@ -112,7 +112,7 @@ elif menu == "📈 Gestão de Banca":
     })
 
     # Editor interativo
-df_editado = st.data_editor(
+    df_editado = st.data_editor(
     df,
     num_rows="fixed",
     use_container_width=True,
@@ -128,13 +128,6 @@ df_editado["Resultado em %"] = df_editado["Resultado do Dia (R$)"].apply(
 # Cálculo da banca final
 resultado_total = sum(df_editado["Resultado do Dia (R$)"]) - sum(df_editado["Saque (R$)"])
 banca_final = banca_inicial + resultado_total
-
-# Exibe banca final
-st.markdown(f"""
-<div class='banca-final'>
-    <span class='emoji'>💼</span> Banca Final: R$ {banca_final:,.2f}
-</div>
-""", unsafe_allow_html=True)
 
     # Exibe resultado
 st.markdown(f"""
