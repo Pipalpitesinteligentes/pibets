@@ -108,28 +108,27 @@ elif menu == "📈 Gestão de Banca":
     saques_total = sum(df_editado["Saque (R$)"])
     banca_final = banca_inicial + lucro_total - saques_total
 
-    st.markdown(f"""
-    <div class='banca-final'>
-        💰 <strong>Lucro/Prejuízo Total:</strong> R$ {lucro_total:,.2f}  
-        🏧 <strong>Saques Totais:</strong> R$ {saques_total:,.2f}  
-        💼 <strong>Banca Final:</strong> R$ {banca_final:,.2f}
-    </div>
-    """, unsafe_allow_html=True)
+    t.markdown(f"""
+<div class='banca-final'>
+    💰 <strong>Lucro/Prejuízo Total:</strong> R$ {lucro_total:,.2f}  
+    🏧 <strong>Saques Totais:</strong> R$ {saques_total:,.2f}  
+    💼 <strong>Banca Final:</strong> R$ {banca_final:,.2f}
+</div>
+""", unsafe_allow_html=True)
 
-    st.markdown("""
-    <style>
-    .banca-final {
-        margin-top: 30px;
-        font-size: 22px;
-        font-weight: bold;
-        color: #00FF88;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-    </style>
-    """, unsafe_allow_html=True)
-
+st.markdown("""
+<style>
+.banca-final {
+    margin-top: 30px;
+    font-size: 22px;
+    font-weight: bold;
+    color: #00FF88;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+</style>
+""", unsafe_allow_html=True)
   
 # ========= ESTILO VISUAL =========
 st.markdown("""
