@@ -125,7 +125,7 @@ elif menu == "📈 Gestão de Banca":
     banca_final = banca_inicial + resultado_total
 
     # Exibe resultado
-       st.markdown(f"""
+    st.markdown(f"""
     <div class='banca-final'>
         <span class='emoji'>💼</span> Banca Final: R$ {banca_final:,.2f}
     </div>
