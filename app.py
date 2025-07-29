@@ -1,3 +1,4 @@
+import streamlit_authenticator as stauth
 import streamlit as st
 import pandas as pd
 import gspread
@@ -9,7 +10,6 @@ import re
 import json
 import os
 import gspread
-import streamlit_authenticator as stauth
 
 # Salva o conteúdo do secrets em um arquivo temporário
 cred_json = st.secrets["GCP_SERVICE_ACCOUNT"]
