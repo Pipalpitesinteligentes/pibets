@@ -14,20 +14,20 @@ st.set_page_config(page_title="π - Palpites Inteligentes", page_icon="📊", la
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 
-# Definindo escopos de acesso
+# Define o escopo de acesso à API do Google
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
 
-# Caminho do seu JSON de credenciais
+# Carrega o JSON da conta de serviço
 credentials = ServiceAccountCredentials.from_json_keyfile_name("credentials_service.json", scope)
 
-# Conecta no Google Sheets
+# Autentica e conecta
 client = gspread.authorize(credentials)
 
 # Abre a planilha e a aba de usuários
-spreadsheet = client.open("usuarios_app")  # Nome da sua planilha
-sheet = spreadsheet.worksheet("usuarios")  # Nome da aba (worksheet)
+spreadsheet = client.open("usuarios_app")  # nome da planilha no Google Drive
+sheet = spreadsheet.worksheet("usuarios")  # nome da aba
 
-# Lê os dados e transforma em dicionário
+# Busca todos os dados e transforma em dicionário de login
 dados = sheet.get_all_records()
 usuarios = {linha['usuario']: str(linha['senha']) for linha in dados}
 
