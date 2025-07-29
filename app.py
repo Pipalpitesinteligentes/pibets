@@ -82,7 +82,7 @@ if menu == "📊 Palpites":
     # Coloque aqui o conteúdo dos palpites
 
 elif menu == "📈 Gestão de Banca":
-    st.markdown("## 📊 Gestão de Banca")
+    st.markdown("## 📈 Gestão de Banca")
 
     # Entrada da Banca Inicial
     banca_inicial = st.number_input("💰 Informe sua Banca Inicial (R$):", min_value=0.0, step=10.0, format="%.2f")
@@ -125,7 +125,11 @@ elif menu == "📈 Gestão de Banca":
     banca_final = banca_inicial + resultado_total
 
     # Exibe resultado
-    st.markdown(f"💼 **Banca Final: R$ {banca_final:,.2f}**")
+       st.markdown(f"""
+    <div class='banca-final'>
+        <span class='emoji'>💼</span> Banca Final: R$ {banca_final:,.2f}
+    </div>
+""", unsafe_allow_html=True)
 
 
 elif menu == "🚪 Sair":
