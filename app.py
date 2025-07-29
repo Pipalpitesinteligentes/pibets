@@ -126,11 +126,25 @@ elif menu == "📈 Gestão de Banca":
 
     # Exibe resultado
     st.markdown(f"""
-    <div class='banca-final'>
-        <span class='emoji'>💼</span> Banca Final: R$ {banca_final:,.2f}
-    </div>
+<div class='banca-final'>
+    💼 <strong>Banca Final: R$ {banca_final:,.2f}</strong>
+</div>
 """, unsafe_allow_html=True)
 
+# Estilo verde personalizado da Banca Final
+st.markdown("""
+<style>
+.banca-final {
+    margin-top: 30px;
+    font-size: 22px;
+    font-weight: bold;
+    color: #00FF88;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+</style>
+""", unsafe_allow_html=True)
 
 elif menu == "🚪 Sair":
      st.success("Você saiu com sucesso.")
