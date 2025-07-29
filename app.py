@@ -94,10 +94,10 @@ elif menu == "📢 Notícias do Futebol":
     soup = BeautifulSoup(response.content, 'html.parser')
     news_cards = soup.select('div.feed-post-body')
 
-  for card in news_cards[:6]:
-    title_tag = card.select_one('a.feed-post-link')
-    if not title_tag:
-        continue
+    for card in news_cards[:6]:
+        title_tag = card.select_one('a.feed-post-link')
+        if not title_tag:
+            continue
 
     title = title_tag.text.strip()
     link = title_tag['href']
