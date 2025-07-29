@@ -145,9 +145,8 @@ st.markdown("""
 }
 </style>
 """, unsafe_allow_html=True)
-
 elif menu == "🚪 Sair":
-st.success("Você saiu com sucesso.")
+     st.success("Você saiu com sucesso.")
 
 # ========= ESTILO VISUAL =========
 st.markdown("""
