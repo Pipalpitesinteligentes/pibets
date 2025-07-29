@@ -44,7 +44,7 @@ for linha in dados:
     email = linha['email']
     senha = str(linha['senha'])  # senha simples da planilha
 
-    senha_hash = stauth.Hasher([senha]).generate()[0]
+    senha_hash = stauth.Hasher([senha]).generate()
 
     usuarios_config['credentials']['usernames'][usuario] = {
         'email': email,
