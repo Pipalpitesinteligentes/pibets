@@ -81,7 +81,7 @@ menu = st.sidebar.radio("Escolha uma opção:", ["📊 Palpites", "📢 Notícia
 # ========== EXIBIR CONTEÚDO CONFORME O MENU ==========
 if menu == "📊 Palpites":
     st.title(" ")
-
+    # Coloque aqui o conteúdo dos palpites
 
 elif menu == "📢 Notícias do Futebol":
     import requests
@@ -92,85 +92,31 @@ elif menu == "📢 Notícias do Futebol":
     url = "https://ge.globo.com/futebol/brasileirao-serie-a/"
     response = requests.get(url)
     soup = BeautifulSoup(response.content, 'html.parser')
-
     news_cards = soup.select('div.feed-post-body')
-
-    # Estilo visual
-    st.markdown("""
-        <style>
-            .news-box {
-                background-color: #1e1e2f;
-                padding: 15px;
-                margin-bottom: 15px;
-                border-radius: 10px;
-                box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
-                display: flex;
-                align-items: center;
-                transition: all 0.3s ease-in-out;
-            }
-            .news-box:hover {
-                background-color: #2a2a3d;
-            }
-            .news-image {
-                width: 120px;
-                height: 80px;
-                object-fit: cover;
-                border-radius: 8px;
-                margin-right: 15px;
-            }
-            .news-content {
-                flex-grow: 1;
-            }
-            .news-content a {
-                color: #4da6ff;
-                font-size: 17px;
-                font-weight: bold;
-                text-decoration: none;
-            }
-            .news-content a:hover {
-                color: #80c9ff;
-            }
-            .news-date {
-                color: #bbb;
-                font-size: 12px;
-                margin-top: 5px;
-            }
-        </style>
-    """, unsafe_allow_html=True)
 
     for card in news_cards[:6]:
         title_tag = card.select_one('a.feed-post-link')
         if not title_tag:
             continue
-            
-            title_tag = card.select_one('a.feed-post-link')
-        if not title_tag:
-          continue
 
-title = title_tag.text.strip()
-link = title_tag['href']
+        title = title_tag.text.strip()
+        link = title_tag['href']
 
-# Tenta obter imagem com verificação segura
-image_tag = card.find_previous('img')
-if image_tag and image_tag.has_attr('src'):
-    image_url = image_tag['src']
-else:
-    image_url = "https://via.placeholder.com/120x80?text=GE"
+        image_tag = card.find_previous('img')
+        image_url = image_tag['src'] if image_tag and image_tag.has_attr('src') else "https://via.placeholder.com/120x80?text=GE"
 
-# Card visual
-st.markdown(f"""
-    <div class="news-box">
-        <img src="{image_url}" class="news-image"/>
-        <div class="news-content">
-            <a href="{link}" target="_blank">{title}</a>
-            <div class="news-date">Fonte: ge.globo.com</div>
-        </div>
-    </div>
-""", unsafe_allow_html=True)
-        
+        st.markdown(f"""
+            <div class="news-box">
+                <img src="{image_url}" class="news-image"/>
+                <div class="news-content">
+                    <a href="{link}" target="_blank">{title}</a>
+                    <div class="news-date">Fonte: ge.globo.com</div>
+                </div>
+            </div>
+        """, unsafe_allow_html=True)
+
 elif menu == "🚪 Sair":
-    st.warning("Você saiu da aplicação.")
-    st.stop()
+    st.success("Você saiu com sucesso.")
 
     from newspaper import Article
 import feedparser
