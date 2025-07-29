@@ -11,9 +11,25 @@ import re
 st.set_page_config(page_title="π - Palpites Inteligentes", page_icon="📊", layout="wide")
 
 # Dicionário de usuários
-usuarios = {
-    "felipesouza": "171063"
-}
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
+
+# Definindo escopos de acesso
+scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+
+# Caminho do seu JSON de credenciais
+credentials = ServiceAccountCredentials.from_json_keyfile_name("credentials_service.json", scope)
+
+# Conecta no Google Sheets
+client = gspread.authorize(credentials)
+
+# Abre a planilha e a aba de usuários
+spreadsheet = client.open("usuarios_app")  # Nome da sua planilha
+sheet = spreadsheet.worksheet("usuarios")  # Nome da aba (worksheet)
+
+# Lê os dados e transforma em dicionário
+dados = sheet.get_all_records()
+usuarios = {linha['usuario']: str(linha['senha']) for linha in dados}
 
 # Verifica se já está logado
 if 'logado' not in st.session_state:
