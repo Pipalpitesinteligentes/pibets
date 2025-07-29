@@ -27,23 +27,30 @@ sheet = planilha.worksheet("usuarios")
 dados = sheet.get_all_records()
 
 # 4. Gera o config dinamicamente com base no conteúdo da planilha
-config = {
+usuarios_config = {
     'credentials': {
-        'usernames': {
-            linha['usuario']: {
-                'email': linha['email'],
-                'name': linha['nome'],
-                'password': stauth.Hasher([str(linha['senha'])]).generate()
-            }
-            for linha in dados
-        }
+        'usernames': {}
     },
     'cookie': {
-        'name': 'meu_cookie_login',
-        'key': 'chave_supersecreta_123',  # troque por algo único
-        'expiry_days': 7
+        'expiry_days': 30,
+        'key': 'chave_cookie_segura',
+        'name': 'nome_cookie_app'
     }
 }
+
+for linha in dados:
+    nome = linha['nome']
+    usuario = linha['usuario']
+    email = linha['email']
+    senha = str(linha['senha'])  # senha simples da planilha
+
+    senha_hash = stauth.Hasher([senha]).generate()[0]
+
+    usuarios_config['credentials']['usernames'][usuario] = {
+        'email': email,
+        'name': nome,
+        'password': senha_hash
+    }
 
 # 5. Inicializa o autentificador
 authenticator = stauth.Authenticate(
