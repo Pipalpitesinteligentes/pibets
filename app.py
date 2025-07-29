@@ -31,16 +31,15 @@ sheet = spreadsheet.worksheet("usuarios")  # nome da aba
 dados = sheet.get_all_records()
 usuarios = {linha['usuario']: str(linha['senha']) for linha in dados}
 
-# Verifica se já está logado
+# Login
 if 'logado' not in st.session_state:
     st.session_state.logado = False
 
-# Tela de login
 if not st.session_state.logado:
     st.title("🔐 Login")
-
     user = st.text_input("Usuário")
     senha = st.text_input("Senha", type="password")
+
     if st.button("Entrar"):
         if user in usuarios and usuarios[user] == senha:
             st.session_state.logado = True
@@ -52,41 +51,6 @@ if not st.session_state.logado:
     st.stop()
 
 # ========= CONTEÚDO LIBERADO APÓS LOGIN =========
-# Estilo dos cards de notícias
-st.markdown("""
-    <style>
-        .news-card {
-            background-color: #1e1e2f;
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 15px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
-            display: flex;
-            align-items: center;
-        }
-        .news-image {
-            width: 100px;
-            height: 100px;
-            object-fit: cover;
-            margin-right: 15px;
-            border-radius: 8px;
-        }
-        .news-content {
-            flex-grow: 1;
-        }
-        .news-content a {
-            font-size: 18px;
-            font-weight: bold;
-            text-decoration: none;
-            color: #3399ff;
-        }
-        .news-date {
-            font-size: 12px;
-            color: #aaa;
-            margin-top: 5px;
-        }
-    </style>
-""", unsafe_allow_html=True)
 
 with st.sidebar:
     st.markdown("## 👋 Bem-vindo, felipesouza!")
@@ -118,6 +82,11 @@ elif menu == "📈 Gestão de Banca":
     </style>
     """, unsafe_allow_html=True)
 
+elif menu == "🚪 Sair":
+    st.session_state.logado = False
+    st.success("Você saiu com sucesso.")
+    st.rerun()    
+    
     # Criando tabela de 30 dias
     dias = list(range(1, 31))
     df = pd.DataFrame({
