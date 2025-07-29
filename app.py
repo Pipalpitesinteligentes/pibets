@@ -115,8 +115,8 @@ for card in news_cards[:6]:
         </div>
     """, unsafe_allow_html=True)
 
-elif menu == "🚪 Sair":
-    st.success("Você saiu com sucesso.")
+    elif menu == "🚪 Sair":
+     st.success("Você saiu com sucesso.")
 
     from newspaper import Article
 import feedparser
