@@ -144,8 +144,8 @@ elif menu == "📢 Notícias do Futebol":
             continue
 
        title_tag = card.select_one('a.feed-post-link')
-if not title_tag:
-    continue
+        if not title_tag:
+          continue
 
 title = title_tag.text.strip()
 link = title_tag['href']
