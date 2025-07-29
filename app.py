@@ -126,7 +126,7 @@ elif menu == "📈 Gestão de Banca":
 
     # Exibe resultado
     st.markdown(f"""
-<div class='banca-final'>
+    <div class='banca-final'>
     💼 <strong>Banca Final: R$ {banca_final:,.2f}</strong>
 </div>
 """, unsafe_allow_html=True)
