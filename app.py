@@ -82,81 +82,25 @@ if menu == "📊 Palpites":
     # Coloque aqui o conteúdo dos palpites
 
 elif menu == "📈 Gestão de Banca":
-    st.markdown("### 📊 Gestão de Banca")
-    banca_inicial = st.number_input("💰 Informe sua Banca Inicial (R$):", value=0.0, step=10.0)
-
-    dados = [
-        {"dia": i+1, "resultado": 0.0, "percentual": "0%", "saque": 0.0}
-        for i in range(10)
-    ]
-
-    # Estilo visual escuro
-    st.markdown("""
-    <style>
-    .tabela-banca {
-        width: 100%;
-        border-collapse: collapse;
-        border-radius: 10px;
-        overflow: hidden;
-        font-family: 'Segoe UI', sans-serif;
-        margin-top: 20px;
-    }
-    .tabela-banca th, .tabela-banca td {
-        padding: 10px;
-        text-align: center;
-        border: 1px solid #333;
-    }
-    .tabela-banca th {
-        background-color: #1e1f2f;
-        color: #ffffff;
-    }
-    .tabela-banca td {
-        background-color: #13141f;
-        color: #ffffff;
-    }
-    .banca-final {
-        margin-top: 30px;
-        font-size: 20px;
-        font-weight: bold;
-        color: #00ff99;
-    }
-    </style>
-    """, unsafe_allow_html=True)
-
-    # Gera a tabela com os dados
-    tabela_html = """
-    <table class="tabela-banca">
-    <thead>
-        <tr>
-            <th>📅 Dia</th>
-            <th>💸 Resultado do Dia (R$)</th>
-            <th>📈 Resultado em %</th>
-            <th>🏦 Saque (R$)</th>
-        </tr>
-    </thead>
-    <tbody>
-    """
-    for linha in dados:
-        tabela_html += f"""
-        <tr>
-            <td>{linha['dia']}</td>
-            <td>R$ {linha['resultado']:.2f}</td>
-            <td>{linha['percentual']}</td>
-            <td>R$ {linha['saque']:.2f}</td>
-        </tr>
-        """
-    tabela_html += "</tbody></table>"
-
-    st.markdown(tabela_html, unsafe_allow_html=True)
-
-    # Exibe banca final
-    banca_final = banca_inicial
-    st.markdown(f"<div class='banca-final'>💼 Banca Final: R$ {banca_final:,.2f}</div>", unsafe_allow_html=True)
-    
-    st.markdown("## 📈 Gestão de Banca")
+    st.markdown("## 📊 Gestão de Banca")
 
     # Entrada da Banca Inicial
     banca_inicial = st.number_input("💰 Informe sua Banca Inicial (R$):", min_value=0.0, step=10.0, format="%.2f")
+
+    # Estilo escuro personalizado
+    st.markdown("""
+    <style>
+    .stDataFrame, .st-emotion-cache-1uixxvy {
+        background-color: #13141f !important;
+        color: #ffffff !important;
+    }
+    .st-emotion-cache-1v0mbdj p {
+        color: #00ff99;
+        font-size: 20px;
+        font-weight: bold;
+    }
+    </style>
+    """, unsafe_allow_html=True)
 
     # Criando tabela de 30 dias
     dias = list(range(1, 31))
@@ -180,11 +124,9 @@ elif menu == "📈 Gestão de Banca":
     resultado_total = sum(df_editado["Resultado do Dia (R$)"]) - sum(df_editado["Saque (R$)"])
     banca_final = banca_inicial + resultado_total
 
-    st.markdown(f"""
-    <div class='banca-final'>
-        <span class='emoji'>💼</span> Banca Final: R$ {banca_final:,.2f}
-    </div>
-""", unsafe_allow_html=True)
+    # Exibe resultado
+    st.markdown(f"💼 **Banca Final: R$ {banca_final:,.2f}**")
+
 
 elif menu == "🚪 Sair":
      st.success("Você saiu com sucesso.")
