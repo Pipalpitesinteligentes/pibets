@@ -8,38 +8,25 @@ import requests
 import re
 import json
 import os
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
 
 # Salva o conteúdo do secrets em um arquivo temporário
 cred_json = st.secrets["GCP_SERVICE_ACCOUNT"]
 with open("/tmp/credentials.json", "w") as f:
     f.write(cred_json)  # se der erro, use: json.dump(cred_json, f)
 
-# ========= SISTEMA DE LOGIN CASEIRO =========
-st.set_page_config(page_title="π - Palpites Inteligentes", page_icon="📊", layout="wide")
-
-# Dicionário de usuários
-import gspread
-from oauth2client.service_account import ServiceAccountCredentials
-
-# Define o escopo de acesso à API do Google
+# 2. Conecta ao Google Sheets com escopo apropriado
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-
-# Carrega o JSON da conta de serviço
 credentials = ServiceAccountCredentials.from_json_keyfile_name("/tmp/credentials.json", scope)
-
-# Autentica e conecta
 client = gspread.authorize(credentials)
 
-# Abre a planilha e a aba de usuários
-spreadsheet = client.open("usuarios_app")  # nome da planilha no Google Drive
-sheet = spreadsheet.worksheet("usuarios")  # nome da aba
-
-# Busca todos os dados e transforma em dicionário de login
+# 3. Acessa a aba de usuários da planilha
+planilha = client.open("usuarios_app")
+sheet = planilha.worksheet("usuarios")
 dados = sheet.get_all_records()
-usuarios = {linha['usuario']: str(linha['senha']) for linha in dados}
 
-import streamlit_authenticator as stauth
-
+# 4. Gera o config dinamicamente com base no conteúdo da planilha
 config = {
     'credentials': {
         'usernames': {
@@ -53,11 +40,12 @@ config = {
     },
     'cookie': {
         'name': 'meu_cookie_login',
-        'key': 'chave_supersecreta',
+        'key': 'chave_supersecreta_123',  # troque por algo único
         'expiry_days': 7
     }
 }
 
+# 5. Inicializa o autentificador
 authenticator = stauth.Authenticate(
     config['credentials'],
     config['cookie']['name'],
@@ -65,24 +53,29 @@ authenticator = stauth.Authenticate(
     config['cookie']['expiry_days']
 )
 
-# Login
-if 'logado' not in st.session_state:
-    st.session_state.logado = False
+# 6. Executa a tela de login
+name, authentication_status, username = authenticator.login("🔐 Login", "main")
 
-if not st.session_state.logado:
-    st.title("🔐 Login")
-    user = st.text_input("Usuário")
-    senha = st.text_input("Senha", type="password")
+# 7. Resultado do login
+if authentication_status:
+    st.sidebar.success(f"✅ Bem-vindo, {name}!")
+    menu = st.sidebar.selectbox("Menu", ["📊 Palpites", "📈 Gestão de Banca", "🚪 Sair"])
 
-    if st.button("Entrar"):
-        if user in usuarios and usuarios[user] == senha:
-            st.session_state.logado = True
-            st.session_state.usuario = user
-            st.success("✅ Login realizado com sucesso!")
-            st.rerun()
-        else:
-            st.error("❌ Usuário ou senha incorretos.")
-    st.stop()
+    if menu == "📊 Palpites":
+        st.title("📊 Palpites do Dia")
+        st.markdown("Conteúdo aqui...")
+
+    elif menu == "📈 Gestão de Banca":
+        st.title("📈 Gestão de Banca")
+        st.markdown("Outro conteúdo aqui...")
+
+    authenticator.logout("🚪 Sair", "sidebar")
+
+elif authentication_status is False:
+    st.error("❌ Usuário ou senha incorretos")
+
+elif authentication_status is None:
+    st.warning("🔐 Digite seu usuário e senha para continuar")
 
 # ========= CONTEÚDO LIBERADO APÓS LOGIN =========
 
