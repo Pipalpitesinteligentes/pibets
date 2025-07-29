@@ -4,9 +4,7 @@ import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 from gspread_dataframe import get_as_dataframe
 from PIL import Image
-import feedparser
 import requests
-from bs4 import BeautifulSoup
 import re
 
 # ========= SISTEMA DE LOGIN CASEIRO =========
@@ -76,43 +74,45 @@ st.markdown("""
 
 st.sidebar.markdown("## 👋 Bem-vindo, felipesouza!")
 
-menu = st.sidebar.radio("Escolha uma opção:", ["📊 Palpites", "📢 Notícias do Futebol", "🚪 Sair"])
+menu = st.radio("Escolha uma opção:", ["📊 Palpitações", "📈 Gestão de Banca", "🚪 Sair"])
 
 # ========== EXIBIR CONTEÚDO CONFORME O MENU ==========
 if menu == "📊 Palpites":
     st.title(" ")
     # Coloque aqui o conteúdo dos palpites
 
-elif menu == "📢 Notícias do Futebol":
-    import requests
-    from bs4 import BeautifulSoup
+elif menu == "📈 Gestão de Banca":
+    st.markdown("## 📈 Gestão de Banca")
 
-    st.markdown("## 📰 Últimas Notícias de Futebol - GE")
+    # Entrada da Banca Inicial
+    banca_inicial = st.number_input("💰 Informe sua Banca Inicial (R$):", min_value=0.0, step=10.0, format="%.2f")
 
-    url = "https://ge.globo.com/futebol/brasileirao-serie-a/"
-    response = requests.get(url)
-    soup = BeautifulSoup(response.content, 'html.parser')
-    news_cards = soup.select('div.feed-post-body')
+    # Criando tabela de 30 dias
+    dias = list(range(1, 31))
+    df = pd.DataFrame({
+        "Dia": dias,
+        "Resultado do Dia (R$)": [0.0] * len(dias),
+        "Resultado em %": ["0%"] * len(dias),
+        "Saque (R$)": [0.0] * len(dias)
+    })
 
-    for card in news_cards[:6]:
-        title_tag = card.select_one('a.feed-post-link')
-        if not title_tag:
-            continue
+    # Editor interativo
+    df_editado = st.data_editor(
+        df,
+        num_rows="fixed",
+        use_container_width=True,
+        hide_index=True,
+        key="gestao_banca"
+    )
 
-    title = title_tag.text.strip()
-    link = title_tag['href']
-
-    image_tag = card.find('img')
-    image_url = image_tag['src'] if image_tag and image_tag.has_attr('src') else "https://via.placeholder.com/120x80?text=GE"
+    # Cálculo da banca final
+    resultado_total = sum(df_editado["Resultado do Dia (R$)"]) - sum(df_editado["Saque (R$)"])
+    banca_final = banca_inicial + resultado_total
 
     st.markdown(f"""
-        <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 20px; background-color: #1e1e2f; padding: 15px; border-radius: 8px;">
-            <img src="{image_url}" width="120" height="80" style="border-radius: 4px;" />
-            <div>
-                <a href="{link}" target="_blank" style="font-size: 18px; color: #2aa9ff; font-weight: bold;">{title}</a>
-                <div style="font-size: 12px; color: #aaa;">Fonte: ge.globo.com</div>
-            </div>
-        </div>
+    <div style='margin-top: 30px; font-size: 24px; color: #00FFAA; font-weight: bold'>
+        💼 Banca Final: R$ {banca_final:,.2f}
+    </div>
     """, unsafe_allow_html=True)
 
 elif menu == "🚪 Sair":
