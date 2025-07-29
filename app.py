@@ -16,73 +16,39 @@ cred_json = st.secrets["GCP_SERVICE_ACCOUNT"]
 with open("/tmp/credentials.json", "w") as f:
     f.write(cred_json)  # se der erro, use: json.dump(cred_json, f)
 
-# 2. Conecta ao Google Sheets com escopo apropriado
+# ==== Configuração Google Sheets ====
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-credentials = ServiceAccountCredentials.from_json_keyfile_name("/tmp/credentials.json", scope)
-client = gspread.authorize(credentials)
+creds = ServiceAccountCredentials.from_json_keyfile_name("credentials_service.json", scope)
+client = gspread.authorize(creds)
 
-# 3. Acessa a aba de usuários da planilha
+# Nome da planilha e aba
 planilha = client.open("usuarios_app")
-sheet = planilha.worksheet("usuarios")
-dados = sheet.get_all_records()
+aba = planilha.worksheet("usuarios")
 
-# 4. Gera o config dinamicamente com base no conteúdo da planilha
-usuarios_config = {
-    'credentials': {
-        'usernames': {}
-    },
-    'cookie': {
-        'expiry_days': 30,
-        'key': 'chave_cookie_segura',
-        'name': 'nome_cookie_app'
-    }
-}
+# Puxa os dados
+dados = aba.get_all_records()
+usuarios = {linha['usuario']: linha['senha'] for linha in dados}
+nomes = {linha['usuario']: linha['nome'] for linha in dados}
 
-for linha in dados:
-    nome = linha['nome']
-    usuario = linha['usuario']
-    email = linha['email']
-    senha = str(linha['senha'])  # senha simples da planilha
+# Sessão de login
+if 'logado' not in st.session_state:
+    st.session_state.logado = False
 
-    senha_hash = stauth.Hasher([senha]).generate()
-
-    usuarios_config['credentials']['usernames'][usuario] = {
-        'email': email,
-        'name': nome,
-        'password': senha_hash
-    }
-
-# 5. Inicializa o autentificador
-authenticator = stauth.Authenticate(
-    config['credentials'],
-    config['cookie']['name'],
-    config['cookie']['key'],
-    config['cookie']['expiry_days']
-)
-
-# 6. Executa a tela de login
-name, authentication_status, username = authenticator.login("🔐 Login", "main")
-
-# 7. Resultado do login
-if authentication_status:
-    st.sidebar.success(f"✅ Bem-vindo, {name}!")
-    menu = st.sidebar.selectbox("Menu", ["📊 Palpites", "📈 Gestão de Banca", "🚪 Sair"])
-
-    if menu == "📊 Palpites":
-        st.title("📊 Palpites do Dia")
-        st.markdown("Conteúdo aqui...")
-
-    elif menu == "📈 Gestão de Banca":
-        st.title("📈 Gestão de Banca")
-        st.markdown("Outro conteúdo aqui...")
-
-    authenticator.logout("🚪 Sair", "sidebar")
-
-elif authentication_status is False:
-    st.error("❌ Usuário ou senha incorretos")
-
-elif authentication_status is None:
-    st.warning("🔐 Digite seu usuário e senha para continuar")
+if not st.session_state.logado:
+    st.title("🔐 Login")
+    user = st.text_input("Usuário")
+    senha = st.text_input("Senha", type="password")
+    
+    if st.button("Entrar"):
+        if user in usuarios and str(usuarios[user]) == senha:
+            st.session_state.logado = True
+            st.session_state.usuario = user
+            st.session_state.nome = nomes[user]
+            st.success("✅ Login realizado com sucesso!")
+            st.rerun()
+        else:
+            st.error("❌ Usuário ou senha incorretos.")
+    st.stop()
 
 # ========= CONTEÚDO LIBERADO APÓS LOGIN =========
 
