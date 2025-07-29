@@ -142,8 +142,8 @@ elif menu == "📢 Notícias do Futebol":
         title_tag = card.select_one('a.feed-post-link')
         if not title_tag:
             continue
-
-       title_tag = card.select_one('a.feed-post-link')
+            
+            title_tag = card.select_one('a.feed-post-link')
         if not title_tag:
           continue
 
