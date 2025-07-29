@@ -5,3 +5,5 @@ gspread
 oauth2client
 gspread-dataframe
 pandas
+Pillow
+requests
