@@ -119,7 +119,7 @@ elif menu == "🚪 Sair":
      st.success("Você saiu com sucesso.")
 
     from newspaper import Article
-import feedparser
+        import feedparser
 
 # ========= ESTILO VISUAL =========
 st.markdown("""
