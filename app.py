@@ -33,7 +33,7 @@ config = {
             linha['usuario']: {
                 'email': linha['email'],
                 'name': linha['nome'],
-                'password': stauth.Hasher([str(linha['senha'])]).generate()[0]
+                'password': stauth.Hasher([str(linha['senha'])]).generate()
             }
             for linha in dados
         }
