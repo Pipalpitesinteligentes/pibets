@@ -6,6 +6,13 @@ from gspread_dataframe import get_as_dataframe
 from PIL import Image
 import requests
 import re
+import json
+import os
+
+# Salva o conteúdo do secrets em um arquivo temporário
+cred_json = st.secrets["GCP_SERVICE_ACCOUNT"]
+with open("/tmp/credentials.json", "w") as f:
+    f.write(cred_json)  # se der erro, use: json.dump(cred_json, f)
 
 # ========= SISTEMA DE LOGIN CASEIRO =========
 st.set_page_config(page_title="π - Palpites Inteligentes", page_icon="📊", layout="wide")
@@ -18,7 +25,7 @@ from oauth2client.service_account import ServiceAccountCredentials
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
 
 # Carrega o JSON da conta de serviço
-credentials = ServiceAccountCredentials.from_json_keyfile_name("credentials_service.json", scope)
+credentials = ServiceAccountCredentials.from_json_keyfile_name("/tmp/credentials.json", scope)
 
 # Autentica e conecta
 client = gspread.authorize(credentials)
@@ -30,6 +37,33 @@ sheet = spreadsheet.worksheet("usuarios")  # nome da aba
 # Busca todos os dados e transforma em dicionário de login
 dados = sheet.get_all_records()
 usuarios = {linha['usuario']: str(linha['senha']) for linha in dados}
+
+import streamlit_authenticator as stauth
+
+config = {
+    'credentials': {
+        'usernames': {
+            linha['usuario']: {
+                'email': linha['email'],
+                'name': linha['nome'],
+                'password': stauth.Hasher([str(linha['senha'])]).generate()[0]
+            }
+            for linha in dados
+        }
+    },
+    'cookie': {
+        'name': 'meu_cookie_login',
+        'key': 'chave_supersecreta',
+        'expiry_days': 7
+    }
+}
+
+authenticator = stauth.Authenticate(
+    config['credentials'],
+    config['cookie']['name'],
+    config['cookie']['key'],
+    config['cookie']['expiry_days']
+)
 
 # Login
 if 'logado' not in st.session_state:
