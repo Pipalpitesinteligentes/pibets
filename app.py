@@ -82,6 +82,31 @@ if menu == "📊 Palpites":
     # Coloque aqui o conteúdo dos palpites
 
 elif menu == "📈 Gestão de Banca":
+    st.markdown("""
+    <style>
+    /* Estilo da tabela do st.data_editor */
+    .stDataFrame, .stDataEditor {
+        background-color: #0f1020 !important;
+        color: white !important;
+        border: none;
+    }
+
+    .st-emotion-cache-1wmy9hl {
+        background-color: #0f1020 !important; /* Fundo do painel colapsável */
+    }
+
+    section.main > div {
+        background-color: #0f1020 !important;
+    }
+
+    /* Cabeçalhos da tabela */
+    .css-1iyq7zh, .css-1uixxvy {
+        background-color: #0f1020 !important;
+        color: white !important;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
     st.markdown("## 📈 Gestão de Banca")
 
     # Entrada da Banca Inicial
