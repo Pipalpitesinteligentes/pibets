@@ -66,10 +66,8 @@ elif menu == "🚪 Sair":
 elif menu == "📈 Gestão de Banca":
     st.markdown("## 📈 Gestão de Banca")
 
-    # Entrada da Banca Inicial
     banca_inicial = st.number_input("💰 Informe sua Banca Inicial (R$):", min_value=0.0, step=10.0, format="%.2f")
 
-    # Estilo escuro personalizado
     st.markdown("""
     <style>
     .stDataFrame, .st-emotion-cache-1uixxvy {
@@ -84,7 +82,6 @@ elif menu == "📈 Gestão de Banca":
     </style>
     """, unsafe_allow_html=True)
     
-    # Criando tabela de 30 dias
     dias = list(range(1, 31))
     df = pd.DataFrame({
         "Dia": dias,
@@ -93,49 +90,47 @@ elif menu == "📈 Gestão de Banca":
         "Saque (R$)": [0.0] * len(dias)
     })
 
-    # Editor interativo
     df_editado = st.data_editor(
-    df,
-    num_rows="fixed",
-    use_container_width=True,
-    hide_index=True,
-    key="gestao_banca"
-)
+        df,
+        num_rows="fixed",
+        use_container_width=True,
+        hide_index=True,
+        key="gestao_banca"
+    )
 
-# Recalcular a coluna 'Resultado em %'
-df_editado["Resultado em %"] = df_editado["Resultado do Dia (R$)"].apply(
-    lambda x: f"{(x / banca_inicial * 100):.2f}%" if banca_inicial > 0 else "0%"
-)
+    # Recalcular a coluna 'Resultado em %'
+    df_editado["Resultado em %"] = df_editado["Resultado do Dia (R$)"].apply(
+        lambda x: f"{(x / banca_inicial * 100):.2f}%" if banca_inicial > 0 else "0%"
+    )
 
-# Calcular lucro/prejuízo e saque total
-lucro_total = sum(df_editado["Resultado do Dia (R$)"])
-saques_total = sum(df_editado["Saque (R$)"])
-banca_final = banca_inicial + lucro_total - saques_total
+    # Calcular lucro/prejuízo e saque total
+    lucro_total = sum(df_editado["Resultado do Dia (R$)"])
+    saques_total = sum(df_editado["Saque (R$)"])
+    banca_final = banca_inicial + lucro_total - saques_total
 
-# Exibe os resultados finais
-st.markdown(f"""
-<div class='banca-final'>
-    💰 <strong>Lucro/Prejuízo Total:</strong> R$ {lucro_total:,.2f}  
-    🏧 <strong>Saques Totais:</strong> R$ {saques_total:,.2f}  
-    💼 <strong>Banca Final:</strong> R$ {banca_final:,.2f}
-</div>
-""", unsafe_allow_html=True)
+    st.markdown(f"""
+    <div class='banca-final'>
+        💰 <strong>Lucro/Prejuízo Total:</strong> R$ {lucro_total:,.2f}  
+        🏧 <strong>Saques Totais:</strong> R$ {saques_total:,.2f}  
+        💼 <strong>Banca Final:</strong> R$ {banca_final:,.2f}
+    </div>
+    """, unsafe_allow_html=True)
 
-# Estilo verde personalizado da Banca Final
-st.markdown("""
-<style>
-.banca-final {
-    margin-top: 30px;
-    font-size: 22px;
-    font-weight: bold;
-    color: #00FF88;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-</style>
-""", unsafe_allow_html=True)
-        
+    st.markdown("""
+    <style>
+    .banca-final {
+        margin-top: 30px;
+        font-size: 22px;
+        font-weight: bold;
+        color: #00FF88;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+  
 # ========= ESTILO VISUAL =========
 st.markdown("""
     <style>
