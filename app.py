@@ -2,7 +2,6 @@ import streamlit_authenticator as stauth
 import streamlit as st
 import pandas as pd
 import gspread
-from google.oauth2.service_account import Credentials
 from gspread_dataframe import get_as_dataframe
 from PIL import Image
 import requests
@@ -17,7 +16,6 @@ creds = Credentials.from_service_account_info(creds_dict, scopes=scope)
 
 # ==== Configuração Google Sheets ====
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-creds = ServiceAccountCredentials.from_json_keyfile_name("credentials_service.json", scope)
 client = gspread.authorize(creds)
 
 # Nome da planilha e aba
