@@ -106,7 +106,7 @@ elif menu == "📈 Gestão de Banca":
     }
     </style>
 """, unsafe_allow_html=True)
-
+    
     st.markdown("## 📈 Gestão de Banca")
 
     # Entrada da Banca Inicial
