@@ -1,4 +1,5 @@
 import streamlit as st
+import streamlit_authenticator as stauth
 import pandas as pd
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
@@ -9,7 +10,6 @@ import re
 import json
 import os
 import gspread
-from oauth2client.service_account import ServiceAccountCredentials
 
 # Salva o conteúdo do secrets em um arquivo temporário
 cred_json = st.secrets["GCP_SERVICE_ACCOUNT"]
