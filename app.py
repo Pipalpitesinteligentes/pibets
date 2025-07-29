@@ -1,13 +1,14 @@
-import feedparser
 import streamlit as st
-from PIL import Image
 import pandas as pd
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 from gspread_dataframe import get_as_dataframe
-import re
+from PIL import Image
+import feedparser
+from newspaper import Article
 import requests
 from bs4 import BeautifulSoup
+import re
 
 # ========= SISTEMA DE LOGIN CASEIRO =========
 st.set_page_config(page_title="π - Palpites Inteligentes", page_icon="📊", layout="wide")
@@ -117,9 +118,6 @@ elif menu == "📢 Notícias do Futebol":
 
 elif menu == "🚪 Sair":
      st.success("Você saiu com sucesso.")
-
-     from newspaper import Article
-          import feedparser
 
 # ========= ESTILO VISUAL =========
 st.markdown("""
