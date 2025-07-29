@@ -84,25 +84,53 @@ if menu == "📊 Palpites":
 elif menu == "📈 Gestão de Banca":
     st.markdown("""
     <style>
-    /* Estilo da tabela do st.data_editor */
+    /* Fundo da página */
+    .stApp {
+        background-color: #0f1020;
+        color: white;
+    }
+
+    /* Estilo da caixa de entrada da banca inicial */
+    .stTextInput > div > div > input {
+        background-color: #1a1b2e;
+        color: white;
+        border: 1px solid #444;
+        border-radius: 8px;
+        padding: 6px;
+    }
+
+    /* Estilo da tabela */
     .stDataFrame, .stDataEditor {
-        background-color: #0f1020 !important;
+        background-color: #1a1b2e !important;
         color: white !important;
-        border: none;
+        border-radius: 8px;
     }
 
-    .st-emotion-cache-1wmy9hl {
-        background-color: #0f1020 !important; /* Fundo do painel colapsável */
+    /* Títulos da tabela */
+    .st-emotion-cache-1iyq7zh, .st-emotion-cache-1uixxvy {
+        background-color: #1a1b2e !important;
+        color: #ffffff !important;
+        font-weight: bold;
     }
 
-    section.main > div {
-        background-color: #0f1020 !important;
-    }
-
-    /* Cabeçalhos da tabela */
-    .css-1iyq7zh, .css-1uixxvy {
-        background-color: #0f1020 !important;
+    /* Células da tabela */
+    .st-emotion-cache-13ejsyy {
         color: white !important;
+        background-color: #1a1b2e !important;
+    }
+
+    /* Mensagem de banca final */
+    .banca-final {
+        font-size: 22px;
+        font-weight: bold;
+        color: #00ff99;
+        margin-top: 25px;
+    }
+
+    /* Ícone da banca final */
+    .emoji {
+        font-size: 26px;
+        margin-right: 10px;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -135,10 +163,10 @@ elif menu == "📈 Gestão de Banca":
     banca_final = banca_inicial + resultado_total
 
     st.markdown(f"""
-    <div style='margin-top: 30px; font-size: 24px; color: #00FFAA; font-weight: bold'>
-        💼 Banca Final: R$ {banca_final:,.2f}
+    <div class='banca-final'>
+        <span class='emoji'>💼</span> Banca Final: R$ {banca_final:,.2f}
     </div>
-    """, unsafe_allow_html=True)
+""", unsafe_allow_html=True)
 
 elif menu == "🚪 Sair":
      st.success("Você saiu com sucesso.")
