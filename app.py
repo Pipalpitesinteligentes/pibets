@@ -125,14 +125,17 @@ df_editado["Resultado em %"] = df_editado["Resultado do Dia (R$)"].apply(
     lambda x: f"{(x / banca_inicial * 100):.2f}%" if banca_inicial > 0 else "0%"
 )
 
-# Cálculo da banca final
-resultado_total = sum(df_editado["Resultado do Dia (R$)"]) - sum(df_editado["Saque (R$)"])
-banca_final = banca_inicial + resultado_total
+# Calcular lucro/prejuízo e saque total
+lucro_total = sum(df_editado["Resultado do Dia (R$)"])
+saques_total = sum(df_editado["Saque (R$)"])
+banca_final = banca_inicial + lucro_total - saques_total
 
-    # Exibe resultado
+# Exibe os resultados finais
 st.markdown(f"""
-    <div class='banca-final'>
-    💼 <strong>Banca Final: R$ {banca_final:,.2f}</strong>
+<div class='banca-final'>
+    💰 <strong>Lucro/Prejuízo Total:</strong> R$ {lucro_total:,.2f}  
+    🏧 <strong>Saques Totais:</strong> R$ {saques_total:,.2f}  
+    💼 <strong>Banca Final:</strong> R$ {banca_final:,.2f}
 </div>
 """, unsafe_allow_html=True)
 
