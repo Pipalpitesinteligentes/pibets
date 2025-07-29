@@ -2,7 +2,7 @@ import streamlit_authenticator as stauth
 import streamlit as st
 import pandas as pd
 import gspread
-from oauth2client.service_account import ServiceAccountCredentials
+from google.oauth2.service_account import Credentials
 from gspread_dataframe import get_as_dataframe
 from PIL import Image
 import requests
@@ -12,9 +12,8 @@ import os
 import gspread
 
 # Salva o conteúdo do secrets em um arquivo temporário
-cred_json = st.secrets["GCP_SERVICE_ACCOUNT"]
-with open("/tmp/credentials.json", "w") as f:
-    f.write(cred_json)  # se der erro, use: json.dump(cred_json, f)
+creds_dict = json.loads(st.secrets["GCP_SERVICE_ACCOUNT"])
+creds = Credentials.from_service_account_info(creds_dict, scopes=scope)
 
 # ==== Configuração Google Sheets ====
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
