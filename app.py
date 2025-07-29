@@ -137,7 +137,7 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
     # Exibe resultado
-    st.markdown(f"""
+st.markdown(f"""
     <div class='banca-final'>
     💼 <strong>Banca Final: R$ {banca_final:,.2f}</strong>
 </div>
