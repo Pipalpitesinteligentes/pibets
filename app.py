@@ -109,26 +109,64 @@ elif menu == "📈 Gestão de Banca":
     banca_final = banca_inicial + lucro_total - saques_total
 
     st.markdown(f"""
-<div class='banca-final'>
-    💰 <strong>Lucro/Prejuízo Total:</strong> R$ {lucro_total:,.2f}  
-    🏧 <strong>Saques Totais:</strong> R$ {saques_total:,.2f}  
-    💼 <strong>Banca Final:</strong> R$ {banca_final:,.2f}
+<div class='resultado-container'>
+    <div class='box'>
+        <div class='emoji'>💰</div>
+        <div class='titulo'>Lucro/Prejuízo</div>
+        <div class='valor'>R$ {lucro_total:,.2f}</div>
+    </div>
+    <div class='box'>
+        <div class='emoji'>🏧</div>
+        <div class='titulo'>Saques Totais</div>
+        <div class='valor'>R$ {saques_total:,.2f}</div>
+    </div>
+    <div class='box'>
+        <div class='emoji'>💼</div>
+        <div class='titulo'>Banca Final</div>
+        <div class='valor'>R$ {banca_final:,.2f}</div>
+    </div>
 </div>
 """, unsafe_allow_html=True)
 
 st.markdown("""
 <style>
-.banca-final {
-    margin-top: 30px;
-    font-size: 22px;
+.resultado-container {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 40px;
+    gap: 40px;
+    flex-wrap: wrap;
+}
+
+.box {
+    background-color: #1a1b2e;
+    padding: 20px;
+    border-radius: 12px;
+    width: 220px;
+    text-align: center;
+    box-shadow: 0 0 10px #00FF88;
+}
+
+.emoji {
+    font-size: 28px;
+    margin-bottom: 10px;
+}
+
+.titulo {
+    font-size: 18px;
     font-weight: bold;
     color: #00FF88;
-    display: flex;
-    align-items: center;
-    gap: 10px;
+}
+
+.valor {
+    font-size: 24px;
+    font-weight: bold;
+    color: white;
+    margin-top: 5px;
 }
 </style>
 """, unsafe_allow_html=True)
+
   
 # ========= ESTILO VISUAL =========
 st.markdown("""
