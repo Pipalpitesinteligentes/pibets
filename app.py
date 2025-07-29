@@ -58,6 +58,11 @@ if menu == "📊 Palpites":
     st.title(" ")
     # Coloque aqui o conteúdo dos palpites
 
+elif menu == "🚪 Sair":
+    st.session_state.logado = False
+    st.success("Você saiu com sucesso.")
+    st.rerun()    
+
 elif menu == "📈 Gestão de Banca":
     st.markdown("## 📈 Gestão de Banca")
 
@@ -130,13 +135,7 @@ st.markdown("""
 }
 </style>
 """, unsafe_allow_html=True)
-
-elif menu == "🚪 Sair":
-    st.session_state.logado = False
-    st.success("Você saiu com sucesso.")
-    st.rerun()    
-    
-    
+        
 # ========= ESTILO VISUAL =========
 st.markdown("""
     <style>
