@@ -168,11 +168,10 @@ st.markdown(f"""
     </div>
 """, unsafe_allow_html=True)
         
-        elif menu == "🚪 Sair":
+elif menu == "🚪 Sair":
     st.warning("Você saiu da aplicação.")
     st.stop()
 
-    
     from newspaper import Article
 import feedparser
 
