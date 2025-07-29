@@ -118,8 +118,8 @@ elif menu == "📢 Notícias do Futebol":
 elif menu == "🚪 Sair":
      st.success("Você saiu com sucesso.")
 
-from newspaper import Article
-     import feedparser
+     from newspaper import Article
+          import feedparser
 
 # ========= ESTILO VISUAL =========
 st.markdown("""
