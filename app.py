@@ -95,25 +95,25 @@ elif menu == "📢 Notícias do Futebol":
     news_cards = soup.select('div.feed-post-body')
 
     for card in news_cards[:6]:
-        title_tag = card.select_one('a.feed-post-link')
-        if not title_tag:
-            continue
+    title_tag = card.select_one('a.feed-post-link')
+    if not title_tag:
+        continue
 
-        title = title_tag.text.strip()
-        link = title_tag['href']
+    title = title_tag.text.strip()
+    link = title_tag['href']
 
-        image_tag = card.find_previous('img')
-        image_url = image_tag['src'] if image_tag and image_tag.has_attr('src') else "https://via.placeholder.com/120x80?text=GE"
+    image_tag = card.find('img')
+    image_url = image_tag['src'] if image_tag and image_tag.has_attr('src') else "https://via.placeholder.com/120x80?text=GE"
 
-        st.markdown(f"""
-            <div class="news-box">
-                <img src="{image_url}" class="news-image"/>
-                <div class="news-content">
-                    <a href="{link}" target="_blank">{title}</a>
-                    <div class="news-date">Fonte: ge.globo.com</div>
-                </div>
+    st.markdown(f"""
+        <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 20px; background-color: #1e1e2f; padding: 15px; border-radius: 8px;">
+            <img src="{image_url}" width="120" height="80" style="border-radius: 4px;" />
+            <div>
+                <a href="{link}" target="_blank" style="font-size: 18px; color: #2aa9ff; font-weight: bold;">{title}</a>
+                <div style="font-size: 12px; color: #aaa;">Fonte: ge.globo.com</div>
             </div>
-        """, unsafe_allow_html=True)
+        </div>
+    """, unsafe_allow_html=True)
 
 elif menu == "🚪 Sair":
     st.success("Você saiu com sucesso.")
