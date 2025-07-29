@@ -108,7 +108,7 @@ elif menu == "📈 Gestão de Banca":
     saques_total = sum(df_editado["Saque (R$)"])
     banca_final = banca_inicial + lucro_total - saques_total
 
-    t.markdown(f"""
+    st.markdown(f"""
 <div class='banca-final'>
     💰 <strong>Lucro/Prejuízo Total:</strong> R$ {lucro_total:,.2f}  
     🏧 <strong>Saques Totais:</strong> R$ {saques_total:,.2f}  
