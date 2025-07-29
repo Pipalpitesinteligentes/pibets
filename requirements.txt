@@ -1,9 +1,7 @@
 streamlit
-pandas
-gspread
-oauth2client
-gspread_dataframe
-pillow
-requests
 streamlit-authenticator
 PyYAML
+gspread
+oauth2client
+gspread-dataframe
+pandas
