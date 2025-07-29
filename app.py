@@ -78,11 +78,6 @@ elif menu == "📈 Gestão de Banca":
     }
     </style>
     """, unsafe_allow_html=True)
-
-elif menu == "🚪 Sair":
-    st.session_state.logado = False
-    st.success("Você saiu com sucesso.")
-    st.rerun()    
     
     # Criando tabela de 30 dias
     dias = list(range(1, 31))
@@ -136,6 +131,12 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+elif menu == "🚪 Sair":
+    st.session_state.logado = False
+    st.success("Você saiu com sucesso.")
+    st.rerun()    
+    
+    
 # ========= ESTILO VISUAL =========
 st.markdown("""
     <style>
