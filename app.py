@@ -5,6 +5,8 @@ from oauth2client.service_account import ServiceAccountCredentials
 from gspread_dataframe import get_as_dataframe
 from PIL import Image
 import feedparser
+from newspaper 
+import Article
 import requests
 from bs4 import BeautifulSoup
 import re
