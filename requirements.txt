@@ -5,3 +5,5 @@ oauth2client
 gspread_dataframe
 pillow
 requests
+streamlit-authenticator
+PyYAML
