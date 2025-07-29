@@ -72,9 +72,9 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-st.sidebar.markdown("## 👋 Bem-vindo, felipesouza!")
-
-menu = st.radio("Escolha uma opção:", ["📊 Palpitações", "📈 Gestão de Banca", "🚪 Sair"])
+with st.sidebar:
+    st.markdown("## 👋 Bem-vindo, felipesouza!")
+    menu = st.radio("Escolha uma opção:", ["📊 Palpitações", "📈 Gestão de Banca", "🚪 Sair"])
 
 # ========== EXIBIR CONTEÚDO CONFORME O MENU ==========
 if menu == "📊 Palpites":
