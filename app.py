@@ -2,13 +2,13 @@ import streamlit_authenticator as stauth
 import streamlit as st
 import pandas as pd
 import gspread
+from google.oauth2.service_account import Credentials
 from gspread_dataframe import get_as_dataframe
 from PIL import Image
 import requests
 import re
 import json
 import os
-import gspread
 
 # Salva o conteúdo do secrets em um dicionário
 creds_dict = json.loads(st.secrets["GCP_SERVICE_ACCOUNT"])
