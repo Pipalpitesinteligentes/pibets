@@ -10,12 +10,12 @@ import json
 import os
 import gspread
 
-# Salva o conteúdo do secrets em um arquivo temporário
+# Salva o conteúdo do secrets em um dicionário
 creds_dict = json.loads(st.secrets["GCP_SERVICE_ACCOUNT"])
-creds = Credentials.from_service_account_info(creds_dict, scopes=scope)
-
-# ==== Configuração Google Sheets ====
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+
+# Conecta com o Google usando as credenciais do secrets
+creds = Credentials.from_service_account_info(creds_dict, scopes=scope)
 client = gspread.authorize(creds)
 
 # Nome da planilha e aba
