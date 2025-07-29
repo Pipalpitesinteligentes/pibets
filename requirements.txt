@@ -5,5 +5,3 @@ oauth2client
 gspread_dataframe
 pillow
 requests
-feedparser
-beautifulsoup4
