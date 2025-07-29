@@ -143,22 +143,30 @@ elif menu == "📢 Notícias do Futebol":
         if not title_tag:
             continue
 
-        title = title_tag.text.strip()
-        link = title_tag['href']
+       title_tag = card.select_one('a.feed-post-link')
+if not title_tag:
+    continue
 
-        # Tenta obter a imagem
-        image_tag = card.find_previous('img')
-        image_url = image_tag['src'] if image_tag else "https://via.placeholder.com/120x80?text=GE"
+title = title_tag.text.strip()
+link = title_tag['href']
 
-        st.markdown(f"""
-            <div class="news-box">
-                <img src="{image_url}" class="news-image"/>
-                <div class="news-content">
-                    <a href="{link}" target="_blank">{title}</a>
-                    <div class="news-date">Fonte: ge.globo.com</div>
-                </div>
-            </div>
-        """, unsafe_allow_html=True)
+# Tenta obter imagem com verificação segura
+image_tag = card.find_previous('img')
+if image_tag and image_tag.has_attr('src'):
+    image_url = image_tag['src']
+else:
+    image_url = "https://via.placeholder.com/120x80?text=GE"
+
+# Card visual
+st.markdown(f"""
+    <div class="news-box">
+        <img src="{image_url}" class="news-image"/>
+        <div class="news-content">
+            <a href="{link}" target="_blank">{title}</a>
+            <div class="news-date">Fonte: ge.globo.com</div>
+        </div>
+    </div>
+""", unsafe_allow_html=True)
         
 elif menu == "🚪 Sair":
     st.warning("Você saiu da aplicação.")
