@@ -51,7 +51,7 @@ if not st.session_state.logado:
 
 with st.sidebar:
     st.markdown("## 👋 Bem-vindo, felipesouza!")
-    menu = st.radio("Escolha uma opção:", ["📊 Palpitações", "📈 Gestão de Banca", "🚪 Sair"])
+    menu = st.radio("Escolha uma opção:", ["📊 Palpites", "📈 Gestão de Banca", "🚪 Sair"])
 
 # ========== EXIBIR CONTEÚDO CONFORME O MENU ==========
 if menu == "📊 Palpites":
@@ -328,3 +328,4 @@ if confronto:
                     st.success("✅ Palpite de escanteios correto!")
                 else:
                     st.error("❌ Palpite de escanteios incorreto!")
+
