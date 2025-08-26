@@ -120,7 +120,10 @@ def st_login(app_name: str = "Painel", show_logo: bool = True) -> Optional[str]:
             if st.button("Entrar", key="guard_btn_enter"):
                 if validate_email_token(email, token):
                     st.session_state["auth_email"] = email
-                    logged = True
+                    st.success("Login realizado!")
+                    st.rerun()  # <<< força recarregar a página sem o formulário
+        else:
+            st.error("E-mail ou código inválido/expirado.")
                 else:
                     st.error("E-mail ou código inválido/expirado.")
         with col2:
