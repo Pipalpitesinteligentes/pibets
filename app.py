@@ -51,35 +51,6 @@ aba = planilha.worksheet("usuarios")          # <--- troque pelo nome da aba
 # Agora você pode seguir com seu código original (ler dados, gerar telas etc.)
 # === FIM do cabeçalho substituído ===
 
-# Nome da planilha e aba
-planilha = client.open("usuarios_app")
-aba = planilha.worksheet("usuarios")
-
-# Puxa os dados
-dados = aba.get_all_records()
-usuarios = {linha['usuario']: linha['senha'] for linha in dados}
-nomes = {linha['usuario']: linha['nome'] for linha in dados}
-
-# Sessão de login
-if 'logado' not in st.session_state:
-    st.session_state.logado = False
-
-if not st.session_state.logado:
-    st.title("🔐 Login")
-    user = st.text_input("Usuário")
-    senha = st.text_input("Senha", type="password")
-    
-    if st.button("Entrar"):
-        if user in usuarios and str(usuarios[user]) == senha:
-            st.session_state.logado = True
-            st.session_state.usuario = user
-            st.session_state.nome = nomes[user]
-            st.success("✅ Login realizado com sucesso!")
-            st.rerun()
-        else:
-            st.error("❌ Usuário ou senha incorretos.")
-    st.stop()
-
 # ========= CONTEÚDO LIBERADO APÓS LOGIN =========
 
 with st.sidebar:
@@ -361,6 +332,7 @@ if confronto:
                     st.success("✅ Palpite de escanteios correto!")
                 else:
                     st.error("❌ Palpite de escanteios incorreto!")
+
 
 
 
