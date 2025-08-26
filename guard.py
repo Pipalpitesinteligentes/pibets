@@ -117,14 +117,14 @@ def st_login(app_name: str = "Painel", show_logo: bool = True) -> Optional[str]:
         col1, col2 = st.columns([1,1])
         logged = False
         with col1:
-            if st.button("Entrar"):
+            if st.button("Entrar", key="guard_btn_enter"):
                 if validate_email_token(email, token):
                     st.session_state["auth_email"] = email
                     logged = True
                 else:
                     st.error("E-mail ou código inválido/expirado.")
         with col2:
-            if st.button("Esqueci meu código"):
+            if st.button("Esqueci meu código", key="guard_btn_forgot"):
                 st.info("Fale com o suporte para receber um novo código.")
         if logged:
             st.success("Login realizado!")
