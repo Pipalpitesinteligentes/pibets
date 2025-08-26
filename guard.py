@@ -143,7 +143,7 @@ def require_login(app_name: str = "Painel", show_logo: bool = True) -> str:
     return user
 
 # ---------- CLI utilitário (opcional) ----------
-if _name_ == "_main_":
+if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(description="Gerenciar members.json")
     parser.add_argument("--issue", help="Gerar token para este e-mail")
