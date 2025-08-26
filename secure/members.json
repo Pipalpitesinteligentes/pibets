@@ -2,16 +2,16 @@
   "version": 1,
   "updated_at": "2025-08-26T13:00:00-03:00",
   "users": {
-    "lipe@exemplo.com": {
+    "felipesouzacontatoo@gmail.com": {
       "status": "active",
-      "plan": "mensal",
+      "plan": "admin",
       "exp": "2025-09-30T23:59:59-03:00",
       "token_sha256": "b2d4b2c2e7...COLOQUE_AQUI_O_HASH_DA_SENHA_OU_TOKEN...",
       "notes": "cortesia 30d"
     },
     "cliente@exemplo.com": {
       "status": "inactive",
-      "plan": "trial",
+      "plan": "mensal",
       "exp": "2025-08-20T23:59:59-03:00",
       "token_sha256": null,
       "notes": "trial expirado"
