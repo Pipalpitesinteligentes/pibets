@@ -1,5 +1,11 @@
-import streamlit_authenticator as stauth
+# === INÍCIO app.py (substitua seu topo por este bloco) ===
+import os
+os.environ["MEMBERS_FILE"] = "secure/members.json"  # usa seu members.json do repo
+
 import streamlit as st
+# >>> NÃO usaremos streamlit_authenticator agora <<<
+# import streamlit_authenticator as stauth
+
 import pandas as pd
 import gspread
 from google.oauth2.service_account import Credentials
@@ -8,15 +14,42 @@ from PIL import Image
 import requests
 import re
 import json
-import os
 
-# Salva o conteúdo do secrets em um dicionário
+# importa as funções de login do guard
+from guard import require_login, issue_token, is_active, get_user
+
+st.set_page_config(page_title="Palpite Inteligente", page_icon="⚽", layout="wide")
+
+# ----------------- Área opcional: gerar token de teste dentro do app -----------------
+with st.expander("🔧 Gerar token de teste (apenas para você)"):
+    my_email = st.text_input("Seu e-mail para gerar token", value="seuemail@exemplo.com")
+    days = st.number_input("Dias de validade", 1, 365, 30)
+    if st.button("Gerar token agora"):
+        tok = issue_token(my_email, days=int(days))
+        st.success(f"Token gerado! Guarde este código: {tok}")
+        st.info("Use o MESMO e-mail + esse token na tela de login abaixo.")
+
+# ----------------- 🔐 EXIGE LOGIN ANTES DE QUALQUER COISA DO APP -----------------
+user_email = require_login(app_name="Palpite Inteligente")
+st.caption(f"Usuário autenticado: {user_email}")
+
+# ----------------- (A partir daqui, vem sua lógica normal do app) -----------------
+# Mantém sua conexão com Google Sheets via st.secrets
+# Certifique-se de ter GCP_SERVICE_ACCOUNT em Secrets (JSON da service account)
 creds_dict = json.loads(st.secrets["GCP_SERVICE_ACCOUNT"])
-scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-
-# Conecta com o Google usando as credenciais do secrets
+scope = [
+    "https://spreadsheets.google.com/feeds",
+    "https://www.googleapis.com/auth/drive"
+]
 creds = Credentials.from_service_account_info(creds_dict, scopes=scope)
 client = gspread.authorize(creds)
+
+# Exemplo igual ao seu: abre planilha e aba
+planilha = client.open("usuarios_app")        # <--- troque pelo nome certo da sua planilha
+aba = planilha.worksheet("usuarios")          # <--- troque pelo nome da aba
+
+# Agora você pode seguir com seu código original (ler dados, gerar telas etc.)
+# === FIM do cabeçalho substituído ===
 
 # Nome da planilha e aba
 planilha = client.open("usuarios_app")
@@ -328,6 +361,7 @@ if confronto:
                     st.success("✅ Palpite de escanteios correto!")
                 else:
                     st.error("❌ Palpite de escanteios incorreto!")
+
 
 
 
