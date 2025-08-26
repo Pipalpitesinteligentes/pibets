@@ -10,16 +10,6 @@ import re
 import json
 import os
 
-# app.py (trecho no começo do arquivo)
-import streamlit as st
-from guard import require_login
-
-st.set_page_config(page_title="Palpite Inteligente", page_icon="⚽", layout="wide")
-
-# 🔐 exige login antes de renderizar o resto
-user_email = require_login(app_name="Palpite Inteligente")
-st.caption(f"Usuário: {user_email}")
-
 # Salva o conteúdo do secrets em um dicionário
 creds_dict = json.loads(st.secrets["GCP_SERVICE_ACCOUNT"])
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
@@ -338,5 +328,6 @@ if confronto:
                     st.success("✅ Palpite de escanteios correto!")
                 else:
                     st.error("❌ Palpite de escanteios incorreto!")
+
 
 
