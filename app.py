@@ -16,7 +16,7 @@ import re
 import json
 
 # importa as funções de login do guard
-from guard import require_login, issue_token, is_active, get_user
+from guard import require_login, issue_token
 
 st.set_page_config(page_title="Palpite Inteligente", page_icon="⚽", layout="wide")
 
@@ -332,6 +332,7 @@ if confronto:
                     st.success("✅ Palpite de escanteios correto!")
                 else:
                     st.error("❌ Palpite de escanteios incorreto!")
+
 
 
 
