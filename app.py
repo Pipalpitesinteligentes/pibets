@@ -65,16 +65,22 @@ st.set_page_config(page_title="Palpite Inteligente", page_icon="⚽", layout="wi
 ADMINS = {"felipesouzacontatoo@gmail.com"}
 user_email = require_login(app_name="Palpite Inteligente")
 
-# 🔐 Só ADMIN enxerga o gerador de token
-if user_email in ADMINS:
+# 3) debug rápido: veja com qual e-mail você entrou
+st.caption(f"Usuário autenticado: {user_email}")
+
+# 4) só admins veem o gerador
+if user_email.lower() in ADMINS:
     with st.expander("🔧 Gerar token (ADMIN)"):
         alvo = st.text_input("E-mail do assinante")
         dias = st.number_input("Dias de validade", 1, 365, 30)
         if st.button("Gerar token para este e-mail", key="admin_issue_token"):
             tok = issue_token(alvo, days=int(dias))
             st.success(f"Token gerado para {alvo}: {tok}")
-            st.info("Envie este código ao assinante.")
-
+            st.info("Envie esse código ao assinante.")
+else:
+    # opcional: mensagem discreta para não-admins
+    # st.caption("Área de administração não disponível para este login.")
+    pass
 
 import pandas as pd
 import gspread
@@ -384,6 +390,7 @@ if confronto:
                     st.success("✅ Palpite de escanteios correto!")
                 else:
                     st.error("❌ Palpite de escanteios incorreto!")
+
 
 
 
