@@ -6,5 +6,6 @@ gspread-dataframe
 pandas
 Pillow
 requests
+google-auth
 
 
