@@ -46,18 +46,6 @@ if getp("key") == APP_INTERNAL_KEY:
         st.stop()
 # ==== FIM do TOPO ROBUSTO ====
 
-# --- Daqui pra baixo é o seu app normal ---
-# (importe o que precisar só depois do topo)
-import pandas as pd
-import gspread
-from google.oauth2.service_account import Credentials
-from gspread_dataframe import get_as_dataframe
-from PIL import Image
-import requests, re, json
-
-# login via planilha (guard_gsheet)
-from guard_gsheet import require_login, issue_token, revoke_user
-
 # ⚠️ Chame set_page_config ANTES de qualquer componente visual
 st.set_page_config(page_title="Palpite Inteligente", page_icon="⚽", layout="wide")
 
@@ -390,6 +378,7 @@ if confronto:
                     st.success("✅ Palpite de escanteios correto!")
                 else:
                     st.error("❌ Palpite de escanteios incorreto!")
+
 
 
 
