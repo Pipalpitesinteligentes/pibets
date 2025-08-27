@@ -6,7 +6,6 @@ import streamlit as st
 
 APP_INTERNAL_KEY = "pi-internal-123"  # *IGUAL ao APP_INTERNAL_KEY do Worker*
 
-# Compatível com versões antigas/novas do Streamlit
 try:
     params = st.query_params
     getp = params.get
@@ -382,6 +381,7 @@ if confronto:
                     st.success("✅ Palpite de escanteios correto!")
                 else:
                     st.error("❌ Palpite de escanteios incorreto!")
+
 
 
 
