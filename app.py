@@ -17,6 +17,19 @@ import json
 
 # importa as funções de login do guard
 from guard import require_login, issue_token
+ADMINS = {"felipesouzacontatoo@gmail.com"}  # só você (adicione outros se quiser)
+
+user_email = require_login(app_name="Palpite Inteligente")
+
+# 🔐 Somente admins conseguem gerar tokens
+if user_email in ADMINS:
+    with st.expander("🔧 Gerar token (ADMIN)"):
+        alvo = st.text_input("E-mail do assinante")
+        dias = st.number_input("Dias de validade", 1, 365, 30)
+        if st.button("Gerar token para este e-mail", key="admin_issue_token"):
+            tok = issue_token(alvo, days=int(dias))
+            st.success(f"Token gerado para {alvo}: {tok}")
+            st.info("Envie esse código ao assinante.")
 
 st.set_page_config(page_title="Palpite Inteligente", page_icon="⚽", layout="wide")
 
@@ -332,6 +345,7 @@ if confronto:
                     st.success("✅ Palpite de escanteios correto!")
                 else:
                     st.error("❌ Palpite de escanteios incorreto!")
+
 
 
 
