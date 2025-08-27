@@ -1,32 +1,53 @@
-# --- INÍCIO app.py (topo) ---
-import os
-os.environ["MEMBERS_FILE"] = "secure/members.json"
+# --- TOPO DO app.py (debug) ---
+import os, traceback
+os.environ["MEMBERS_FILE"] = "secure/members.json"  # ok mesmo que use guard_gsheet
 
 import streamlit as st
 
-# ⬇️ IMPORTA também revoke_user porque o endpoint usa
-from guard_gsheet import require_login, issue_token, revoke_user  # <— note o revoke_user aqui
+# troque para o guard que você está usando:
+# se usa Google Sheets:
+from guard_gsheet import issue_token, revoke_user, require_login
+# se usa JSON local, troque a importação acima por:
+# from guard import issue_token, revoke_user, require_login
 
-# ===== ENDPOINT INTERNO para o Cloudflare Worker =====
-# precisa vir ANTES de qualquer UI/login
-# APP_INTERNAL_KEY tem que ser o MESMO que você colocou no Worker (Settings → Variables)
-APP_INTERNAL_KEY = "pi-internal-123"  # <-- troque se usou outro valor no Worker
+APP_INTERNAL_KEY = "pi-internal-123"  # *IGUAL ao APP_INTERNAL_KEY do Worker*
 
-params = st.query_params  # pega ?cmd=...&email=...&key=...
-if params.get("key") == APP_INTERNAL_KEY:
-    cmd = params.get("cmd", "")
-    email = params.get("email", "").lower()
+# Compatível com versões antigas/novas do Streamlit
+try:
+    params = st.query_params
+    getp = params.get
+except Exception:
+    params = st.experimental_get_query_params()
+    getp = lambda k, d=None: (params.get(k, [d]) or [d])[0]
 
-    if cmd == "issue" and email:
-        tok = issue_token(email, days=30)   # emite/renova token por 30 dias
-        st.write(f"issued:{email}")
+# ---------- ENDPOINTS INTERNOS (antes de qualquer UI) ----------
+# 0) healthcheck simples: ?health=1
+if getp("health") == "1":
+    st.write("ok")
+    st.stop()
+
+# 1) comandos do Worker
+if getp("key") == APP_INTERNAL_KEY:
+    cmd = (getp("cmd","") or "").lower()
+    email = (getp("email","") or "").strip().lower()
+    try:
+        if cmd == "issue" and email:
+            tok = issue_token(email, days=30)
+            st.write(f"issued:{email}")
+            st.stop()
+        elif cmd == "revoke" and email:
+            revoke_user(email)
+            st.write(f"revoked:{email}")
+            st.stop()
+        else:
+            st.write("bad_command")
+            st.stop()
+    except Exception as e:
+        st.write("app_exception:", repr(e))
+        st.write("trace:", traceback.format_exc())
         st.stop()
-
-    if cmd == "revoke" and email:
-        revoke_user(email)
-        st.write(f"revoked:{email}")
-        st.stop()
-# ===== FIM do ENDPOINT INTERNO =====
+# ---------- FIM ENDPOINTS INTERNOS ----------
+# --- FIM DO TOPO (UI vem abaixo) ---
 
 import pandas as pd
 import gspread
@@ -367,6 +388,7 @@ if confronto:
                     st.success("✅ Palpite de escanteios correto!")
                 else:
                     st.error("❌ Palpite de escanteios incorreto!")
+
 
 
 
