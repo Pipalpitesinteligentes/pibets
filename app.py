@@ -31,7 +31,7 @@ if getp("key") == APP_INTERNAL_KEY:
             st.stop()
         elif cmd == "revoke" and email:
             revoke_user(email)
-            st.write(f"revoked:{email}")
+            st.write(f"revoked:{email}:{tok}")
             st.stop()
         else:
             st.write("bad_command")
@@ -380,6 +380,7 @@ if confronto:
                     st.success("✅ Palpite de escanteios correto!")
                 else:
                     st.error("❌ Palpite de escanteios incorreto!")
+
 
 
 
