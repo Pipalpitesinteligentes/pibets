@@ -27,11 +27,11 @@ if getp("key") == APP_INTERNAL_KEY:
         from guard_gsheet import issue_token, revoke_user  # importa só aqui
         if cmd == "issue" and email:
             tok = issue_token(email, days=30)
-            st.write(f"issued:{email}")
+            st.write(f"issued:{email}:{tok}")
             st.stop()
         elif cmd == "revoke" and email:
             revoke_user(email)
-            st.write(f"revoked:{email}:{tok}")
+            st.write(f"revoked:{email}")
             st.stop()
         else:
             st.write("bad_command")
@@ -380,6 +380,7 @@ if confronto:
                     st.success("✅ Palpite de escanteios correto!")
                 else:
                     st.error("❌ Palpite de escanteios incorreto!")
+
 
 
 
