@@ -1,46 +1,7 @@
 # --- TOPO DO app.py (debug) ---
-import os, traceback
-os.environ["MEMBERS_FILE"] = "secure/members.json"  # ok mesmo que use guard_gsheet
-
-import streamlit as st
-
-APP_INTERNAL_KEY = "pi-internal-123"  # *IGUAL ao APP_INTERNAL_KEY do Worker*
-
-try:
-    params = st.query_params
-    getp = params.get
-except Exception:
-    params = st.experimental_get_query_params()
-    getp = lambda k, d=None: (params.get(k, [d]) or [d])[0]
-
-# ---------- ENDPOINTS INTERNOS (antes de qualquer UI) ----------
-# 0) healthcheck simples: ?health=1
-if getp("health") == "1":
-    st.write("ok")
-    st.stop()
-
-# 1) comandos do Worker
-if getp("key") == APP_INTERNAL_KEY:
-    cmd = (getp("cmd","") or "").lower()
-    email = (getp("email","") or "").strip().lower()
-    try:
-        if cmd == "issue" and email:
-            tok = issue_token(email, days=30)
-            st.write(f"issued:{email}")
-            st.stop()
-        elif cmd == "revoke" and email:
-            revoke_user(email)
-            st.write(f"revoked:{email}")
-            st.stop()
-        else:
-            st.write("bad_command")
-            st.stop()
-    except Exception as e:
-        st.write("app_exception:", repr(e))
-        st.write("trace:", traceback.format_exc())
-        st.stop()
-# ---------- FIM ENDPOINTS INTERNOS ----------
-# --- FIM DO TOPO (UI vem abaixo) ---
+import os
+os.environ["MEMBERS_FILE] = "secure/members.json"
+import streamlit as st 
 
 import pandas as pd
 import gspread
@@ -381,6 +342,7 @@ if confronto:
                     st.success("✅ Palpite de escanteios correto!")
                 else:
                     st.error("❌ Palpite de escanteios incorreto!")
+
 
 
 
