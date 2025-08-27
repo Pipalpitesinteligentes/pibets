@@ -15,7 +15,6 @@ def _now():
     return datetime.now(TZ)
 
 def sha256_hex(x: str) -> str:
-    import hashlib
     return hashlib.sha256(x.encode("utf-8")).hexdigest()
 
 def constant_time_equal(a: str, b: str) -> bool:
@@ -28,7 +27,7 @@ def _client():
         creds_dict = json.loads(creds_dict)
     scope = [
         "https://spreadsheets.google.com/feeds",
-        "https://www.googleapis.com/auth/drive"
+        "https://www.googleapis.com/auth/drive",
     ]
     creds = Credentials.from_service_account_info(creds_dict, scopes=scope)
     return gspread.authorize(creds)
@@ -40,9 +39,8 @@ def _ws():
 
 def _rows() -> List[List[str]]:
     ws = _ws()
-    # header na linha 1: email | status | plan | exp | token_sha256 | updated_at
-    vals = ws.get_all_values()
-    return vals
+    # header (linha 1): email | status | plan | exp | token_sha256 | updated_at
+    return ws.get_all_values()
 
 def _find_row_index(email: str) -> Optional[int]:
     vals = _rows()
@@ -57,7 +55,6 @@ def get_user(email: str) -> Optional[Dict]:
         if len(row) < 1:
             continue
         if row[0].strip().lower() == email.strip().lower():
-            # mapeia colunas
             def col(i): return row[i].strip() if i < len(row) else ""
             return {
                 "email": col(0),
@@ -71,10 +68,13 @@ def get_user(email: str) -> Optional[Dict]:
 
 def is_active(email: str) -> bool:
     u = get_user(email)
-    if not u: return False
-    if u.get("status") != "active": return False
+    if not u:
+        return False
+    if u.get("status") != "active":
+        return False
     exp = u.get("exp")
-    if not exp: return False
+    if not exp:
+        return False
     try:
         dt = datetime.fromisoformat(exp)
     except Exception:
@@ -102,17 +102,58 @@ def issue_token(email: str, days: int = 30, plan: str = "mensal") -> str:
 
 def revoke_user(email: str):
     u = get_user(email)
-    if not u: return
-    _upsert(email=email, status="inactive", plan=u.get("plan","mensal"), exp_iso=u.get("exp",""), token_sha256=u.get("token_sha256",""))
+    if not u:
+        return
+    _upsert(
+        email=email,
+        status="inactive",
+        plan=u.get("plan", "mensal"),
+        exp_iso=u.get("exp", ""),
+        token_sha256=u.get("token_sha256", ""),
+    )
 
 def validate_email_token(email: str, token_plain: str) -> bool:
     u = get_user(email)
-    if not u: return False
-    if u.get("status") != "active": return False
-    if not token_plain or not u.get("token_sha256"): return False
-    if not is_active(email): return False
+    if not u:
+        return False
+    if u.get("status") != "active":
+        return False
+    if not token_plain or not u.get("token_sha256"):
+        return False
+    if not is_active(email):
+        return False
     return constant_time_equal(sha256_hex(token_plain), u["token_sha256"])
 
-# ---------- UI (igual ao guard anterior) ----------
+# ---------- UI ----------
 def st_login(app_name: str = "Painel", show_logo: bool = True):
-    if "auth_email" in st.session_state and is_active(st.
+    # já autenticado?
+    if "auth_email" in st.session_state and is_active(st.session_state["auth_email"]):
+        return st.session_state["auth_email"]
+
+    with st.container():
+        if show_logo:
+            st.markdown("### 🔐 Acesso ao " + app_name)
+        email = st.text_input("E-mail", key="guard_email", placeholder="seuemail@exemplo.com").strip().lower()
+        token = st.text_input("Seu código de acesso", key="guard_token", type="password", placeholder="Cole o código recebido")
+        col1, col2 = st.columns([1, 1])
+        with col1:
+            if st.button("Entrar", key="guard_btn_enter"):
+                if validate_email_token(email, token):
+                    st.session_state["auth_email"] = email
+                    st.success("Login realizado!")
+                    try:
+                        st.rerun()
+                    except Exception:
+                        st.experimental_rerun()
+                else:
+                    st.error("E-mail ou código inválido/expirado.")
+        with col2:
+            if st.button("Esqueci meu código", key="guard_btn_forgot"):
+                st.info("Fale com o suporte para receber um novo código.")
+    return None
+
+def require_login(app_name: str = "Painel", show_logo: bool = True) -> str:
+    user = st_login(app_name=app_name, show_logo=show_logo)
+    if not user:
+        st.stop()
+    return user
