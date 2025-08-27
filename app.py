@@ -1,10 +1,32 @@
-# === INÍCIO app.py (substitua seu topo por este bloco) ===
+# --- INÍCIO app.py (topo) ---
 import os
-os.environ["MEMBERS_FILE"] = "secure/members.json"  # usa seu members.json do repo
+os.environ["MEMBERS_FILE"] = "secure/members.json"
 
 import streamlit as st
-# >>> NÃO usaremos streamlit_authenticator agora <<<
-# import streamlit_authenticator as stauth
+
+# ⬇️ IMPORTA também revoke_user porque o endpoint usa
+from guard_gsheet import require_login, issue_token, revoke_user  # <— note o revoke_user aqui
+
+# ===== ENDPOINT INTERNO para o Cloudflare Worker =====
+# precisa vir ANTES de qualquer UI/login
+# APP_INTERNAL_KEY tem que ser o MESMO que você colocou no Worker (Settings → Variables)
+APP_INTERNAL_KEY = "pi-internal-123"  # <-- troque se usou outro valor no Worker
+
+params = st.query_params  # pega ?cmd=...&email=...&key=...
+if params.get("key") == APP_INTERNAL_KEY:
+    cmd = params.get("cmd", "")
+    email = params.get("email", "").lower()
+
+    if cmd == "issue" and email:
+        tok = issue_token(email, days=30)   # emite/renova token por 30 dias
+        st.write(f"issued:{email}")
+        st.stop()
+
+    if cmd == "revoke" and email:
+        revoke_user(email)
+        st.write(f"revoked:{email}")
+        st.stop()
+# ===== FIM do ENDPOINT INTERNO =====
 
 import pandas as pd
 import gspread
@@ -345,6 +367,7 @@ if confronto:
                     st.success("✅ Palpite de escanteios correto!")
                 else:
                     st.error("❌ Palpite de escanteios incorreto!")
+
 
 
 
