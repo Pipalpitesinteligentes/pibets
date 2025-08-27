@@ -51,24 +51,26 @@ from guard_gsheet import require_login, issue_token
 # Login primeiro
 user_email = require_login(app_name="Palpite Inteligente")
 
-# Lista de admins normalizada em lowercase
-ADMINS = set(map(str.lower, [
-    "felipesouzacontatoo@gmail.com",
-    # adicione outros e-mails se quiser
-]))
+# Debugs úteis
+st.caption(f"Usuário autenticado: {user_email or 'N/D'}")
 
-# Debug: ver com qual e-mail entrou
-st.caption(f"Usuário autenticado: {user_email}")
+# Admins sempre em minúsculas
+ADMINS = {"felipesouzacontatoo@gmail.com"}  # coloque aqui os emails admin
+is_admin = (user_email or "").strip().lower() in ADMINS
+st.caption(f"Admin? {'sim' if is_admin else 'não'}")
+
+# (opcional) ver session_state se quiser diagnosticar
+# st.json(st.session_state)
 
 # Só admins veem o gerador
-if user_email.lower() in ADMINS:
+if is_admin:
     with st.expander("🔧 Gerar token (ADMIN)"):
-        alvo = st.text_input("E-mail do assinante")
-        dias = st.number_input("Dias de validade", 1, 365, 30)
-        if st.button("Gerar token para este e-mail", key="admin_issue_token"):
+        alvo = st.text_input("E-mail do assinante", key="admin_user_email")
+        dias = st.number_input("Dias de validade", 1, 365, 30, key="admin_days")
+        if st.button("Gerar token para este e-mail", key="admin_issue_token_btn"):
             tok = issue_token(alvo, days=int(dias))
             st.success(f"Token gerado para {alvo}: {tok}")
-            st.info("Envie esse código ao assinante.")
+            st.info("Envie este código ao assinante.")
 
 import pandas as pd
 import gspread
@@ -378,6 +380,7 @@ if confronto:
                     st.success("✅ Palpite de escanteios correto!")
                 else:
                     st.error("❌ Palpite de escanteios incorreto!")
+
 
 
 
