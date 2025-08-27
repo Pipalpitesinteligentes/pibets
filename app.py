@@ -16,7 +16,7 @@ import re
 import json
 
 # importa as funções de login do guard
-from guard import require_login, issue_token
+from guard_gsheet import require_login, issue_token
 ADMINS = {"felipesouzacontatoo@gmail.com"}  # só você (adicione outros se quiser)
 
 user_email = require_login(app_name="Palpite Inteligente")
@@ -345,6 +345,7 @@ if confronto:
                     st.success("✅ Palpite de escanteios correto!")
                 else:
                     st.error("❌ Palpite de escanteios incorreto!")
+
 
 
 
