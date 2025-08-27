@@ -2,13 +2,11 @@
 import os, traceback
 import streamlit as st
 
-# (ok manter mesmo usando planilha; não atrapalha)
 os.environ["MEMBERS_FILE"] = "secure/members.json"
 
-# 👉 TEM QUE SER IGUAL ao que você configurou no Worker (Settings → Variables → APP_INTERNAL_KEY)
-APP_INTERNAL_KEY = "pi-internal-123"
+APP_INTERNAL_KEY = "pi-internal-123"  # <-- MESMO valor do Worker
 
-# --- compatibilidade para ler query params em qualquer versão do Streamlit
+# Ler query params (compatível com versões diferentes)
 try:
     _qp = st.query_params
     getp = _qp.get
@@ -16,19 +14,17 @@ except Exception:
     _qp = st.experimental_get_query_params()
     getp = lambda k, d=None: (_qp.get(k, [d]) or [d])[0]
 
-# 0) healthcheck simples (teste no navegador: ?health=1)
+# Healthcheck
 if getp("health") == "1":
     st.write("ok")
     st.stop()
 
-# 1) ENDPOINT INTERNO (chamado pelo Cloudflare Worker) – vem ANTES de qualquer UI/login
+# Endpoint interno (antes de qualquer UI/login)
 if getp("key") == APP_INTERNAL_KEY:
     cmd   = (getp("cmd", "") or "").lower()
     email = (getp("email", "") or "").strip().lower()
     try:
-        # importa aqui para não travar a abertura do app se der erro de planilha/secret
-        from guard_gsheet import issue_token, revoke_user
-
+        from guard_gsheet import issue_token, revoke_user  # importa só aqui
         if cmd == "issue" and email:
             tok = issue_token(email, days=30)
             st.write(f"issued:{email}")
@@ -46,17 +42,25 @@ if getp("key") == APP_INTERNAL_KEY:
         st.stop()
 # ==== FIM do TOPO ROBUSTO ====
 
-# ⚠️ Chame set_page_config ANTES de qualquer componente visual
+# Config da página deve vir antes de qualquer componente visual
 st.set_page_config(page_title="Palpite Inteligente", page_icon="⚽", layout="wide")
 
-# exige login
-ADMINS = {"felipesouzacontatoo@gmail.com"}
+# Agora sim importamos o resto do guard_gsheet para a UI
+from guard_gsheet import require_login, issue_token
+
+# Login primeiro
 user_email = require_login(app_name="Palpite Inteligente")
 
-# 3) debug rápido: veja com qual e-mail você entrou
+# Lista de admins normalizada em lowercase
+ADMINS = set(map(str.lower, [
+    "felipesouzacontatoo@gmail.com",
+    # adicione outros e-mails se quiser
+]))
+
+# Debug: ver com qual e-mail entrou
 st.caption(f"Usuário autenticado: {user_email}")
 
-# 4) só admins veem o gerador
+# Só admins veem o gerador
 if user_email.lower() in ADMINS:
     with st.expander("🔧 Gerar token (ADMIN)"):
         alvo = st.text_input("E-mail do assinante")
@@ -65,10 +69,6 @@ if user_email.lower() in ADMINS:
             tok = issue_token(alvo, days=int(dias))
             st.success(f"Token gerado para {alvo}: {tok}")
             st.info("Envie esse código ao assinante.")
-else:
-    # opcional: mensagem discreta para não-admins
-    # st.caption("Área de administração não disponível para este login.")
-    pass
 
 import pandas as pd
 import gspread
@@ -378,6 +378,7 @@ if confronto:
                     st.success("✅ Palpite de escanteios correto!")
                 else:
                     st.error("❌ Palpite de escanteios incorreto!")
+
 
 
 
