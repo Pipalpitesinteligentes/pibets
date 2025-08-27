@@ -4,12 +4,6 @@ os.environ["MEMBERS_FILE"] = "secure/members.json"  # ok mesmo que use guard_gsh
 
 import streamlit as st
 
-# troque para o guard que você está usando:
-# se usa Google Sheets:
-from guard_gsheet import issue_token, revoke_user, require_login
-# se usa JSON local, troque a importação acima por:
-# from guard import issue_token, revoke_user, require_login
-
 APP_INTERNAL_KEY = "pi-internal-123"  # *IGUAL ao APP_INTERNAL_KEY do Worker*
 
 # Compatível com versões antigas/novas do Streamlit
@@ -388,6 +382,7 @@ if confronto:
                     st.success("✅ Palpite de escanteios correto!")
                 else:
                     st.error("❌ Palpite de escanteios incorreto!")
+
 
 
 
