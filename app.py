@@ -92,13 +92,6 @@ scope = [
 creds = Credentials.from_service_account_info(creds_dict, scopes=scope)
 client = gspread.authorize(creds)
 
-# Exemplo igual ao seu: abre planilha e aba
-planilha = client.open("usuarios_app")        # <--- troque pelo nome certo da sua planilha
-aba = planilha.worksheet("usuarios")          # <--- troque pelo nome da aba
-
-# Agora você pode seguir com seu código original (ler dados, gerar telas etc.)
-# === FIM do cabeçalho substituído ===
-
 # ========= CONTEÚDO LIBERADO APÓS LOGIN =========
 
 with st.sidebar:
@@ -380,6 +373,7 @@ if confronto:
                     st.success("✅ Palpite de escanteios correto!")
                 else:
                     st.error("❌ Palpite de escanteios incorreto!")
+
 
 
 
