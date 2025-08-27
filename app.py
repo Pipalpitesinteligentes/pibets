@@ -56,7 +56,7 @@ from PIL import Image
 import requests, re, json
 
 # login via planilha (guard_gsheet)
-from guard_gsheet import require_login, issue_token
+from guard_gsheet import require_login, issue_token, revoke_user
 
 # ⚠️ Chame set_page_config ANTES de qualquer componente visual
 st.set_page_config(page_title="Palpite Inteligente", page_icon="⚽", layout="wide")
@@ -384,6 +384,7 @@ if confronto:
                     st.success("✅ Palpite de escanteios correto!")
                 else:
                     st.error("❌ Palpite de escanteios incorreto!")
+
 
 
 
