@@ -1,7 +1,80 @@
-# --- TOPO DO app.py (debug) ---
-import os
-os.environ["MEMBERS_FILE] = "secure/members.json"
-import streamlit as st 
+# ==== TOPO ROBUSTO (guard_gsheet + worker) ====
+import os, traceback
+import streamlit as st
+
+# (ok manter mesmo usando planilha; não atrapalha)
+os.environ["MEMBERS_FILE"] = "secure/members.json"
+
+# 👉 TEM QUE SER IGUAL ao que você configurou no Worker (Settings → Variables → APP_INTERNAL_KEY)
+APP_INTERNAL_KEY = "pi-internal-123"
+
+# --- compatibilidade para ler query params em qualquer versão do Streamlit
+try:
+    _qp = st.query_params
+    getp = _qp.get
+except Exception:
+    _qp = st.experimental_get_query_params()
+    getp = lambda k, d=None: (_qp.get(k, [d]) or [d])[0]
+
+# 0) healthcheck simples (teste no navegador: ?health=1)
+if getp("health") == "1":
+    st.write("ok")
+    st.stop()
+
+# 1) ENDPOINT INTERNO (chamado pelo Cloudflare Worker) – vem ANTES de qualquer UI/login
+if getp("key") == APP_INTERNAL_KEY:
+    cmd   = (getp("cmd", "") or "").lower()
+    email = (getp("email", "") or "").strip().lower()
+    try:
+        # importa aqui para não travar a abertura do app se der erro de planilha/secret
+        from guard_gsheet import issue_token, revoke_user
+
+        if cmd == "issue" and email:
+            tok = issue_token(email, days=30)
+            st.write(f"issued:{email}")
+            st.stop()
+        elif cmd == "revoke" and email:
+            revoke_user(email)
+            st.write(f"revoked:{email}")
+            st.stop()
+        else:
+            st.write("bad_command")
+            st.stop()
+    except Exception as e:
+        st.write("app_exception:", repr(e))
+        st.write("trace:", traceback.format_exc())
+        st.stop()
+# ==== FIM do TOPO ROBUSTO ====
+
+# --- Daqui pra baixo é o seu app normal ---
+# (importe o que precisar só depois do topo)
+import pandas as pd
+import gspread
+from google.oauth2.service_account import Credentials
+from gspread_dataframe import get_as_dataframe
+from PIL import Image
+import requests, re, json
+
+# login via planilha (guard_gsheet)
+from guard_gsheet import require_login, issue_token
+
+# ⚠️ Chame set_page_config ANTES de qualquer componente visual
+st.set_page_config(page_title="Palpite Inteligente", page_icon="⚽", layout="wide")
+
+# exige login
+ADMINS = {"felipesouzacontatoo@gmail.com"}
+user_email = require_login(app_name="Palpite Inteligente")
+
+# 🔐 Só ADMIN enxerga o gerador de token
+if user_email in ADMINS:
+    with st.expander("🔧 Gerar token (ADMIN)"):
+        alvo = st.text_input("E-mail do assinante")
+        dias = st.number_input("Dias de validade", 1, 365, 30)
+        if st.button("Gerar token para este e-mail", key="admin_issue_token"):
+            tok = issue_token(alvo, days=int(dias))
+            st.success(f"Token gerado para {alvo}: {tok}")
+            st.info("Envie este código ao assinante.")
+
 
 import pandas as pd
 import gspread
@@ -11,37 +84,6 @@ from PIL import Image
 import requests
 import re
 import json
-
-# importa as funções de login do guard
-from guard_gsheet import require_login, issue_token
-ADMINS = {"felipesouzacontatoo@gmail.com"}  # só você (adicione outros se quiser)
-
-user_email = require_login(app_name="Palpite Inteligente")
-
-# 🔐 Somente admins conseguem gerar tokens
-if user_email in ADMINS:
-    with st.expander("🔧 Gerar token (ADMIN)"):
-        alvo = st.text_input("E-mail do assinante")
-        dias = st.number_input("Dias de validade", 1, 365, 30)
-        if st.button("Gerar token para este e-mail", key="admin_issue_token"):
-            tok = issue_token(alvo, days=int(dias))
-            st.success(f"Token gerado para {alvo}: {tok}")
-            st.info("Envie esse código ao assinante.")
-
-st.set_page_config(page_title="Palpite Inteligente", page_icon="⚽", layout="wide")
-
-# ----------------- Área opcional: gerar token de teste dentro do app -----------------
-with st.expander("🔧 Gerar token de teste (apenas para você)"):
-    my_email = st.text_input("Seu e-mail para gerar token", value="seuemail@exemplo.com")
-    days = st.number_input("Dias de validade", 1, 365, 30)
-    if st.button("Gerar token agora"):
-        tok = issue_token(my_email, days=int(days))
-        st.success(f"Token gerado! Guarde este código: {tok}")
-        st.info("Use o MESMO e-mail + esse token na tela de login abaixo.")
-
-# ----------------- 🔐 EXIGE LOGIN ANTES DE QUALQUER COISA DO APP -----------------
-user_email = require_login(app_name="Palpite Inteligente")
-st.caption(f"Usuário autenticado: {user_email}")
 
 # ----------------- (A partir daqui, vem sua lógica normal do app) -----------------
 # Mantém sua conexão com Google Sheets via st.secrets
@@ -342,6 +384,7 @@ if confronto:
                     st.success("✅ Palpite de escanteios correto!")
                 else:
                     st.error("❌ Palpite de escanteios incorreto!")
+
 
 
 
