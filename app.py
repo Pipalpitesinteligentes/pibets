@@ -1,3 +1,38 @@
+import streamlit as st
+
+# Rota interna para API (antes do login/UI)
+if "cmd" in st.experimental_get_query_params():
+    from guard_gsheet import issue_token, revoke_user
+    import traceback
+
+    params = st.experimental_get_query_params()
+    cmd   = (params.get("cmd", [""])[0]).lower()
+    email = (params.get("email", [""])[0]).strip().lower()
+    key   = (params.get("key", [""])[0])
+
+    APP_INTERNAL_KEY = "pi-internal-123"  # mesmo que está no Worker
+
+    if key != APP_INTERNAL_KEY:
+        st.write("unauthorized")
+        st.stop()
+
+    try:
+        if cmd == "issue" and email:
+            tok = issue_token(email, days=30)
+            st.write(f"issued:{email}:{tok}")
+            st.stop()
+        elif cmd == "revoke" and email:
+            revoke_user(email)
+            st.write(f"revoked:{email}")
+            st.stop()
+        else:
+            st.write("bad_command")
+            st.stop()
+    except Exception as e:
+        st.write("app_exception:", repr(e))
+        st.write("trace:", traceback.format_exc())
+        st.stop()
+
 # ==== TOPO ROBUSTO (guard_gsheet + worker) ====
 import os, traceback
 import streamlit as st
@@ -373,6 +408,7 @@ if confronto:
                     st.success("✅ Palpite de escanteios correto!")
                 else:
                     st.error("❌ Palpite de escanteios incorreto!")
+
 
 
 
