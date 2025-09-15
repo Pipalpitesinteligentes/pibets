@@ -44,6 +44,24 @@ if getp("key") == APP_INTERNAL_KEY:
 
 # Config da página deve vir antes de qualquer componente visual
 st.set_page_config(page_title="Palpite Inteligente", page_icon="⚽", layout="wide")
+# ↓ depois do st.set_page_config(...)
+HIDE_TOOLBAR = """
+<style>
+/* toolbar inteiro (inclui GitHub/Fork) */
+div[data-testid="stToolbar"] { display: none !important; }
+
+/* alguns temas/versões colocam link do GitHub como âncora separada */
+a[data-testid="toolbar-github-icon"],
+a[aria-label="Open GitHub Repo"],
+a[href*="github.com"][target="_blank"] { display: none !important; }
+
+/* hambúrguer (MainMenu) e rodapé padrão */
+#MainMenu { visibility: hidden; }
+footer { visibility: hidden; }
+</style>
+"""
+import streamlit as st
+st.markdown(HIDE_TOOLBAR, unsafe_allow_html=True)
 
 # Agora sim importamos o resto do guard_gsheet para a UI
 from guard_gsheet import require_login, issue_token
@@ -373,6 +391,7 @@ if confronto:
                     st.success("✅ Palpite de escanteios correto!")
                 else:
                     st.error("❌ Palpite de escanteios incorreto!")
+
 
 
 
