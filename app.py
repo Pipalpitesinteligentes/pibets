@@ -297,27 +297,6 @@ df_rodada = df[df["Rodada"] == rodada_escolhida]
 confrontos_disponiveis = df_rodada.apply(lambda x: f"{x['Mandante']} x {x['Visitante']}", axis=1).tolist()
 confronto = st.selectbox("⚽ Escolha o confronto:", confrontos_disponiveis)
 
-# fallback: se não houver jogos futuros, use a última rodada disponível
-rodadas_disponiveis = sorted(df[COL_RODADA].dropna().astype(int).unique().tolist())
-if pd.isna(proxima):
-    proxima = rodadas_disponiveis[-1]
-
-# selectbox já começa na rodada calculada
-rodada_escolhida = st.selectbox(
-    "📆 Selecione a rodada:",
-    rodadas_disponiveis,
-    index=rodadas_disponiveis.index(int(proxima))
-)
-
-# filtra a rodada e monta os confrontos
-df_rodada = df[df[COL_RODADA] == rodada_escolhida]
-confrontos_disponiveis = df_rodada.apply(
-    lambda x: f"{x[COL_MANDANTE]} x {x[COL_VISIT]}", axis=1
-).tolist()
-
-st.markdown("Escolha um confronto abaixo e veja as previsões estatísticas para o jogo.")
-confronto = st.selectbox("⚽ Escolha o confronto:", confrontos_disponiveis)
-
 if confronto:
     mandante, visitante = [t.strip() for t in confronto.split("x")]
     jogo = df[(df["Mandante"] == mandante) & (df["Visitante"] == visitante)]
@@ -412,6 +391,7 @@ if confronto:
                     st.success("✅ Palpite de escanteios correto!")
                 else:
                     st.error("❌ Palpite de escanteios incorreto!")
+
 
 
 
