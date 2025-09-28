@@ -287,47 +287,15 @@ logos_times = {
     "SC Recife": "https://logodetimes.com/times/sport-recife/logo-sport-recife-256.png"
 }
 
-# ========= INTERFACE DE PALPITES (auto rodada) =========
-from datetime import datetime, timezone, timedelta
-import pandas as pd
-import streamlit as st
+# ========= INTERFACE DE PALPITES =========
+st.markdown("Escolha um confronto abaixo e veja as previsões estatísticas para o jogo.")
 
-# mapeia nomes possíveis das colunas
-def pick_col(df, options):
-    for c in options:
-        if c in df.columns:
-            return c
-    return None
+rodadas_disponiveis = sorted(df["Rodada"].dropna().unique())
+rodada_escolhida = st.selectbox("📆 Selecione a rodada:", rodadas_disponiveis)
 
-COL_RODADA   = pick_col(df, ["Rodada", "rodada"])
-COL_DATA     = pick_col(df, ["Data", "Data do Jogo", "Data_Jogo", "data_jogo", "data"])
-COL_MANDANTE = pick_col(df, ["Mandante", "Time Casa", "Home", "mandante"])
-COL_VISIT    = pick_col(df, ["Visitante", "Time Visitante", "Away", "visitante"])
-
-# checagens mínimas
-missing = [n for n,v in {
-    "Rodada": COL_RODADA, "Data do jogo": COL_DATA,
-    "Mandante": COL_MANDANTE, "Visitante": COL_VISIT
-}.items() if v is None]
-if missing:
-    st.error(f"Colunas ausentes na planilha: {', '.join(missing)}")
-    st.stop()
-
-# garante tipos corretos
-df[COL_DATA] = pd.to_datetime(df[COL_DATA], errors="coerce")
-df[COL_RODADA] = pd.to_numeric(df[COL_RODADA], errors="coerce").astype("Int64")
-
-# timezone Brasil
-TZ = timezone(timedelta(hours=-3))
-agora = datetime.now(TZ)
-
-# calcula próxima rodada (primeira com jogo >= agora)
-proxima = (
-    df.loc[df[COL_DATA] >= agora, COL_RODADA]
-      .dropna()
-      .astype(int)
-      .min()
-)
+df_rodada = df[df["Rodada"] == rodada_escolhida]
+confrontos_disponiveis = df_rodada.apply(lambda x: f"{x['Mandante']} x {x['Visitante']}", axis=1).tolist()
+confronto = st.selectbox("⚽ Escolha o confronto:", confrontos_disponiveis)
 
 # fallback: se não houver jogos futuros, use a última rodada disponível
 rodadas_disponiveis = sorted(df[COL_RODADA].dropna().astype(int).unique().tolist())
@@ -444,6 +412,7 @@ if confronto:
                     st.success("✅ Palpite de escanteios correto!")
                 else:
                     st.error("❌ Palpite de escanteios incorreto!")
+
 
 
 
