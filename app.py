@@ -307,7 +307,6 @@ rodada_escolhida = st.selectbox(
     rodadas_disponiveis,
     index=default_index
 )
-
 if confronto:
     mandante, visitante = [t.strip() for t in confronto.split("x")]
     jogo = df[(df["Mandante"] == mandante) & (df["Visitante"] == visitante)]
@@ -402,6 +401,7 @@ if confronto:
                     st.success("✅ Palpite de escanteios correto!")
                 else:
                     st.error("❌ Palpite de escanteios incorreto!")
+
 
 
 
