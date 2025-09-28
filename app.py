@@ -288,47 +288,14 @@ logos_times = {
 }
 
 # ========= INTERFACE DE PALPITES =========
-from datetime import datetime, timezone, timedelta
-import pandas as pd
+st.markdown("Escolha um confronto abaixo e veja as previsões estatísticas para o jogo.")
 
-# timezone Brasil
-TZ = timezone(timedelta(hours=-3))
-agora = datetime.now(TZ)
+rodadas_disponiveis = sorted(df["Rodada"].dropna().unique())
+rodada_escolhida = st.selectbox("📆 Selecione a rodada:", rodadas_disponiveis)
 
-# garantir datetime
-df["Data"] = pd.to_datetime(df["Data"], errors="coerce")
-
-# todas rodadas disponíveis
-rodadas_disponiveis = sorted(df["Rodada"].dropna().unique().tolist())
-
-# rodada atual = a do primeiro jogo >= hoje e <= hoje+1d
-hoje = agora.date()
-rodada_hoje = (
-    df.loc[df["Data"].dt.date == hoje, "Rodada"]
-      .dropna()
-      .astype(int)
-      .min()
-)
-
-# fallback: se não tem jogo hoje, usa a rodada mais recente (<= agora)
-if pd.isna(rodada_hoje):
-    rodada_hoje = (
-        df.loc[df["Data"] <= agora, "Rodada"]
-          .dropna()
-          .astype(int)
-          .max()
-    )
-
-# se ainda assim não achar, usa a última rodada do dataset
-if pd.isna(rodada_hoje):
-    rodada_hoje = rodadas_disponiveis[-1]
-
-# selectbox já abre na rodada atual
-rodada_escolhida = st.selectbox(
-    "📆 Selecione a rodada:",
-    rodadas_disponiveis,
-    index=rodadas_disponiveis.index(int(rodada_hoje))
-)
+df_rodada = df[df["Rodada"] == rodada_escolhida]
+confrontos_disponiveis = df_rodada.apply(lambda x: f"{x['Mandante']} x {x['Visitante']}", axis=1).tolist()
+confronto = st.selectbox("⚽ Escolha o confronto:", confrontos_disponiveis)
 
 if confronto:
     mandante, visitante = [t.strip() for t in confronto.split("x")]
@@ -424,6 +391,7 @@ if confronto:
                     st.success("✅ Palpite de escanteios correto!")
                 else:
                     st.error("❌ Palpite de escanteios incorreto!")
+
 
 
 
