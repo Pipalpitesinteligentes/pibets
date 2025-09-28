@@ -288,25 +288,16 @@ logos_times = {
 }
 
 # ========= INTERFACE DE PALPITES =========
-import pandas as pd
+# ========= INTERFACE DE PALPITES =========
+st.markdown("Escolha um confronto abaixo e veja as previsões estatísticas para o jogo.")
 
-# lista de rodadas como inteiros
-rodadas_disponiveis = sorted(
-    pd.to_numeric(df["Rodada"], errors="coerce").dropna().astype(int).unique().tolist()
-)
+rodadas_disponiveis = sorted(df["Rodada"].dropna().unique())
+rodada_escolhida = st.selectbox("📆 Selecione a rodada:", rodadas_disponiveis)
 
-DEFAULT_RODADA = 25  # <<< mude aqui para a rodada que quiser
-default_index = (
-    rodadas_disponiveis.index(DEFAULT_RODADA)
-    if DEFAULT_RODADA in rodadas_disponiveis
-    else len(rodadas_disponiveis) - 1  # fallback: última disponível
-)
+df_rodada = df[df["Rodada"] == rodada_escolhida]
+confrontos_disponiveis = df_rodada.apply(lambda x: f"{x['Mandante']} x {x['Visitante']}", axis=1).tolist()
+confronto = st.selectbox("⚽ Escolha o confronto:", confrontos_disponiveis)
 
-rodada_escolhida = st.selectbox(
-    "📆 Selecione a rodada:",
-    rodadas_disponiveis,
-    index=default_index
-)
 if confronto:
     mandante, visitante = [t.strip() for t in confronto.split("x")]
     jogo = df[(df["Mandante"] == mandante) & (df["Visitante"] == visitante)]
@@ -401,6 +392,7 @@ if confronto:
                     st.success("✅ Palpite de escanteios correto!")
                 else:
                     st.error("❌ Palpite de escanteios incorreto!")
+
 
 
 
