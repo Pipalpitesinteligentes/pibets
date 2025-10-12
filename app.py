@@ -191,7 +191,7 @@ def get_upcoming_fixtures(league_id: int | None = None, days: int = 7, season: i
     
     # Adiciona season/ano ao filtro (usando o ano atual se não fornecido)
     if season is None:
-        season = now.year 
+        season = 2024 
 
     from_date = now.date().isoformat()
     to_date = (now + timedelta(days=days)).date().isoformat()
@@ -508,6 +508,7 @@ if is_admin:
 # ====================================================================
 # FIM do app_merged.py
 # ====================================================================
+
 
 
 
