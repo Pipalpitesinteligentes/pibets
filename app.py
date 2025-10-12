@@ -489,6 +489,7 @@ user_email = require_login(app_name="Palpite Inteligente")
 
 # 2️⃣ Sidebar: Definida antes do bloco de renderização principal
 with st.sidebar:
+    st.error("DEBUG: A BARRA LATERAL ESTÁ AQUI!!!") # <-- Adicione esta linha
     st.markdown("## 👋 Bem-vindo" + (f", {user_email}" if user_email else "!"))
     menu = st.radio(
         "Escolha uma opção:",
