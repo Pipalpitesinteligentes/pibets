@@ -28,8 +28,8 @@ HEADERS = {"x-apisports-key": API_KEY} if API_KEY else {}
 st.session_state.API_KEY = API_KEY
 
 # ID da Planilha de Palpites Prontos (O SEU LINK)
-SPREADSHEET_ID = "1kn-zVYiECH9GpySLlqr5afvKhrn-dXSnCyurNqyCw4w"
-SHEET_NAME_PALPITES = "palpites_prontos" # Assumindo a primeira aba do seu Sheet
+SPREADSHEET_ID = "1H-Sy49f5tBV1YCAjd1UX6IKRNRrqr3wzoVSKVWChU00"
+SHEET_NAME_PALPITES = "nova-tentativa" # Assumindo a primeira aba do seu Sheet
 
 # ====================================================================
 # ==== TOPO ROBUSTO (guard_gsheet + worker) - SEM ALTERAÇÕES ESSENCIAIS
@@ -71,7 +71,33 @@ if getp("key") == APP_INTERNAL_KEY:
         st.write("app_exception:", repr(e))
         st.write("trace:", traceback.format_exc())
         st.stop()
-
+        
+# --- FUNÇÃO DE LEITURA (AGORA LÊ O GOOGLE SHEETS) ---
+@st.cache_data(ttl=600)
+def load_palpites_prontos():
+    """Carrega o DataFrame de palpites processados do Google Sheet."""
+    try:
+        # 1. Conecta ao Google Sheets usando as credenciais do secrets.toml
+        conn = st.connection("gcp_service_account", type="spreadsheet")
+        
+        # 2. Lê a aba específica da planilha
+        # O type='data' garante que ele lê a tabela inteira (sem cabeçalho extra)
+        df = conn.read(spreadsheet=SPREADSHEET_ID, worksheet=SHEET_NAME_PALPITES, usecols=list(range(6)), ttl=5)
+        
+        # Faz os renames necessários para o frontend
+        df = df.rename(columns={
+            'Data': 'Data/Hora', 
+            'Confiança': 'Confiança (%)'
+        })
+        
+        # Filtro de Confiança (Se você tiver algum)
+        df = df[df['Confiança (%)'] >= 75.0]
+        
+        return df
+    
+    except Exception as e:
+        st.error(f"Erro ao carregar palpites do Google Sheets: {e}. Verifique as permissões da Service Account na Planilha.")
+        return pd.DataFrame()
 
 # ====================================================================
 # ==== CONFIGURAÇÃO E CSS (Ajuste do MainMenu corrigido) ====
@@ -546,5 +572,6 @@ if is_admin:
 # ====================================================================
 # FIM do app_merged.py
 # ====================================================================
+
 
 
