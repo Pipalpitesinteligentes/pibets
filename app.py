@@ -552,34 +552,26 @@ def logout():
 # ====================================================================
 
 # Login primeiro
-# A partir daqui, o usuário está autenticado pelo guard_gsheet
 user_email = require_login(app_name="Palpite Inteligente")
 
-# 1️⃣ Define o menu no topo da página
-menu = st.radio(
-    "Escolha uma opção:",
-    ["📊 Palpites", "📈 Gestão de Banca", "🔎 Próximos jogos (API-Football)", "🚪 Sair"],
-    key="main_menu_radio_top",
-    horizontal=True # Isso garante que os itens apareçam lado a lado
-)
+# 1️⃣ Define os Tabs no topo da página (Menu Moderno)
+tab_jogos, tab_banca, tab_sair = st.tabs([
+    "⚽ Jogos e Palpites", 
+    "📈 Gestão de Banca", 
+    "🚪 Sair"
+])
 
-# 2️⃣ Sidebar: Reduzida para ser apenas a "saudação" e debug (agora é opcional)
-with st.sidebar:
-    st.markdown("## 👋 Bem-vindo" + (f", {user_email}" if user_email else "!"))
-
-# 3️⃣ Segurança (garantia) - Mantida, mas pode ser redundante após a definição
-if "menu" not in locals():
-    menu = "📊 Palpites"
-
-# 4️⃣ Renderiza conteúdo de acordo com o menu (Sem alterações aqui)
-if menu == "📊 Palpites":
-    mostrar_palpites()
-elif menu == "📈 Gestão de Banca":
+# 2️⃣ Renderiza o conteúdo dentro do bloco "with" da Tab correspondente
+with tab_jogos:
+    mostrar_jogos_e_palpites()
+    
+with tab_banca:
     mostrar_banca()
-elif menu == "🔎 Próximos jogos (API-Football)":
-    mostrar_proximos_jogos()
-elif menu == "🚪 Sair":
-    logout()
+
+with tab_sair:
+    st.warning("Clique no botão abaixo para sair da sua sessão.")
+    if st.button("Confirmar Saída"):
+        logout()
 
 # Debugs úteis e Admin Panel
 st.caption(f"Usuário autenticado: {user_email or 'N/D'}")
@@ -602,6 +594,7 @@ if is_admin:
 # ====================================================================
 # FIM do app_merged.py
 # ====================================================================
+
 
 
 
