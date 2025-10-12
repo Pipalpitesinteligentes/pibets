@@ -269,6 +269,8 @@ def load_palpites_prontos():
 
     try:
         # Pega a seção completa (que o Streamlit trata como um dicionário)
+        st.error(f"DEBUG: Tipo da chave: {type(st.secrets[SA_SECTION_NAME])}")
+        st.error(f"DEBUG: Conteúdo da chave (primeiros 100): {str(st.secrets[SA_SECTION_NAME])[:100]}")
         sa_data = st.secrets[SA_SECTION_NAME] 
         
         # Cria o objeto de credenciais usando as chaves individuais
@@ -563,6 +565,7 @@ if is_admin:
 # ====================================================================
 # FIM do app_merged.py
 # ====================================================================
+
 
 
 
