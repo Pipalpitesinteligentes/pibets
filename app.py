@@ -260,7 +260,7 @@ def load_palpites_prontos():
     """Carrega o DataFrame de palpites processados do Google Sheets, usando gspread manual."""
     
     # Nome da seção no secrets.toml
-    SA_SECTION_NAME = "gcp_service_account"
+    SA_SECTION_NAME = "GCP_SERVICE_ACCOUNT"
     
     # ⚠️ Verifica se a seção existe e busca ela como um dicionário
     if SA_SECTION_NAME not in st.secrets:
@@ -563,6 +563,7 @@ if is_admin:
 # ====================================================================
 # FIM do app_merged.py
 # ====================================================================
+
 
 
 
