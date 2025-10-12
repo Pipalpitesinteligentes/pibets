@@ -71,6 +71,133 @@ from guard_gsheet import require_login, issue_token
 # Login primeiro
 user_email = require_login(app_name="Palpite Inteligente")
 
+
+# ========== EXIBIR CONTEÚDO CONFORME O MENU =========
+if menu == "📊 Palpites":
+    st.title(" ")
+    # Coloque aqui o conteúdo dos palpites (mantive seu fluxo abaixo)
+
+elif menu == "🚪 Sair":
+    st.session_state.logado = False
+    st.success("Você saiu com sucesso.")
+    st.rerun()    
+
+elif menu == "📈 Gestão de Banca":
+    st.markdown("## 📈 Gestão de Banca")
+
+    banca_inicial = st.number_input("💰 Informe sua Banca Inicial (R$):", min_value=0.0, step=10.0, format="%.2f")
+
+    st.markdown("""
+    <style>
+    .stDataFrame, .st-emotion-cache-1uixxvy {
+        background-color: #13141f !important;
+        color: #ffffff !important;
+    }
+    .st-emotion-cache-1v0mbdj p {
+        color: #00ff99;
+        font-size: 20px;
+        font-weight: bold;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+    
+    dias = list(range(1, 31))
+    df = pd.DataFrame({
+        "Dia": dias,
+        "Resultado do Dia (R$)": [0.0] * len(dias),
+        "Resultado em %": ["0%"] * len(dias),
+        "Saque (R$)": [0.0] * len(dias)
+    })
+
+    df_editado = st.data_editor(
+        df,
+        num_rows="fixed",
+        use_container_width=True,
+        hide_index=True,
+        key="gestao_banca"
+    )
+
+    # Recalcular a coluna 'Resultado em %'
+    df_editado["Resultado em %"] = df_editado["Resultado do Dia (R$)"].apply(
+        lambda x: f"{(x / banca_inicial * 100):.2f}%" if banca_inicial > 0 else "0%"
+    )
+
+    # Calcular lucro/prejuízo e saque total
+    lucro_total = sum(df_editado["Resultado do Dia (R$)"])
+    saques_total = sum(df_editado["Saque (R$)"])
+    banca_final = banca_inicial + lucro_total - saques_total
+
+    st.markdown(f"""
+<div class='resultado-container'>
+    <div class='box'>
+        <div class='emoji'>💰</div>
+        <div class='titulo'>Lucro/Prejuízo</div>
+        <div class='valor'>R$ {lucro_total:,.2f}</div>
+    </div>
+    <div class='box'>
+        <div class='emoji'>🏧</div>
+        <div class='titulo'>Saques Totais</div>
+        <div class='valor'>R$ {saques_total:,.2f}</div>
+    </div>
+    <div class='box'>
+        <div class='emoji'>💼</div>
+        <div class='titulo'>Banca Final</div>
+        <div class='valor'>R$ {banca_final:,.2f}</div>
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
+st.markdown("""
+<style>
+.resultado-container {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 40px;
+    gap: 40px;
+    flex-wrap: wrap;
+}
+
+.box {
+    background-color: #1a1b2e;
+    padding: 20px;
+    border-radius: 12px;
+    width: 220px;
+    text-align: center;
+    box-shadow: 0 0 10px #00FF88;
+}
+
+.emoji {
+    font-size: 28px;
+    margin-bottom: 10px;
+}
+
+.titulo {
+    font-size: 18px;
+    font-weight: bold;
+    color: #00FF88;
+}
+
+.valor {
+    font-size: 24px;
+    font-weight: bold;
+    color: white;
+    margin-top: 5px;
+}
+</style>
+""", unsafe_allow_html=True)
+
+# ========= ESTILO VISUAL =========
+st.markdown("""
+    <style>
+    .stApp {
+        background-color: #0A0A23;
+    }
+    h1, h2, h3, p, .stMarkdown {
+        color: white;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
 # 2️⃣ Sidebar (sempre criada, mesmo se login falhar)
 with st.sidebar:
     st.markdown("## 👋 Bem-vindo" + (f", {user_email}" if user_email else "!"))
@@ -232,132 +359,6 @@ def get_upcoming_fixtures(league_id: int | None = None, days: int = 7, n: int | 
     return fixtures
 
 # ================= END API-FOOTBALL =================
-
-# ========== EXIBIR CONTEÚDO CONFORME O MENU =========
-if menu == "📊 Palpites":
-    st.title(" ")
-    # Coloque aqui o conteúdo dos palpites (mantive seu fluxo abaixo)
-
-elif menu == "🚪 Sair":
-    st.session_state.logado = False
-    st.success("Você saiu com sucesso.")
-    st.rerun()    
-
-elif menu == "📈 Gestão de Banca":
-    st.markdown("## 📈 Gestão de Banca")
-
-    banca_inicial = st.number_input("💰 Informe sua Banca Inicial (R$):", min_value=0.0, step=10.0, format="%.2f")
-
-    st.markdown("""
-    <style>
-    .stDataFrame, .st-emotion-cache-1uixxvy {
-        background-color: #13141f !important;
-        color: #ffffff !important;
-    }
-    .st-emotion-cache-1v0mbdj p {
-        color: #00ff99;
-        font-size: 20px;
-        font-weight: bold;
-    }
-    </style>
-    """, unsafe_allow_html=True)
-    
-    dias = list(range(1, 31))
-    df = pd.DataFrame({
-        "Dia": dias,
-        "Resultado do Dia (R$)": [0.0] * len(dias),
-        "Resultado em %": ["0%"] * len(dias),
-        "Saque (R$)": [0.0] * len(dias)
-    })
-
-    df_editado = st.data_editor(
-        df,
-        num_rows="fixed",
-        use_container_width=True,
-        hide_index=True,
-        key="gestao_banca"
-    )
-
-    # Recalcular a coluna 'Resultado em %'
-    df_editado["Resultado em %"] = df_editado["Resultado do Dia (R$)"].apply(
-        lambda x: f"{(x / banca_inicial * 100):.2f}%" if banca_inicial > 0 else "0%"
-    )
-
-    # Calcular lucro/prejuízo e saque total
-    lucro_total = sum(df_editado["Resultado do Dia (R$)"])
-    saques_total = sum(df_editado["Saque (R$)"])
-    banca_final = banca_inicial + lucro_total - saques_total
-
-    st.markdown(f"""
-<div class='resultado-container'>
-    <div class='box'>
-        <div class='emoji'>💰</div>
-        <div class='titulo'>Lucro/Prejuízo</div>
-        <div class='valor'>R$ {lucro_total:,.2f}</div>
-    </div>
-    <div class='box'>
-        <div class='emoji'>🏧</div>
-        <div class='titulo'>Saques Totais</div>
-        <div class='valor'>R$ {saques_total:,.2f}</div>
-    </div>
-    <div class='box'>
-        <div class='emoji'>💼</div>
-        <div class='titulo'>Banca Final</div>
-        <div class='valor'>R$ {banca_final:,.2f}</div>
-    </div>
-</div>
-""", unsafe_allow_html=True)
-
-st.markdown("""
-<style>
-.resultado-container {
-    display: flex;
-    justify-content: space-around;
-    margin-top: 40px;
-    gap: 40px;
-    flex-wrap: wrap;
-}
-
-.box {
-    background-color: #1a1b2e;
-    padding: 20px;
-    border-radius: 12px;
-    width: 220px;
-    text-align: center;
-    box-shadow: 0 0 10px #00FF88;
-}
-
-.emoji {
-    font-size: 28px;
-    margin-bottom: 10px;
-}
-
-.titulo {
-    font-size: 18px;
-    font-weight: bold;
-    color: #00FF88;
-}
-
-.valor {
-    font-size: 24px;
-    font-weight: bold;
-    color: white;
-    margin-top: 5px;
-}
-</style>
-""", unsafe_allow_html=True)
-
-# ========= ESTILO VISUAL =========
-st.markdown("""
-    <style>
-    .stApp {
-        background-color: #0A0A23;
-    }
-    h1, h2, h3, p, .stMarkdown {
-        color: white;
-    }
-    </style>
-""", unsafe_allow_html=True)
 
 # ========= LOGO E TÍTULO =========
 logo = Image.open("logo_pi.png")
@@ -556,6 +557,7 @@ if menu == "🔎 Próximos jogos (API-Football)":
 # ===========================================================
 # FIM do app_merged.py
 # ===========================================================
+
 
 
 
