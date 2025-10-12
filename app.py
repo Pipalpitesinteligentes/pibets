@@ -25,6 +25,7 @@ APP_INTERNAL_KEY = "pi-internal-123" # <-- MESMO valor do Worker
 API_KEY = st.secrets.get("API_FOOTBALL_KEY") or os.getenv("API_FOOTBALL_KEY")
 API_BASE = "https://v3.football.api-sports.io"
 HEADERS = {"x-apisports-key": API_KEY} if API_KEY else {}
+st.session_state.API_KEY = API_KEY
 
 # ====================================================================
 # ==== TOPO ROBUSTO (guard_gsheet + worker) - SEM ALTERAÇÕES ESSENCIAIS
@@ -502,6 +503,7 @@ if is_admin:
 # ====================================================================
 # FIM do app_merged.py
 # ====================================================================
+
 
 
 
