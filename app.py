@@ -1,3 +1,4 @@
+# app_merged.py
 # ==== TOPO ROBUSTO (guard_gsheet + worker) ====
 import os, traceback
 import streamlit as st
@@ -60,7 +61,6 @@ a[href*="github.com"][target="_blank"] { display: none !important; }
 footer { visibility: hidden; }
 </style>
 """
-import streamlit as st
 st.markdown(HIDE_TOOLBAR, unsafe_allow_html=True)
 
 # Agora sim importamos o resto do guard_gsheet para a UI
@@ -90,6 +90,7 @@ if is_admin:
             st.success(f"Token gerado para {alvo}: {tok}")
             st.info("Envie este código ao assinante.")
 
+# ----------------- imports gerais que usaremos -----------------
 import pandas as pd
 import gspread
 from google.oauth2.service_account import Credentials
@@ -98,6 +99,8 @@ from PIL import Image
 import requests
 import re
 import json
+from datetime import datetime, timedelta, timezone
+from zoneinfo import ZoneInfo
 
 # ----------------- (A partir daqui, vem sua lógica normal do app) -----------------
 # Mantém sua conexão com Google Sheets via st.secrets
@@ -114,12 +117,104 @@ client = gspread.authorize(creds)
 
 with st.sidebar:
     st.markdown("## 👋 Bem-vindo, felipesouza!")
-    menu = st.radio("Escolha uma opção:", ["📊 Palpites", "📈 Gestão de Banca", "🚪 Sair"])
+    menu = st.radio("Escolha uma opção:", ["📊 Palpites", "📈 Gestão de Banca", "🔎 Próximos jogos (API-Football)", "🚪 Sair"])
 
-# ========== EXIBIR CONTEÚDO CONFORME O MENU ==========
+# ================= API-FOOTBALL: funções de integração =================
+# ATENÇÃO: coloque sua chave em st.secrets["API_FOOTBALL_KEY"] ou variavel de ambiente API_FOOTBALL_KEY
+API_KEY = st.secrets.get("API_FOOTBALL_KEY") or os.getenv("API_FOOTBALL_KEY")
+API_BASE = "https://v3.football.api-sports.io"
+HEADERS = {"x-apisports-key": API_KEY} if API_KEY else {}
+
+@st.cache_data(ttl=60)
+def api_get(path, params=None):
+    url = API_BASE.rstrip("/") + "/" + path.lstrip("/")
+    resp = requests.get(url, headers=HEADERS, params=params or {}, timeout=15)
+    resp.raise_for_status()
+    return resp.json()
+
+@st.cache_data(ttl=60*60)  # cache por 1h as ligas (não mudam tanto)
+def find_league_id_by_name(country_name=None, league_name=None):
+    """
+    Busca na API leagues e tenta encontrar o league_id baseado em country_name e/ou league_name.
+    Se não achar, retorna None.
+    """
+    try:
+        params = {}
+        # podemos filtrar por country ou procurar geral
+        if country_name:
+            params["country"] = country_name
+        data = api_get("/leagues", params=params)
+        for item in data.get("response", []):
+            league = item.get("league", {})
+            country = item.get("country", {})
+            if league_name and league_name.lower() in league.get("name", "").lower():
+                return league.get("id")
+            if country_name and country_name.lower() in country.get("name", "").lower():
+                # se passou só country e há correspondência, pode retornar o primeiro
+                return league.get("id")
+    except Exception:
+        return None
+    return None
+
+@st.cache_data(ttl=30)  # resultados próximos: cache curto
+def get_upcoming_fixtures(league_id: int | None = None, days: int = 7, n: int | None = None):
+    """
+    Retorna fixtures futuros filtrados por data > now.
+    - league_id: se informar, filtra por liga
+    - days: busca de hoje até hoje+days (usa from/to)
+    - n: se informado e league_id presente, pode usar o endpoint /fixtures?league=..&next=n (API também possui /fixtures?league=..&next=..)
+    """
+    if not API_KEY:
+        raise RuntimeError("Coloque sua API_FOOTBALL_KEY em st.secrets ou como variável de ambiente API_FOOTBALL_KEY.")
+
+    tz = ZoneInfo("America/Sao_Paulo")
+    now = datetime.now(tz)
+    from_date = now.date().isoformat()
+    to_date = (now + timedelta(days=days)).date().isoformat()
+
+    params = {"from": from_date, "to": to_date, "timezone": "America/Sao_Paulo"}
+    if league_id:
+        params["league"] = league_id
+    # se n informado e league_id presente, podemos usar param next (muitos exemplos usam /fixtures?league=...&next=5)
+    if n and league_id:
+        params["next"] = n
+
+    data = api_get("/fixtures", params=params)
+    fixtures = []
+    for item in data.get("response", []):
+        f = item.get("fixture", {})
+        league = item.get("league", {})
+        teams = item.get("teams", {})
+        # parse date
+        fixture_dt_iso = f.get("date")
+        try:
+            dt = datetime.fromisoformat(fixture_dt_iso.replace("Z", "+00:00")).astimezone(tz)
+        except Exception:
+            # pulo parsing inválido
+            continue
+        # só futuros
+        if dt <= now:
+            continue
+        fixtures.append({
+            "fixture_id": f.get("id"),
+            "kickoff_iso": fixture_dt_iso,
+            "kickoff_local": dt,
+            "status": f.get("status", {}).get("short"),
+            "home_team": teams.get("home", {}).get("name"),
+            "away_team": teams.get("away", {}).get("name"),
+            "league_id": league.get("id"),
+            "league_name": league.get("name"),
+            "venue": f.get("venue", {}).get("name")
+        })
+    fixtures.sort(key=lambda x: x["kickoff_local"])
+    return fixtures
+
+# ================= END API-FOOTBALL =================
+
+# ========== EXIBIR CONTEÚDO CONFORME O MENU =========
 if menu == "📊 Palpites":
     st.title(" ")
-    # Coloque aqui o conteúdo dos palpites
+    # Coloque aqui o conteúdo dos palpites (mantive seu fluxo abaixo)
 
 elif menu == "🚪 Sair":
     st.session_state.logado = False
@@ -230,7 +325,6 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-  
 # ========= ESTILO VISUAL =========
 st.markdown("""
     <style>
@@ -287,7 +381,6 @@ logos_times = {
     "SC Recife": "https://logodetimes.com/times/sport-recife/logo-sport-recife-256.png"
 }
 
-# ========= INTERFACE DE PALPITES =========
 # ========= INTERFACE DE PALPITES =========
 st.markdown("Escolha um confronto abaixo e veja as previsões estatísticas para o jogo.")
 
@@ -393,35 +486,51 @@ if confronto:
                 else:
                     st.error("❌ Palpite de escanteios incorreto!")
 
+# ========== Nova seção: Próximos jogos via API-Football ==========
+if menu == "🔎 Próximos jogos (API-Football)":
+    st.header("🔎 Próximos jogos (API-Football)")
+    st.markdown("Use essa seção para visualizar os próximos jogos de uma liga. Se não souber o `league_id`, digite país ou parte do nome da liga que eu tento resolver automaticamente.")
 
+    if not API_KEY:
+        st.warning("Chave da API-Football não encontrada. Adicione `API_FOOTBALL_KEY` em `st.secrets` ou variável de ambiente `API_FOOTBALL_KEY`.")
+    else:
+        col1, col2 = st.columns([2,1])
+        with col1:
+            league_input = st.text_input("Insira league_id ou nome da liga / país (ex: '39' ou 'Premier League' ou 'England')", value="39")
+            days = st.number_input("Buscar próximos (dias)", min_value=1, max_value=30, value=7)
+            n = st.number_input("Se preferir próximos N jogos (opcional, deixa 0 para ignorar)", min_value=0, max_value=0, value=0)
+        with col2:
+            if st.button("Buscar próximos jogos"):
+                try:
+                    league_id = None
+                    # tenta interpretar como inteiro
+                    if str(league_input).strip().isdigit():
+                        league_id = int(str(league_input).strip())
+                    else:
+                        # tenta lookup por nome/pais
+                        league_id = find_league_id_by_name(country_name=league_input, league_name=league_input)
+                        if not league_id:
+                            st.info("Não encontrei a liga automaticamente. Tente com o league_id (ex: 39 para Premier League) ou nome exato.")
+                    fixtures = get_upcoming_fixtures(league_id=league_id, days=int(days), n=(int(n) if int(n)>0 else None))
+                    if not fixtures:
+                        st.info("Nenhum jogo futuro encontrado no período selecionado.")
+                    else:
+                        # tabela resumida
+                        table = []
+                        for f in fixtures:
+                            table.append({
+                                "Data (local)": f["kickoff_local"].strftime("%Y-%m-%d %H:%M"),
+                                "Liga": f["league_name"],
+                                "Mandante": f["home_team"],
+                                "Visitante": f["away_team"],
+                                "Local": f["venue"]
+                            })
+                        st.table(table)
+                        # opcional: permitir clicar e importar jogo p/ seu fluxo de palpites
+                        st.success(f"{len(table)} jogos futuros listados.")
+                except Exception as e:
+                    st.error(f"Erro: {e}")
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+# ===========================================================
+# FIM do app_merged.py
+# ===========================================================
