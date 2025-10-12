@@ -70,56 +70,56 @@ if getp("key") == APP_INTERNAL_KEY:
 
 st.set_page_config(page_title="Palpite Inteligente", page_icon="⚽", layout="wide")
 # ↓ Ajuste: O MainMenu (hambúrguer) não é mais escondido.
-HIDE_TOOLBAR = """
-<style>
-/* toolbar inteiro (inclui GitHub/Fork) */
-div[data-testid="stToolbar"] { display: none !important; }
+#HIDE_TOOLBAR = """
+#<style>
+#/* toolbar inteiro (inclui GitHub/Fork) */
+#div[data-testid="stToolbar"] { display: none !important; }
 
-/* alguns temas/versões colocam link do GitHub como âncora separada */
-a[data-testid="toolbar-github-icon"],
-a[aria-label="Open GitHub Repo"],
-a[href*="github.com"][target="_blank"] { display: none !important; }
+#/* alguns temas/versões colocam link do GitHub como âncora separada */
+#a[data-testid="toolbar-github-icon"],
+#a[aria-label="Open GitHub Repo"],
+#a[href*="github.com"][target="_blank"] { display: none !important; }
 
-/* rodapé padrão */
-footer { visibility: hidden; }
+#/* rodapé padrão */
+#footer { visibility: hidden; }
 
-/* Estilo geral de fundo */
-.stApp { background-color: #0A0A23; }
-h1, h2, h3, p, .stMarkdown { color: white; }
+#/* Estilo geral de fundo */
+#.stApp { background-color: #0A0A23; }
+#h1, h2, h3, p, .stMarkdown { color: white; }
 
-/* Estilos para o resultado da Banca */
-.resultado-container {
-    display: flex;
-    justify-content: space-around;
-    margin-top: 40px;
-    gap: 40px;
-    flex-wrap: wrap;
+#/* Estilos para o resultado da Banca */
+#.resultado-container {
+    #display: flex;
+    #justify-content: space-around;
+    #margin-top: 40px;
+    #gap: 40px;
+    #flex-wrap: wrap;
 }
-.box {
-    background-color: #1a1b2e;
-    padding: 20px;
-    border-radius: 12px;
-    width: 220px;
-    text-align: center;
-    box-shadow: 0 0 10px #00FF88;
+#.box {
+    #background-color: #1a1b2e;
+    #padding: 20px;
+    #border-radius: 12px;
+    #width: 220px;
+    #text-align: center;
+    #box-shadow: 0 0 10px #00FF88;
 }
-.emoji { font-size: 28px; margin-bottom: 10px; }
-.titulo { font-size: 18px; font-weight: bold; color: #00FF88; }
-.valor { font-size: 24px; font-weight: bold; color: white; margin-top: 5px; }
+#.emoji { font-size: 28px; margin-bottom: 10px; }
+#.titulo { font-size: 18px; font-weight: bold; color: #00FF88; }
+#.valor { font-size: 24px; font-weight: bold; color: white; margin-top: 5px; }
 
-/* Estilo para dataframes em Gestão de Banca */
-.stDataFrame, .st-emotion-cache-1uixxvy {
-    background-color: #13141f !important;
-    color: #ffffff !important;
+#/* Estilo para dataframes em Gestão de Banca */
+#.stDataFrame, .st-emotion-cache-1uixxvy {
+    #background-color: #13141f !important;
+    #color: #ffffff !important;
 }
-.st-emotion-cache-1v0mbdj p {
-    color: #00ff99;
-    font-size: 20px;
-    font-weight: bold;
+#.st-emotion-cache-1v0mbdj p {
+    #color: #00ff99;
+    #font-size: 20px;
+    #font-weight: bold;
 }
-</style>
+#</style>
 """
-st.markdown(HIDE_TOOLBAR, unsafe_allow_html=True)
+#st.markdown(HIDE_TOOLBAR, unsafe_allow_html=True)
 
 
 # Agora sim importamos o resto do guard_gsheet para a UI
@@ -533,3 +533,4 @@ if is_admin:
 # ====================================================================
 # FIM do app_merged.py
 # ====================================================================
+
