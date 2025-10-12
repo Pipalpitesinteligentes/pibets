@@ -127,29 +127,6 @@ st.markdown(HIDE_TOOLBAR, unsafe_allow_html=True)
 # Agora sim importamos o resto do guard_gsheet para a UI
 from guard_gsheet import require_login, issue_token
 
-# ====================================================================
-# ==== CONEXÕES E VARIÁVEIS GLOBAIS (ANTES DAS FUNÇÕES) ====
-# ====================================================================
-
-@st.cache_resource(ttl=3600)
-def load_gsheet_data():
-    "Carrega o DataFrame da planilha do Google Sheets."""
-    try:
-        # Tenta o método ServiceAccountCredentials (mais antigo/compatível)
-        service_account_info = json.loads(st.secrets["GCP_SERVICE_ACCOUNT"])
-        scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-        creds = ServiceAccountCredentials.from_json_keyfile_dict(service_account_info, scope)
-        gc = gspread.authorize(creds)
-        sheet = gc.open("nova_tentativa_01").sheet1
-        df_sheet = get_as_dataframe(sheet).dropna(how="all")
-        return df_sheet
-    except Exception as e:
-        st.error(f"Erro ao carregar dados do Google Sheets. Verifique 'nova_tentativa_01' e 'GCP_SERVICE_ACCOUNT' nos secrets. Erro: {e}")
-        return pd.DataFrame() # Retorna um DataFrame vazio em caso de falha
-
-# Carrega o DataFrame principal (disponível globalmente)
-df = load_gsheet_data()
-
 # Mapa de Logos (também global)
 logos_times = {
     "CR Flamengo": "https://logodetimes.com/times/flamengo/logo-flamengo-256.png",
@@ -247,6 +224,14 @@ def get_upcoming_fixtures(league_id: int | None = None, days: int = 7, n: int | 
         })
     fixtures.sort(key=lambda x: x["kickoff_local"])
     return fixtures
+
+# SALVA a função get_upcoming_fixtures no estado da sessão
+if 'get_upcoming_fixtures' not in st.session_state:
+    st.session_state.get_upcoming_fixtures = get_upcoming_fixtures
+    
+# SALVA a função find_league_id_by_name no estado da sessão
+if 'find_league_id_by_name' not in st.session_state:
+    st.session_state.find_league_id_by_name = find_league_id_by_name
 
 
 # ====================================================================
@@ -503,6 +488,7 @@ if is_admin:
 # ====================================================================
 # FIM do app_merged.py
 # ====================================================================
+
 
 
 
