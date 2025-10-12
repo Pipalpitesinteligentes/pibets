@@ -63,32 +63,43 @@ footer { visibility: hidden; }
 """
 st.markdown(HIDE_TOOLBAR, unsafe_allow_html=True)
 
-# Agora sim importamos o resto do guard_gsheet para a UI
-from guard_gsheet import require_login, issue_token
+# ==== Substitua o bloco atual de login/sidebar por este bloco de debug/fallback ====
+# Assumindo que já rodou: st.set_page_config(...)
 
-# Login primeiro
-user_email = require_login(app_name="Palpite Inteligente")
+# Debug wrapper para require_login: mostra erro caso ocorra e garante menu visível
+from guard_gsheet import require_login, issue_token  # importa aqui
+user_email = None
+login_error = None
+try:
+    user_email = require_login(app_name="Palpite Inteligente")
+except Exception as _e:
+    login_error = repr(_e)
 
-# Debugs úteis
+# Mostra um pequeno painel de debug (só admins vão ver o detalhe completo)
 st.caption(f"Usuário autenticado: {user_email or 'N/D'}")
+if login_error:
+    # Mensagem visível em vermelho — ajuda a diagnosticar no Streamlit Cloud
+    st.error("Erro no require_login(): " + login_error)
 
-# Admins sempre em minúsculas
-ADMINS = {"felipesouzacontatoo@gmail.com"}  # coloque aqui os emails admin
+# Se precisa garantir o menu mesmo quando require_login falha, criamos fallback:
+ADMINS = {"felipesouzacontatoo@gmail.com"}
 is_admin = (user_email or "").strip().lower() in ADMINS
 st.caption(f"Admin? {'sim' if is_admin else 'não'}")
 
-# (opcional) ver session_state se quiser diagnosticar
-# st.json(st.session_state)
+# Fallback: se user_email for None, ainda assim mostramos o menu, mas com avisos
+with st.sidebar:
+    st.markdown("## 👋 Bem-vindo" + (f", {user_email}" if user_email else "!"))
+    if not user_email:
+        st.warning("Usuário não autenticado — algumas funções podem estar desativadas.")
+    menu = st.radio("Escolha uma opção:", ["📊 Palpites", "📈 Gestão de Banca", "🔎 Próximos jogos (API-Football)", "🚪 Sair"], index=0)
 
-# Só admins veem o gerador
+# DEBUG extra (mostra na página para saber se chegamos até aqui)
 if is_admin:
-    with st.expander("🔧 Gerar token (ADMIN)"):
-        alvo = st.text_input("E-mail do assinante", key="admin_user_email")
-        dias = st.number_input("Dias de validade", 1, 365, 30, key="admin_days")
-        if st.button("Gerar token para este e-mail", key="admin_issue_token_btn"):
-            tok = issue_token(alvo, days=int(dias))
-            st.success(f"Token gerado para {alvo}: {tok}")
-            st.info("Envie este código ao assinante.")
+    with st.expander("🔧 DEBUG (admin)"):
+        st.write("user_email:", user_email)
+        st.write("login_error:", login_error)
+        st.write("st.session_state keys:", list(st.session_state.keys()))
+# ==== fim do bloco substituto ====
 
 # ----------------- imports gerais que usaremos -----------------
 import pandas as pd
@@ -534,3 +545,4 @@ if menu == "🔎 Próximos jogos (API-Football)":
 # ===========================================================
 # FIM do app_merged.py
 # ===========================================================
+
