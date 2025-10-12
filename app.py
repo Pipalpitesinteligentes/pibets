@@ -252,32 +252,38 @@ def get_upcoming_fixtures(league_id: int | None = None, days: int = 7, season: i
     return fixtures
 
 # =======================================================
-# ==== FUNÇÃO DE CARREGAMENTO DO WORKER (GSHEET) ====
-# =======================================================
-
-# =======================================================
-# ==== FUNÇÃO DE CARREGAMENTO DO WORKER (GSHEET) - CORRIGIDA ====
+# ==== FUNÇÃO DE CARREGAMENTO DO WORKER (GSHEET) - CORREÇÃO FINAL ====
 # =======================================================
 
 @st.cache_data(ttl=600) # Cache por 10 minutos
 def load_palpites_prontos():
     """Carrega o DataFrame de palpites processados do Google Sheets, usando gspread manual."""
     
-    # ⚠️ 1. Verifica se o segredo da Service Account existe
-    if "gcp_service_account" not in st.secrets:
-        st.error("ERRO DE CONFIGURAÇÃO: O `st.secrets` não contém a chave `gcp_service_account` para autenticar no Google Sheets.")
+    # Nome da seção no secrets.toml
+    SA_SECTION_NAME = "gcp_service_account"
+    
+    # ⚠️ Verifica se a seção existe e busca ela como um dicionário
+    if SA_SECTION_NAME not in st.secrets:
+        st.error(f"ERRO DE CONFIGURAÇÃO: A seção `[{SA_SECTION_NAME}]` não foi encontrada em `secrets.toml`.")
         return pd.DataFrame()
 
     try:
-        # ⚠️ 2. AUTENTICAÇÃO MANUAL COM gspread: Lendo o JSON do secrets.toml
-        # O Streamlit salva o bloco [gcp_service_account] como uma string no segredo "gcp_service_account"
+        # Pega a seção completa (que o Streamlit trata como um dicionário)
+        sa_data = st.secrets[SA_SECTION_NAME] 
         
-        # Converte a string de segredos (que está no formato TOML) para um dicionário JSON
-        sa_data = st.secrets["gcp_service_account"] 
+        # Cria o objeto de credenciais usando as chaves individuais
+        credentials_info = {
+            "type": sa_data.get("type"),
+            "project_id": sa_data.get("project_id"),
+            # O Streamlit lida com a chave privada multi-linha automaticamente ao ler a seção TOML
+            "private_key": sa_data.get("private_key"), 
+            "client_email": sa_data.get("client_email"),
+            "token_uri": sa_data.get("token_uri")
+        }
         
-        # O gspread precisa de um objeto de credenciais
         scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
-        creds = ServiceAccountCredentials.from_json_keyfile_dict(sa_data, scope)
+        # Agora o ServiceAccountCredentials está recebendo um dicionário Python válido
+        creds = ServiceAccountCredentials.from_json_keyfile_dict(credentials_info, scope)
         gc = gspread.authorize(creds)
         
         # 3. Abre a planilha pelo ID e seleciona a aba
@@ -287,11 +293,7 @@ def load_palpites_prontos():
         df = get_as_dataframe(sheet, evaluate_formulas=True, header=1).dropna(how="all")
         
         # Limpeza e Formatação (como no seu código original)
-        df = df.rename(columns={
-            "Data": "Data/Hora", 
-            "Confiança": "Confiança (%)"
-        })
-        
+        df = df.rename(columns={"Data": "Data/Hora", "Confiança": "Confiança (%)"})
         df = df.dropna(subset=['Data/Hora'])
         df['Data/Hora'] = pd.to_datetime(df['Data/Hora'], errors='coerce')
         df = df[df['Data/Hora'] > datetime.now()]
@@ -301,7 +303,7 @@ def load_palpites_prontos():
 
     except Exception as e:
         st.error(f"Erro Crítico ao carregar Palpites Prontos do Sheets: {e}")
-        st.info("Verifique se o seu secrets.toml está no formato correto (private_key em uma linha com \\\\n) e se a Service Account tem permissão de EDITOR na planilha.")
+        st.info("Verifique se a Service Account tem permissão de EDITOR na planilha e se todas as chaves estão no secrets.toml.")
         return pd.DataFrame()
 
 # Carrega o DataFrame global (cacheado)
@@ -561,4 +563,5 @@ if is_admin:
 # ====================================================================
 # FIM do app_merged.py
 # ====================================================================
+
 
