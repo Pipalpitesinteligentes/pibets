@@ -71,6 +71,29 @@ from guard_gsheet import require_login, issue_token
 # Login primeiro
 user_email = require_login(app_name="Palpite Inteligente")
 
+# ... (Seu código de login, sidebar, etc.)
+
+# 1️⃣ Definições das Funções
+def mostrar_palpites():
+    st.title("Página de Palpites")
+    # ... Coloque aqui a lógica da página de palpites
+
+def mostrar_banca():
+    st.title("Gestão de Banca")
+    # ... Coloque aqui a lógica da página de banca
+    
+def mostrar_proximos_jogos():
+    st.title("Próximos Jogos")
+    # ... Coloque aqui a lógica da página de jogos
+    
+def logout():
+    # ... Lógica de deslogar
+    st.warning("Você saiu.")
+
+# 4️⃣ Renderiza conteúdo de acordo com o menu (Chamadas agora funcionarão)
+if menu == "📊 Palpites":
+    mostrar_palpites()
+# ... (restante do código)
 
 # ========== EXIBIR CONTEÚDO CONFORME O MENU =========
 if menu == "📊 Palpites":
@@ -557,6 +580,7 @@ if menu == "🔎 Próximos jogos (API-Football)":
 # ===========================================================
 # FIM do app_merged.py
 # ===========================================================
+
 
 
 
