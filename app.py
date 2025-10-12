@@ -257,10 +257,11 @@ def get_upcoming_fixtures(league_id: int | None = None, days: int = 7, n: int | 
 
 def mostrar_jogos_e_palpites():
     import streamlit as st
-    import pandas as pd # Necessário para df.empty e pd.isna
-    import re # Necessário para re.search
+    import pandas as pd
     from PIL import Image
-
+    # Assumindo que find_league_id_by_name e get_upcoming_fixtures
+    # estão acessíveis (via import ou st.session_state)
+    
     # LOGO E TÍTULO
     try:
         logo = Image.open("logo_pi.png")
@@ -269,199 +270,77 @@ def mostrar_jogos_e_palpites():
         st.header("Logo não encontrada")
         
     st.title("π - Palpites Inteligentes 🇧🇷⚽")
-    st.markdown("Selecione a fonte de dados e o jogo para ver as previsões.")
-
-    # Opção 1: Selecionar a fonte dos jogos (Palpites do Sheets ou Jogos da API)
-    origem = st.radio(
-        "Selecione a fonte dos dados:",
-        ["Palpites da Rodada (Sheets)", "Próximos Jogos (API-Football)"],
-        horizontal=True
-    )
+    st.markdown("Busque os jogos mais recentes da API-Football para gerar previsões.")
     
     st.markdown("---") 
-
-    # ==========================================================
-    # ==== LÓGICA DO SHEETS (Dados Manuais/Pré-Calculados) ====
-    # ==========================================================
-    if origem == "Palpites da Rodada (Sheets)":
+    
+    # Apenas lógica da API-Football
+    
+    if 'API_KEY' not in st.session_state or not st.session_state.API_KEY:
+        st.error("Chave da API-Football não configurada. Por favor, configure a chave na seção de credenciais.")
+        return
         
-        # Verifica se o DataFrame de palpites está carregado
-        if 'df' not in st.session_state or st.session_state.df.empty:
-             st.warning("Não foi possível carregar o DataFrame de palpites. Verifique a conexão com o Google Sheets.")
-             return
-        
-        # Usa o df carregado do Sheets
-        df = st.session_state.df 
-
-        # 1. Caixa: Campeonato
-        campeonatos = sorted(df["Campeonato"].dropna().unique())
-        campeonato_escolhido = st.selectbox("🏆 Selecione o Campeonato:", campeonatos)
-        
-        df_campeonato = df[df["Campeonato"] == campeonato_escolhido]
-
-        # 2. Caixa: Rodada
-        rodadas_disponiveis = sorted(df_campeonato["Rodada"].dropna().unique())
-        rodada_escolhida = st.selectbox("📆 Selecione a rodada:", rodadas_disponiveis)
-
-        df_rodada = df_campeonato[df_campeamento["Rodada"] == rodada_escolhida]
-        
-        # 3. Caixa: Confronto
-        confrontos_disponiveis = df_rodada.apply(lambda x: f"{x['Mandante']} x {x['Visitante']}", axis=1).tolist()
-        confronto = st.selectbox("⚽ Escolha o confronto:", confrontos_disponiveis)
-        
-        # ==================================================
-        # ==== LÓGICA DE EXIBIÇÃO DO PALPITE DO SHEETS ====
-        # ==================================================
-        if confronto:
-            # Lógica para encontrar o jogo e exibir os dados (SEU CÓDIGO)
-            mandante, visitante = [t.strip() for t in confronto.split("x")]
-            jogo = df[(df["Mandante"] == mandante) & (df["Visitante"] == visitante)]
-            
-            if not jogo.empty:
-                dados = jogo.iloc[0]
-                st.success("✅ Palpite gerado com sucesso!")
-
-                # Exibição dos Logos e Times
-                # OBS: Assumindo que 'logos_times' é uma variável global/acessível
-                col1, col2, col3 = st.columns(3)
-                with col1:
-                    st.markdown(
-                        f"""
-                        <div style='text-align: center;'>
-                            <img src="{st.session_state.logos_times.get(mandante)}" width="120"/>
-                            <p style="color:white; font-weight: bold;">{mandante}</p>
-                        </div>
-                        """,
-                        unsafe_allow_html=True
-                    )
-                    
-                with col2:
-                    st.markdown("<div style='text-align:center;font-size:36px;'>⚔️</div>", unsafe_allow_html=True)
-                    
-                with col3:
-                    st.markdown(
-                        f"""
-                        <div style='text-align: center;'>
-                            <img src="{st.session_state.logos_times.get(visitante)}" width="120"/>
-                            <p style="color:white; font-weight: bold;">{visitante}</p>
-                        </div>
-                        """,
-                        unsafe_allow_html=True
-                    )
-                    
-                st.markdown("---")
-                st.markdown(f"### 📅 **Data do jogo:** <span style='color:#3DFB86'>{dados['Data']}</span>", unsafe_allow_html=True)
-                st.markdown("### 🧠 **Melhor Palpite:**")
-                st.success(f"**{dados['Melhor Palpite']}**")
-
-                st.markdown("### 📊 **Estatísticas do confronto:**")
-                st.markdown(f"""
-                    - 🔥 **+1.5 Gols:** `{dados['+1.5 Gols']}`
-                    - 🔥 **+2.5 Gols:** `{dados['+2.5 Gols']}`
-                    - 🥅 **Ambas Marcam:** `{dados['Ambas Marcam']}`
-                    - 🚩 **Escanteios Estimado:** `{dados['Escanteios Estimado']}`
-                """)
-
-                gols_mandante = dados['Gols Mandante']
-                gols_visitante = dados['Gols Visitante']
-                resultado_real = f"{gols_mandante} x {gols_visitante}"
-                st.markdown(f"### 📊 Resultado Real: `{resultado_real}`")
-
-                total_gols = gols_mandante + gols_visitante
-                ambas_marcam = gols_mandante > 0 and gols_visitante > 0
-
-                palpite = dados['Melhor Palpite'].strip().lower()
-                acertou = False
-                if "1.5" in palpite and total_gols > 1.5:
-                    acertou = True
-                elif "2.5" in palpite and total_gols > 2.5:
-                    acertou = True
-                elif "ambas" in palpite and ambas_marcam:
-                    acertou = True
-                # A lógica de acerto de placar exato geralmente é mais complexa, mas mantive a sua estrutura
-                elif f"{gols_mandante} x {gols_visitante}" in palpite: 
-                    acertou = True
-
-                escanteios_mandante = dados['Escanteios Mandante']
-                escanteios_visitante = dados['Escanteios Visitante']
-                escanteios_estimado = dados['Escanteios Estimado']
-                escanteios_reais = escanteios_mandante + escanteios_visitante
-
-                acertou_escanteios = False
-                if "escanteio" in palpite:
-                    match = re.search(r"(\d+)\+", palpite)
-                    if match:
-                        minimo = int(match.group(1))
-                        if escanteios_reais >= minimo:
-                            acertou_escanteios = True
-
-                st.markdown(f"**🟡 Escanteios Reais:** `{escanteios_reais}`")
-                st.markdown(f"**📌 Escanteios Estimado:** `{escanteios_estimado}`")
-
-                if pd.isna(gols_mandante) or pd.isna(gols_visitante):
-                    st.info("⏳ Aguardando resultado do jogo...")
-                else:
-                    if acertou:
-                        st.success("✅ Palpite de gols/ambas/placar correto!")
-                    else:
-                        st.error("❌ Palpite de gols/ambas/placar incorreto.")
-
-                    if "escanteio" in palpite:
-                        if acertou_escanteios:
-                            st.success("✅ Palpite de escanteios correto!")
-                        else:
-                            st.error("❌ Palpite de escanteios incorreto!")
-
-    # ===================================================
-    # ==== LÓGICA DA API-FOOTBALL (Próximos Jogos) ====
-    # ===================================================
-    else: # origem == "Próximos Jogos (API-Football)"
-        # OBS: A variável API_KEY e as funções find_league_id_by_name e get_upcoming_fixtures
-        # devem estar definidas e acessíveis (globais ou via st.session_state)
-        
-        if 'API_KEY' not in st.session_state or not st.session_state.API_KEY:
-            st.error("Chave da API-Football não configurada.")
-            return
-            
-        st.info("Buscar jogos futuros para gerar palpites em tempo real.")
-        
-        # 1. Caixa: Liga/Campeonato
-        league_input = st.text_input("Insira league_id ou nome da liga / país (ex: '39' ou 'Brasil')", value="71")
-        
-        # Tenta resolver o ID na hora
-        try:
-            league_id = None
-            if str(league_input).strip().isdigit():
-                league_id = int(str(league_input).strip())
-            else:
-                # OBS: Assumindo que find_league_id_by_name está definida e acessível
+    st.info("Buscar jogos futuros para gerar palpites em tempo real. (Substituindo o fluxo do Sheets)")
+    
+    # 1. Caixa: Liga/Campeonato (Para a API, usamos o ID ou nome)
+    # Valor padrão 71 (Brasil Série A), mas o usuário pode mudar.
+    league_input = st.text_input("🏆 1. Insira league_id ou nome da liga / país (ex: '39' ou 'Brasil')", value="71")
+    
+    # Tenta resolver o ID
+    try:
+        league_id = None
+        if str(league_input).strip().isdigit():
+            league_id = int(str(league_input).strip())
+        else:
+            # OBS: Assumindo que find_league_id_by_name está definida e acessível
+            if 'find_league_id_by_name' in st.session_state:
                 league_id = st.session_state.find_league_id_by_name(country_name=league_input, league_name=league_input)
-                if not league_id:
-                    st.warning("Liga não encontrada. Tente um ID exato (ex: 71 para Brasil Série A).")
+            else:
+                st.warning("Função de busca por nome de liga não acessível. Use o ID numérico.")
+                return
 
-            if league_id:
-                # 2. Caixa: Período (Substitui Rodada)
-                days = st.number_input("Buscar próximos (dias)", min_value=1, max_value=30, value=7)
+        if not league_id:
+            st.warning("Liga não encontrada. Tente um ID exato (ex: 71 para Brasil Série A).")
+            return
+
+        # 2. Caixa: Período (Substitui Rodada)
+        # Na API, buscamos por um período de dias, não por "Rodada" fixa.
+        days = st.number_input("📆 2. Buscar jogos nos próximos (dias)", min_value=1, max_value=30, value=7)
+        
+        # Botão para buscar (pois é uma chamada de API)
+        if st.button(f"Buscar jogos futuros (Liga ID: {league_id}, {days} dias)"):
+            
+            # OBS: Assumindo que get_upcoming_fixtures está definida e acessível
+            if 'get_upcoming_fixtures' in st.session_state:
+                fixtures = st.session_state.get_upcoming_fixtures(league_id=league_id, days=int(days))
+            else:
+                st.error("Função de busca de jogos futuros não acessível.")
+                return
+
+            
+            if fixtures:
+                st.session_state.fixtures = fixtures # Salva para uso futuro
                 
-                # Botão para buscar (pois é uma chamada de API)
-                if st.button(f"Buscar {days} dias de jogos (Liga ID: {league_id})"):
-                    # OBS: Assumindo que get_upcoming_fixtures está definida e acessível
-                    fixtures = st.session_state.get_upcoming_fixtures(league_id=league_id, days=int(days))
+                # 3. Caixa: Confronto (Opção de Jogo)
+                jogos_api = [
+                    f"{f['home_team']} x {f['away_team']} ({f['kickoff_local'].strftime('%d/%m %H:%M')})"
+                    for f in fixtures
+                ]
+                
+                # Exibe a caixa de seleção com os jogos encontrados
+                jogo_escolhido = st.selectbox("⚽ 3. Escolha o confronto para palpitar:", jogos_api)
+                
+                if jogo_escolhido:
+                    st.info(f"Jogo selecionado: {jogo_escolhido}")
+                    st.success("Insira aqui a lógica de *Geração de Palpite* usando os dados da API.")
+                    # FUTURO: Você precisará de uma função para buscar estatísticas
+                    # de confronto (H2H) e dados de performance dos times ANTES de gerar o palpite.
                     
-                    if fixtures:
-                        # 3. Caixa: Confronto (Opção de Jogo)
-                        jogos_api = [
-                            f"{f['home_team']} x {f['away_team']} ({f['kickoff_local'].strftime('%d/%m %H:%M')})"
-                            for f in fixtures
-                        ]
-                        jogo_escolhido = st.selectbox("⚽ Escolha o jogo (API):", jogos_api)
-                        
-                        st.info(f"Jogo escolhido: {jogo_escolhido}. Adicione aqui a lógica para buscar estatísticas e gerar o palpite usando o `league_id` e os times.")
-                    else:
-                        st.info("Nenhum jogo futuro encontrado no período selecionado.")
+            else:
+                st.info(f"Nenhum jogo futuro encontrado para a Liga ID {league_id} no período de {days} dias.")
 
-        except Exception as e:
-            st.error(f"Erro na busca da API: {e}")
+    except Exception as e:
+        st.error(f"Erro na busca da API: {e}")
 
 
 def mostrar_banca():
@@ -623,6 +502,7 @@ if is_admin:
 # ====================================================================
 # FIM do app_merged.py
 # ====================================================================
+
 
 
 
