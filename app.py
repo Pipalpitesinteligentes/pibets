@@ -255,51 +255,53 @@ def get_upcoming_fixtures(league_id: int | None = None, days: int = 7, season: i
 # ==== FUNÇÃO DE CARREGAMENTO DO WORKER (GSHEET) ====
 # =======================================================
 
+# =======================================================
+# ==== FUNÇÃO DE CARREGAMENTO DO WORKER (GSHEET) - CORRIGIDA ====
+# =======================================================
+
 @st.cache_data(ttl=600) # Cache por 10 minutos
 def load_palpites_prontos():
-    """Carrega o DataFrame de palpites processados do Google Sheets."""
+    """Carrega o DataFrame de palpites processados do Google Sheets, usando gspread manual."""
     
-    # ⚠️ CORREÇÃO 2: Usa o método moderno st.connection para Sheets
+    # ⚠️ 1. Verifica se o segredo da Service Account existe
+    if "gcp_service_account" not in st.secrets:
+        st.error("ERRO DE CONFIGURAÇÃO: O `st.secrets` não contém a chave `gcp_service_account` para autenticar no Google Sheets.")
+        return pd.DataFrame()
+
     try:
-        # A st.connection busca automaticamente as credenciais [gcp_service_account] em st.secrets
-        conn = st.connection("gcp_service_account", type="spreadsheet")
+        # ⚠️ 2. AUTENTICAÇÃO MANUAL COM gspread: Lendo o JSON do secrets.toml
+        # O Streamlit salva o bloco [gcp_service_account] como uma string no segredo "gcp_service_account"
         
-        # Lê a aba específica da planilha (mantendo o ID e nome inalterados)
-        sheet_url_or_key = SPREADSHEET_ID
-        worksheet_name = SHEET_NAME_PALPITES
+        # Converte a string de segredos (que está no formato TOML) para um dicionário JSON
+        sa_data = st.secrets["gcp_service_account"] 
         
-        # Lê a planilha - o Streamlit Connection usa o método mais robusto
-        df = conn.read(
-            spreadsheet=sheet_url_or_key, 
-            worksheet=worksheet_name, 
-            ttl="10m", # TTL (Time To Live) de 10 minutos para o cache
-            header=1 # Assumindo que a primeira linha contém o cabeçalho
-        ).dropna(how="all")
+        # O gspread precisa de um objeto de credenciais
+        scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
+        creds = ServiceAccountCredentials.from_json_keyfile_dict(sa_data, scope)
+        gc = gspread.authorize(creds)
         
-        # Limpeza e Formatação (Assumindo as colunas do seu worker)
+        # 3. Abre a planilha pelo ID e seleciona a aba
+        sheet = gc.open_by_key(SPREADSHEET_ID).worksheet(SHEET_NAME_PALPITES)
+        
+        # 4. Converte para DataFrame
+        df = get_as_dataframe(sheet, evaluate_formulas=True, header=1).dropna(how="all")
+        
+        # Limpeza e Formatação (como no seu código original)
         df = df.rename(columns={
             "Data": "Data/Hora", 
             "Confiança": "Confiança (%)"
         })
         
-        # Remove linhas com Data/Hora vazia
         df = df.dropna(subset=['Data/Hora'])
-        
-        # Converte a coluna de data (o formato pode variar, então usamos 'coerce' para lidar com erros)
         df['Data/Hora'] = pd.to_datetime(df['Data/Hora'], errors='coerce')
-        
-        # Filtra apenas jogos futuros
         df = df[df['Data/Hora'] > datetime.now()]
-        
-        # Ordena por data
         df = df.sort_values(by="Data/Hora").reset_index(drop=True)
         
         return df
 
     except Exception as e:
-        # st.error(f"Erro ao carregar Palpites Prontos do Sheets: {e}")
-        st.error(f"Erro ao carregar Palpites Prontos do Sheets. Verifique a configuração [gcp_service_account] no secrets e a permissão.")
-        st.info(f"Detalhes do erro: {e}")
+        st.error(f"Erro Crítico ao carregar Palpites Prontos do Sheets: {e}")
+        st.info("Verifique se o seu secrets.toml está no formato correto (private_key em uma linha com \\\\n) e se a Service Account tem permissão de EDITOR na planilha.")
         return pd.DataFrame()
 
 # Carrega o DataFrame global (cacheado)
@@ -559,3 +561,4 @@ if is_admin:
 # ====================================================================
 # FIM do app_merged.py
 # ====================================================================
+
