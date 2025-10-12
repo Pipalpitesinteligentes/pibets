@@ -1,4 +1,15 @@
 # app_merged.py
+# ----------------- imports gerais que usaremos -----------------
+import pandas as pd
+import gspread
+from google.oauth2.service_account import Credentials
+from gspread_dataframe import get_as_dataframe
+from PIL import Image
+import requests
+import re
+import json
+from datetime import datetime, timedelta, timezone
+from zoneinfo import ZoneInfo
 # ==== TOPO ROBUSTO (guard_gsheet + worker) ====
 import os, traceback
 import streamlit as st
@@ -190,18 +201,6 @@ if is_admin:
             st.success(f"Token gerado para {alvo}: {tok}")
             st.info("Envie este código ao assinante.")
 # ==== fim do bloco substituto ====
-
-# ----------------- imports gerais que usaremos -----------------
-import pandas as pd
-import gspread
-from google.oauth2.service_account import Credentials
-from gspread_dataframe import get_as_dataframe
-from PIL import Image
-import requests
-import re
-import json
-from datetime import datetime, timedelta, timezone
-from zoneinfo import ZoneInfo
 
 # ----------------- (A partir daqui, vem sua lógica normal do app) -----------------
 # Mantém sua conexão com Google Sheets via st.secrets
@@ -505,6 +504,7 @@ if menu == "🔎 Próximos jogos (API-Football)":
 # ===========================================================
 # FIM do app_merged.py
 # ===========================================================
+
 
 
 
