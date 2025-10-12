@@ -233,6 +233,25 @@ if 'get_upcoming_fixtures' not in st.session_state:
 if 'find_league_id_by_name' not in st.session_state:
     st.session_state.find_league_id_by_name = find_league_id_by_name
 
+@st.cache_resource(ttl=3600)
+def get_upcoming_fixtures(league_id: int | None = None, days: int = 7, season: int | None = None):
+    # Garante que a temporada seja o ano atual se não for fornecida
+    if season is None:
+        season = datetime.datetime.now().year
+    
+    # 1. Obtenha as datas de início e fim
+    today = datetime.date.today()
+    end_date = today + datetime.timedelta(days=days)
+
+    # 2. Defina o endpoint (supondo que você usa o endpoint /fixtures)
+    url = "https://api-football-v1.p.rapidapi.com/v3/fixtures"
+    
+    querystring = {
+        "league": str(league_id),
+        "season": str(season), # <--- AGORA INCLUÍDO
+        "from": today.strftime("%Y-%m-%d"),
+        "to": end_date.strftime("%Y-%m-%d"),
+        "status": "NS" # Não iniciados
 
 # ====================================================================
 # ==== 1. FUNÇÕES DE CONTEÚDO (Implementando a lógica dentro) ====
@@ -488,6 +507,7 @@ if is_admin:
 # ====================================================================
 # FIM do app_merged.py
 # ====================================================================
+
 
 
 
