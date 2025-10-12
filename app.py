@@ -1,4 +1,4 @@
-# app_merged.py
+# app_merged.py - CÓDIGO CORRIGIDO E UNIFICADO
 # ====================================================================
 # ==== 0. IMPORTS, VARIÁVEIS DE AMBIENTE E BIBLIOTECAS UNIFICADAS ====
 # ====================================================================
@@ -21,7 +21,7 @@ from typing import Optional
 os.environ["MEMBERS_FILE"] = "secure/members.json"
 APP_INTERNAL_KEY = "pi-internal-123" # <-- MESMO valor do Worker
 
-# Credenciais e Chaves API (Busca da API-Football deve vir antes das funções que a usam)
+# Credenciais e Chaves API
 API_KEY = st.secrets.get("API_FOOTBALL_KEY") or os.getenv("API_FOOTBALL_KEY")
 API_BASE = "https://v3.football.api-sports.io"
 HEADERS = {"x-apisports-key": API_KEY} if API_KEY else {}
@@ -46,9 +46,10 @@ if getp("health") == "1":
 
 # Endpoint interno (antes de qualquer UI/login)
 if getp("key") == APP_INTERNAL_KEY:
-    cmd   = (getp("cmd", "") or "").lower()
+    cmd    = (getp("cmd", "") or "").lower()
     email = (getp("email", "") or "").strip().lower()
     try:
+        # Assumindo que 'guard_gsheet' é um módulo separado ou você o definiu antes
         from guard_gsheet import issue_token, revoke_user # importa só aqui
         if cmd == "issue" and email:
             tok = issue_token(email, days=30)
@@ -71,7 +72,6 @@ if getp("key") == APP_INTERNAL_KEY:
 # ====================================================================
 
 st.set_page_config(page_title="Palpite Inteligente", page_icon="⚽", layout="wide")
-# ↓ Ajuste: O MainMenu (hambúrguer) não é mais escondido.
 HIDE_TOOLBAR = """
 <style>
 /* toolbar inteiro (inclui GitHub/Fork) */
@@ -123,7 +123,6 @@ h1, h2, h3, p, .stMarkdown { color: white; }
 """
 st.markdown(HIDE_TOOLBAR, unsafe_allow_html=True)
 
-
 # Agora sim importamos o resto do guard_gsheet para a UI
 from guard_gsheet import require_login, issue_token
 
@@ -152,31 +151,44 @@ logos_times = {
 }
 
 # ====================================================================
-# ==== API-FOOTBALL: funções de integração (Manteve-se global) ====
+# ==== API-FOOTBALL: funções de integração (COM CORREÇÕES) ====
 # ====================================================================
 
 @st.cache_data(ttl=60)
 def api_get(path, params=None):
     url = API_BASE.rstrip("/") + "/" + path.lstrip("/")
+    # Adicionei uma verificação básica de chave antes de tentar a request
+    if not API_KEY:
+        raise ConnectionError("API_FOOTBALL_KEY não configurada.")
+        
     resp = requests.get(url, headers=HEADERS, params=params or {}, timeout=15)
-    resp.raise_for_status()
+    resp.raise_for_status() # Lança exceção para 4xx e 5xx
     return resp.json()
 
 @st.cache_data(ttl=60*60)
 def find_league_id_by_name(country_name=None, league_name=None):
-    # Lógica da busca de liga... (sem alterações)
     try:
         params = {}
         if country_name:
             params["country"] = country_name
+        
+        # A API v3 exige o parâmetro 'search' para buscar por nome/país
+        # É mais seguro buscar por um país e iterar ou usar o endpoint /leagues
+        # Vamos manter a lógica original, que busca em todas as ligas filtradas.
+        
         data = api_get("/leagues", params=params)
         for item in data.get("response", []):
             league = item.get("league", {})
             country = item.get("country", {})
+            
+            # Tenta encontrar por nome da liga
             if league_name and league_name.lower() in league.get("name", "").lower():
                 return league.get("id")
-            if country_name and country_name.lower() in country.get("name", "").lower():
-                return league.get("id")
+            
+            # Tenta encontrar por nome do país (este trecho era redundante e pode ser confuso)
+            # if country_name and country_name.lower() in country.get("name", "").lower():
+            #     return league.get("id")
+                
     except Exception:
         return None
     return None
@@ -189,9 +201,10 @@ def get_upcoming_fixtures(league_id: int | None = None, days: int = 7, season: i
     tz = ZoneInfo("America/Sao_Paulo")
     now = datetime.now(tz)
     
-    # Adiciona season/ano ao filtro (usando o ano atual se não fornecido)
+    # Adiciona season/ano ao filtro. O ano atual é 2025 (data_atual)
+    # Se a liga for de 2024, o usuário pode ter que digitar 2024 no input.
     if season is None:
-        season = 2025 
+        season = now.year 
 
     from_date = now.date().isoformat()
     to_date = (now + timedelta(days=days)).date().isoformat()
@@ -200,15 +213,12 @@ def get_upcoming_fixtures(league_id: int | None = None, days: int = 7, season: i
         "from": from_date, 
         "to": to_date, 
         "timezone": "America/Sao_Paulo",
+        "status": "NS", # Não iniciados
         "season": str(season)  # <--- CORREÇÃO: Adicionando o filtro season!
     }
     
     if league_id:
         params["league"] = league_id
-    
-    # O filtro 'next' é mutuamente exclusivo com 'from'/'to'.
-    # Como estamos focados em datas, removemos a lógica 'n' para simplificar
-    # se o filtro 'n' for realmente necessário, a lógica deve ser ajustada.
 
     data = api_get("/fixtures", params=params)
     fixtures = []
@@ -220,10 +230,12 @@ def get_upcoming_fixtures(league_id: int | None = None, days: int = 7, season: i
         fixture_dt_iso = f.get("date")
         
         try:
+            # Garante que a conversão de fuso horário esteja correta
             dt = datetime.fromisoformat(fixture_dt_iso.replace("Z", "+00:00")).astimezone(tz)
         except Exception:
             continue
             
+        # Filtra jogos que já começaram (embora o status="NS" deva fazer isso)
         if dt <= now:
             continue
             
@@ -243,14 +255,13 @@ def get_upcoming_fixtures(league_id: int | None = None, days: int = 7, season: i
     return fixtures
 
 # =======================================================
-# ==== MAPEAR FUNÇÕES DE API NO SESSION STATE (APENAS AQUI) ====
+# ==== MAPEAR FUNÇÕES DE API NO SESSION STATE ====
 # =======================================================
 
-# SALVA a função get_upcoming_fixtures no estado da sessão
+# Mapeia as funções após suas definições
 if 'get_upcoming_fixtures' not in st.session_state:
     st.session_state.get_upcoming_fixtures = get_upcoming_fixtures
     
-# SALVA a função find_league_id_by_name no estado da sessão
 if 'find_league_id_by_name' not in st.session_state:
     st.session_state.find_league_id_by_name = find_league_id_by_name
 
@@ -258,17 +269,8 @@ if 'find_league_id_by_name' not in st.session_state:
 # ==== 1. FUNÇÕES DE CONTEÚDO (Implementando a lógica dentro) ====
 # ====================================================================
 
-# Certifique-se de que 'pd' (pandas), 're' (regex), 'df' e 'API_KEY'
-# estejam definidos/importados ANTES desta função.
-
 def mostrar_jogos_e_palpites():
-    import streamlit as st
-    import pandas as pd
-    from PIL import Image
-    # Assumindo que find_league_id_by_name e get_upcoming_fixtures
-    # estão acessíveis (via import ou st.session_state)
-    
-    # LOGO E TÍTULO
+    # Logo e Título
     try:
         logo = Image.open("logo_pi.png")
         st.image(logo, width=200)
@@ -276,54 +278,53 @@ def mostrar_jogos_e_palpites():
         st.header("Logo não encontrada")
         
     st.title("π - Palpites Inteligentes 🇧🇷⚽")
-    st.markdown("Busque os jogos mais recentes da API-Football para gerar previsões.")
-    
+    st.markdown("Use esta tela para gerar palpites em tempo real, consultando a API.")
     st.markdown("---") 
-    
-    # Apenas lógica da API-Football
     
     if 'API_KEY' not in st.session_state or not st.session_state.API_KEY:
         st.error("Chave da API-Football não configurada. Por favor, configure a chave na seção de credenciais.")
         return
         
-    st.info("Buscar jogos futuros para gerar palpites em tempo real. (Substituindo o fluxo do Sheets)")
+    st.info("Buscar jogos futuros para gerar palpites. (Nota: Palpites em tempo real podem ser lentos e gastar o limite da API. O ideal é usar um Worker que salva os palpites prontos.)")
     
-    # 1. Caixa: Liga/Campeonato (Para a API, usamos o ID ou nome)
-    # Valor padrão 71 (Brasil Série A), mas o usuário pode mudar.
-    league_input = st.text_input("🏆 1. Insira league_id ou nome da liga / país (ex: '39' ou 'Brasil')", value="71")
-    
+    # --- INPUTS DE BUSCA ---
+    col_l, col_d = st.columns(2)
+    with col_l:
+        # Valor padrão 71 (Brasil Série A)
+        league_input = st.text_input("🏆 1. Insira **league_id** ou nome da liga / país (ex: '71' ou 'Premier League')", value="71")
+    with col_d:
+        days = st.number_input("📆 2. Buscar jogos nos próximos (dias)", min_value=1, max_value=30, value=7)
+        
+    # Campo para inserir o ano da Season (se necessário)
+    season_input = st.number_input("📅 3. Insira o ano da Season (Ex: 2025)", min_value=2000, max_value=datetime.now().year + 1, value=datetime.now().year)
+
     # Tenta resolver o ID
     try:
         league_id = None
         if str(league_input).strip().isdigit():
             league_id = int(str(league_input).strip())
         else:
-            # OBS: Assumindo que find_league_id_by_name está definida e acessível
             if 'find_league_id_by_name' in st.session_state:
                 league_id = st.session_state.find_league_id_by_name(country_name=league_input, league_name=league_input)
-            else:
-                st.warning("Função de busca por nome de liga não acessível. Use o ID numérico.")
-                return
 
         if not league_id:
             st.warning("Liga não encontrada. Tente um ID exato (ex: 71 para Brasil Série A).")
             return
 
-        # 2. Caixa: Período (Substitui Rodada)
-        # Na API, buscamos por um período de dias, não por "Rodada" fixa.
-        days = st.number_input("📆 2. Buscar jogos nos próximos (dias)", min_value=1, max_value=30, value=7)
-        
-        # Botão para buscar (pois é uma chamada de API)
-        if st.button(f"Buscar jogos futuros (Liga ID: {league_id}, {days} dias)"):
+        # Botão para buscar (chamada à API)
+        if st.button(f"Buscar jogos futuros (Liga ID: {league_id}, Season: {season_input})"):
             
-            # OBS: Assumindo que get_upcoming_fixtures está definida e acessível
+            # --- CHAMADA CORRIGIDA: PASSANDO season_input ---
             if 'get_upcoming_fixtures' in st.session_state:
-                fixtures = st.session_state.get_upcoming_fixtures(league_id=league_id, days=int(days))
+                fixtures = st.session_state.get_upcoming_fixtures(
+                    league_id=league_id, 
+                    days=int(days),
+                    season=int(season_input) # <--- CORREÇÃO DE PASSAGEM DE SEASON
+                )
             else:
                 st.error("Função de busca de jogos futuros não acessível.")
                 return
 
-            
             if fixtures:
                 st.session_state.fixtures = fixtures # Salva para uso futuro
                 
@@ -334,19 +335,20 @@ def mostrar_jogos_e_palpites():
                 ]
                 
                 # Exibe a caixa de seleção com os jogos encontrados
-                jogo_escolhido = st.selectbox("⚽ 3. Escolha o confronto para palpitar:", jogos_api)
+                jogo_escolhido = st.selectbox("⚽ 4. Escolha o confronto para palpitar:", jogos_api)
                 
                 if jogo_escolhido:
                     st.info(f"Jogo selecionado: {jogo_escolhido}")
-                    st.success("Insira aqui a lógica de *Geração de Palpite* usando os dados da API.")
+                    st.success("Insira aqui a lógica de *Geração de Palpite* usando os dados da API. Lembre-se que essa lógica pode ser lenta.")
                     # FUTURO: Você precisará de uma função para buscar estatísticas
-                    # de confronto (H2H) e dados de performance dos times ANTES de gerar o palpite.
+                    # e aplicar o modelo de ML.
                     
             else:
-                st.info(f"Nenhum jogo futuro encontrado para a Liga ID {league_id} no período de {days} dias.")
+                st.info(f"Nenhum jogo futuro encontrado para a Liga ID {league_id} na Season {season_input} no período de {days} dias. Verifique se o ano da season está correto.")
 
     except Exception as e:
         st.error(f"Erro na busca da API: {e}")
+        st.code(traceback.format_exc()) # Mostra o traceback completo para depuração
 
 
 def mostrar_banca():
@@ -368,6 +370,10 @@ def mostrar_banca():
         num_rows="fixed",
         use_container_width=True,
         hide_index=True,
+        column_config={
+            "Resultado do Dia (R$)": st.column_config.NumberColumn(format="R$ %.2f"),
+            "Saque (R$)": st.column_config.NumberColumn(format="R$ %.2f")
+        },
         key="gestao_banca"
     )
 
@@ -412,47 +418,52 @@ def mostrar_proximos_jogos():
         st.warning("Chave da API-Football não encontrada. Adicione `API_FOOTBALL_KEY` em `st.secrets` ou variável de ambiente `API_FOOTBALL_KEY`.")
         return
 
-    col1, col2 = st.columns([2,1])
+    col1, col2, col3 = st.columns([2,1,1])
     with col1:
-        league_input = st.text_input("Insira league_id ou nome da liga / país (ex: '39' ou 'Premier League' ou 'England')", value="39")
-        days = st.number_input("Buscar próximos (dias)", min_value=1, max_value=30, value=7)
-        n = st.number_input("Se preferir próximos N jogos (opcional, deixa 0 para ignorar)", min_value=0, max_value=0, value=0)
-    
+        league_input = st.text_input("Insira league_id ou nome da liga / país (ex: '39' ou 'Premier League')", value="39", key="search_league_input")
     with col2:
-        # Espaçador para alinhar o botão
-        st.write(" ")
-        st.write(" ")
-        if st.button("Buscar próximos jogos"):
-            try:
-                league_id = None
-                # tenta interpretar como inteiro
-                if str(league_input).strip().isdigit():
-                    league_id = int(str(league_input).strip())
-                else:
-                    # tenta lookup por nome/pais
-                    league_id = find_league_id_by_name(country_name=league_input, league_name=league_input)
-                    if not league_id:
-                        st.info("Não encontrei a liga automaticamente. Tente com o league_id (ex: 39 para Premier League) ou nome exato.")
-                
-                fixtures = get_upcoming_fixtures(league_id=league_id, days=int(days), n=(int(n) if int(n)>0 else None))
-                
-                if not fixtures:
-                    st.info("Nenhum jogo futuro encontrado no período selecionado.")
-                else:
-                    # tabela resumida
-                    table = []
-                    for f in fixtures:
-                        table.append({
-                            "Data (local)": f["kickoff_local"].strftime("%Y-%m-%d %H:%M"),
-                            "Liga": f["league_name"],
-                            "Mandante": f["home_team"],
-                            "Visitante": f["away_team"],
-                            "Local": f["venue"]
-                        })
-                    st.table(table)
-                    st.success(f"{len(table)} jogos futuros listados.")
-            except Exception as e:
-                st.error(f"Erro ao buscar jogos: {e}")
+        days = st.number_input("Buscar próximos (dias)", min_value=1, max_value=30, value=7, key="search_days")
+    with col3:
+        season_input = st.number_input("Ano da Season", min_value=2000, max_value=datetime.now().year + 1, value=datetime.now().year, key="search_season")
+    
+    # Removido o input 'n' para evitar conflito com 'from'/'to'
+    n = 0 
+    st.write(" ") # Espaçador
+    
+    if st.button("Buscar próximos jogos (API)"):
+        try:
+            league_id = None
+            if str(league_input).strip().isdigit():
+                league_id = int(str(league_input).strip())
+            else:
+                league_id = find_league_id_by_name(country_name=league_input, league_name=league_input)
+                if not league_id:
+                    st.info("Não encontrei a liga automaticamente. Tente com o league_id (ex: 39 para Premier League) ou nome exato.")
+            
+            fixtures = get_upcoming_fixtures(
+                league_id=league_id, 
+                days=int(days), 
+                season=int(season_input) 
+            )
+            
+            if not fixtures:
+                st.info("Nenhum jogo futuro encontrado no período selecionado. Verifique o ID da Liga e o Ano da Season.")
+            else:
+                table = []
+                for f in fixtures:
+                    table.append({
+                        "Data (local)": f["kickoff_local"].strftime("%Y-%m-%d %H:%M"),
+                        "Liga": f["league_name"],
+                        "Mandante": f["home_team"],
+                        "Visitante": f["away_team"],
+                        "Local": f["venue"]
+                    })
+                st.table(table)
+                st.success(f"{len(table)} jogos futuros listados.")
+        except Exception as e:
+            st.error(f"Erro ao buscar jogos: {e}")
+            st.code(traceback.format_exc())
+
 
 def logout():
     # Lógica de deslogar
@@ -469,9 +480,10 @@ def logout():
 user_email = require_login(app_name="Palpite Inteligente")
 
 # 1️⃣ Define os Tabs no topo da página (Menu Moderno)
-tab_jogos, tab_banca, tab_sair = st.tabs([
-    "⚽ Jogos e Palpites", 
+tab_jogos, tab_banca, tab_api, tab_sair = st.tabs([
+    "⚽ Palpites (Geração)", 
     "📈 Gestão de Banca", 
+    "🔎 API Teste", # Adicionado para teste da API
     "🚪 Sair"
 ])
 
@@ -481,6 +493,9 @@ with tab_jogos:
     
 with tab_banca:
     mostrar_banca()
+    
+with tab_api:
+    mostrar_proximos_jogos()
 
 with tab_sair:
     st.warning("Clique no botão abaixo para sair da sua sessão.")
@@ -508,20 +523,3 @@ if is_admin:
 # ====================================================================
 # FIM do app_merged.py
 # ====================================================================
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
