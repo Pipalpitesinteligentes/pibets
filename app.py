@@ -506,6 +506,21 @@ if not API_KEY:
 
 # Login primeiro
 user_email = require_login(app_name="Palpite Inteligente")
+# 🛑 NOVO CÓDIGO AQUI
+# -------------------------------------------------------------------
+# Carregamento Principal do DataFrame
+# -------------------------------------------------------------------
+# 1. Inicializa com um DataFrame vazio para evitar NameError
+df_palpites = pd.DataFrame() 
+
+try:
+    # 2. Chama a função que agora está autenticando corretamente
+    df_palpites = load_palpites_prontos() 
+except Exception as e:
+    # A função load_palpites_prontos já tem um try/except interno,
+    # mas mantemos este bloco caso haja falhas no cache ou fora da função.
+    st.error(f"Não foi possível carregar os palpites prontos: {e}")
+    # df_palpites permanece como um DataFrame vazio (o que é o esperado para falha).
 
 # 1️⃣ Define os Tabs no topo da página (Menu Moderno)
 tab_jogos, tab_banca, tab_api, tab_sair = st.tabs([
@@ -551,6 +566,7 @@ if is_admin:
 # ====================================================================
 # FIM do app_merged.py
 # ====================================================================
+
 
 
 
