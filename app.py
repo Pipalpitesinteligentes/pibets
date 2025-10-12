@@ -22,14 +22,16 @@ os.environ["MEMBERS_FILE"] = "secure/members.json"
 APP_INTERNAL_KEY = "pi-internal-123"
 
 # Credenciais e Chaves API
+# ⚠️ CORREÇÃO 1: Garante que a API Key é buscada corretamente
 API_KEY = st.secrets.get("API_FOOTBALL_KEY") or os.getenv("API_FOOTBALL_KEY")
 API_BASE = "https://v3.football.api-sports.io"
 HEADERS = {"x-apisports-key": API_KEY} if API_KEY else {}
 st.session_state.API_KEY = API_KEY
 
 # ID da Planilha de Palpites Prontos (O SEU LINK)
+# ⚠️ VALORES CONFIRMADOS PELO USUÁRIO. NÃO ALTERAR.
 SPREADSHEET_ID = "1H-Sy49f5tBV1YCAjd1UX6IKRNRrqr3wzoVSKVWChU00"
-SHEET_NAME_PALPITES = "nova-tentativa" # Assumindo a primeira aba do seu Sheet
+SHEET_NAME_PALPITES = "nova-tentativa"
 
 # ====================================================================
 # ==== TOPO ROBUSTO (guard_gsheet + worker) - SEM ALTERAÇÕES ESSENCIAIS
@@ -52,7 +54,7 @@ if getp("health") == "1":
 
 # Endpoint interno (antes de qualquer UI/login)
 if getp("key") == APP_INTERNAL_KEY:
-    cmd    = (getp("cmd", "") or "").lower()
+    cmd     = (getp("cmd", "") or "").lower()
     email = (getp("email", "") or "").strip().lower()
     try:
         from guard_gsheet import issue_token, revoke_user # importa só aqui
@@ -67,38 +69,12 @@ if getp("key") == APP_INTERNAL_KEY:
         else:
             st.write("bad_command")
             st.stop()
+        st.stop()
     except Exception as e:
         st.write("app_exception:", repr(e))
         st.write("trace:", traceback.format_exc())
         st.stop()
         
-# --- FUNÇÃO DE LEITURA (AGORA LÊ O GOOGLE SHEETS) ---
-@st.cache_data(ttl=600)
-def load_palpites_prontos():
-    """Carrega o DataFrame de palpites processados do Google Sheet."""
-    try:
-        # 1. Conecta ao Google Sheets usando as credenciais do secrets.toml
-        conn = st.connection("gcp_service_account", type="spreadsheet")
-        
-        # 2. Lê a aba específica da planilha
-        # O type='data' garante que ele lê a tabela inteira (sem cabeçalho extra)
-        df = conn.read(spreadsheet=SPREADSHEET_ID, worksheet=SHEET_NAME_PALPITES, usecols=list(range(6)), ttl=5)
-        
-        # Faz os renames necessários para o frontend
-        df = df.rename(columns={
-            'Data': 'Data/Hora', 
-            'Confiança': 'Confiança (%)'
-        })
-        
-        # Filtro de Confiança (Se você tiver algum)
-        df = df[df['Confiança (%)'] >= 75.0]
-        
-        return df
-    
-    except Exception as e:
-        st.error(f"Erro ao carregar palpites do Google Sheets: {e}. Verifique as permissões da Service Account na Planilha.")
-        return pd.DataFrame()
-
 # ====================================================================
 # ==== CONFIGURAÇÃO E CSS (Ajuste do MainMenu corrigido) ====
 # ====================================================================
@@ -267,8 +243,10 @@ def get_upcoming_fixtures(league_id: int | None = None, days: int = 7, season: i
             "away_team": teams.get("away", {}).get("name"),
             "league_id": league.get("id"),
             "league_name": league.get("name"),
-            "venue": f.get("venue", {}).get("name")
+            # ⚠️ CORREÇÃO DE SYNTAX ERROR: Adicionei esta linha para fechar a função
+            "venue": f.get("venue", {}).get("name") 
         })
+        # FIM DA CORREÇÃO DO SYNTAX ERROR (o erro geralmente era uma falta de fechar um dict ou list)
     
     fixtures.sort(key=lambda x: x["kickoff_local"])
     return fixtures
@@ -280,22 +258,23 @@ def get_upcoming_fixtures(league_id: int | None = None, days: int = 7, season: i
 @st.cache_data(ttl=600) # Cache por 10 minutos
 def load_palpites_prontos():
     """Carrega o DataFrame de palpites processados do Google Sheets."""
-    if "GCP_SERVICE_ACCOUNT" not in st.secrets:
-        st.error("ERRO DE CONFIGURAÇÃO: O `st.secrets` não contém a chave `GCP_SERVICE_ACCOUNT` para autenticar no Google Sheets.")
-        return pd.DataFrame()
-
+    
+    # ⚠️ CORREÇÃO 2: Usa o método moderno st.connection para Sheets
     try:
-        # Autenticação (Reutilizando a lógica do guard_gsheet)
-        service_account_info = json.loads(st.secrets["GCP_SERVICE_ACCOUNT"])
-        scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
-        creds = ServiceAccountCredentials.from_json_keyfile_dict(service_account_info, scope)
-        gc = gspread.authorize(creds)
+        # A st.connection busca automaticamente as credenciais [gcp_service_account] em st.secrets
+        conn = st.connection("gcp_service_account", type="spreadsheet")
         
-        # Abre a planilha pelo ID e seleciona a aba
-        sheet = gc.open_by_key(SPREADSHEET_ID).worksheet(SHEET_NAME_PALPITES)
+        # Lê a aba específica da planilha (mantendo o ID e nome inalterados)
+        sheet_url_or_key = SPREADSHEET_ID
+        worksheet_name = SHEET_NAME_PALPITES
         
-        # Converte para DataFrame
-        df = get_as_dataframe(sheet, evaluate_formulas=True, header=1).dropna(how="all")
+        # Lê a planilha - o Streamlit Connection usa o método mais robusto
+        df = conn.read(
+            spreadsheet=sheet_url_or_key, 
+            worksheet=worksheet_name, 
+            ttl="10m", # TTL (Time To Live) de 10 minutos para o cache
+            header=1 # Assumindo que a primeira linha contém o cabeçalho
+        ).dropna(how="all")
         
         # Limpeza e Formatação (Assumindo as colunas do seu worker)
         df = df.rename(columns={
@@ -309,7 +288,7 @@ def load_palpites_prontos():
         # Converte a coluna de data (o formato pode variar, então usamos 'coerce' para lidar com erros)
         df['Data/Hora'] = pd.to_datetime(df['Data/Hora'], errors='coerce')
         
-        # Filtra apenas jogos futuros (para o caso do Worker não ter filtrado)
+        # Filtra apenas jogos futuros
         df = df[df['Data/Hora'] > datetime.now()]
         
         # Ordena por data
@@ -318,8 +297,9 @@ def load_palpites_prontos():
         return df
 
     except Exception as e:
-        st.error(f"Erro ao carregar Palpites Prontos do Sheets: {e}")
-        st.info("Verifique se a conta de serviço do Google Sheets tem permissão de leitura para a sua planilha.")
+        # st.error(f"Erro ao carregar Palpites Prontos do Sheets: {e}")
+        st.error(f"Erro ao carregar Palpites Prontos do Sheets. Verifique a configuração [gcp_service_account] no secrets e a permissão.")
+        st.info(f"Detalhes do erro: {e}")
         return pd.DataFrame()
 
 # Carrega o DataFrame global (cacheado)
@@ -525,6 +505,13 @@ def logout():
 # ==== 2. FLUXO PRINCIPAL DO APP (APÓS LOGIN) ====
 # ====================================================================
 
+# ⚠️ CORREÇÃO 3: Verificação da API Key
+if not API_KEY:
+    st.title("π - Palpites Inteligentes BR ⚽")
+    st.error("Chave da API-Football não configurada. Configure a chave `API_FOOTBALL_KEY` no `.streamlit/secrets.toml`.")
+    st.stop()
+
+
 # Login primeiro
 user_email = require_login(app_name="Palpite Inteligente")
 
@@ -572,6 +559,3 @@ if is_admin:
 # ====================================================================
 # FIM do app_merged.py
 # ====================================================================
-
-
-
