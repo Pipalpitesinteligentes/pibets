@@ -115,6 +115,24 @@ creds = Credentials.from_service_account_info(creds_dict, scopes=scope)
 client = gspread.authorize(creds)
 
 # ========= CONTEÚDO LIBERADO APÓS LOGIN =========
+# === Sidebar único e seguro (substitua qualquer outro with st.sidebar existente) ===
+with st.sidebar:
+    st.markdown("## 👋 Bem-vindo" + (f", {user_email}" if user_email else "!"))
+    if not user_email:
+        st.warning("Usuário não autenticado — algumas funções podem estar desativadas.")
+    # OBS: chave explícita para evitar conflito de IDs em múltiplas execuções/imports
+    menu = st.radio(
+        "Escolha uma opção:",
+        ["📊 Palpites", "📈 Gestão de Banca", "🔎 Próximos jogos (API-Football)", "🚪 Sair"],
+        index=0,
+        key="main_menu_radio"
+    )
+
+# (opcional) debug para admins
+if (user_email or "").strip().lower() in ADMINS:
+    with st.expander("🔧 DEBUG (admin)"):
+        st.write("user_email:", user_email)
+        st.write("st.session_state keys:", list(st.session_state.keys()))
 
 # ================= API-FOOTBALL: funções de integração =================
 # ATENÇÃO: coloque sua chave em st.secrets["API_FOOTBALL_KEY"] ou variavel de ambiente API_FOOTBALL_KEY
@@ -531,6 +549,7 @@ if menu == "🔎 Próximos jogos (API-Football)":
 # ===========================================================
 # FIM do app_merged.py
 # ===========================================================
+
 
 
 
