@@ -391,7 +391,7 @@ def mostrar_jogos_e_palpites():
                     else:
                         st.error("❌ Palpite de escanteios incorreto!")
                         
-else: # origem == "Próximos Jogos (API-Football)"
+                    else: # origem == "Próximos Jogos (API-Football)"
         # Lógica para os dados da API
         if not API_KEY:
             st.error("Chave da API-Football não configurada.")
@@ -594,6 +594,7 @@ if is_admin:
 # ====================================================================
 # FIM do app_merged.py
 # ====================================================================
+
 
 
 
