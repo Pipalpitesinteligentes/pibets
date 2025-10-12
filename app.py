@@ -182,35 +182,51 @@ def find_league_id_by_name(country_name=None, league_name=None):
     return None
 
 @st.cache_data(ttl=30)
-def get_upcoming_fixtures(league_id: int | None = None, days: int = 7, n: int | None = None):
-    # Lógica da busca de jogos... (sem alterações)
+def get_upcoming_fixtures(league_id: int | None = None, days: int = 7, season: int | None = None):
     if not API_KEY:
         raise RuntimeError("Coloque sua API_FOOTBALL_KEY em st.secrets ou como variável de ambiente API_FOOTBALL_KEY.")
 
     tz = ZoneInfo("America/Sao_Paulo")
     now = datetime.now(tz)
+    
+    # Adiciona season/ano ao filtro (usando o ano atual se não fornecido)
+    if season is None:
+        season = now.year 
+
     from_date = now.date().isoformat()
     to_date = (now + timedelta(days=days)).date().isoformat()
 
-    params = {"from": from_date, "to": to_date, "timezone": "America/Sao_Paulo"}
+    params = {
+        "from": from_date, 
+        "to": to_date, 
+        "timezone": "America/Sao_Paulo",
+        "season": str(season)  # <--- CORREÇÃO: Adicionando o filtro season!
+    }
+    
     if league_id:
         params["league"] = league_id
-    if n and league_id:
-        params["next"] = n
+    
+    # O filtro 'next' é mutuamente exclusivo com 'from'/'to'.
+    # Como estamos focados em datas, removemos a lógica 'n' para simplificar
+    # se o filtro 'n' for realmente necessário, a lógica deve ser ajustada.
 
     data = api_get("/fixtures", params=params)
     fixtures = []
+    
     for item in data.get("response", []):
         f = item.get("fixture", {})
         league = item.get("league", {})
         teams = item.get("teams", {})
         fixture_dt_iso = f.get("date")
+        
         try:
             dt = datetime.fromisoformat(fixture_dt_iso.replace("Z", "+00:00")).astimezone(tz)
         except Exception:
             continue
+            
         if dt <= now:
             continue
+            
         fixtures.append({
             "fixture_id": f.get("id"),
             "kickoff_iso": fixture_dt_iso,
@@ -222,8 +238,13 @@ def get_upcoming_fixtures(league_id: int | None = None, days: int = 7, n: int | 
             "league_name": league.get("name"),
             "venue": f.get("venue", {}).get("name")
         })
+    
     fixtures.sort(key=lambda x: x["kickoff_local"])
     return fixtures
+
+# =======================================================
+# ==== MAPEAR FUNÇÕES DE API NO SESSION STATE (APENAS AQUI) ====
+# =======================================================
 
 # SALVA a função get_upcoming_fixtures no estado da sessão
 if 'get_upcoming_fixtures' not in st.session_state:
@@ -232,26 +253,6 @@ if 'get_upcoming_fixtures' not in st.session_state:
 # SALVA a função find_league_id_by_name no estado da sessão
 if 'find_league_id_by_name' not in st.session_state:
     st.session_state.find_league_id_by_name = find_league_id_by_name
-
-@st.cache_resource(ttl=3600)
-def get_upcoming_fixtures(league_id: int | None = None, days: int = 7, season: int | None = None):
-    # Garante que a temporada seja o ano atual se não for fornecida
-    if season is None:
-        season = datetime.datetime.now().year
-    
-    # 1. Obtenha as datas de início e fim
-    today = datetime.date.today()
-    end_date = today + datetime.timedelta(days=days)
-
-    # 2. Defina o endpoint (supondo que você usa o endpoint /fixtures)
-    url = "https://api-football-v1.p.rapidapi.com/v3/fixtures"
-    
-    querystring = {
-        "league": str(league_id),
-        "season": str(season), # <--- AGORA INCLUÍDO
-        "from": today.strftime("%Y-%m-%d"),
-        "to": end_date.strftime("%Y-%m-%d"),
-        "status": "NS" # Não iniciados
 
 # ====================================================================
 # ==== 1. FUNÇÕES DE CONTEÚDO (Implementando a lógica dentro) ====
@@ -507,6 +508,7 @@ if is_admin:
 # ====================================================================
 # FIM do app_merged.py
 # ====================================================================
+
 
 
 
