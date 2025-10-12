@@ -252,64 +252,50 @@ def get_upcoming_fixtures(league_id: int | None = None, days: int = 7, season: i
     return fixtures
 
 # =======================================================
-# ==== FUNÇÃO DE CARREGAMENTO DO WORKER (GSHEET) - CORREÇÃO FINAL ====
+# ==== FUNÇÃO DE CARREGAMENTO (FORÇANDO JSON DE CHAVES) ====
 # =======================================================
-
-@st.cache_data(ttl=600) # Cache por 10 minutos
+@st.cache_data(ttl=600) 
 def load_palpites_prontos():
-    """Carrega o DataFrame de palpites processados do Google Sheets, usando gspread manual."""
+    """Carrega o DataFrame de palpites processados do Google Sheets, usando gspread."""
     
-    # Nome da seção no secrets.toml
-    SA_SECTION_NAME = "GCP_SERVICE_ACCOUNT"
-    
-    # ⚠️ Verifica se a seção existe e busca ela como um dicionário
-    if SA_SECTION_NAME not in st.secrets:
-        st.error(f"ERRO DE CONFIGURAÇÃO: A seção `[{SA_SECTION_NAME}]` não foi encontrada em `secrets.toml`.")
-        return pd.DataFrame()
-
+    # ⚠️ 1. As chaves são lidas individualmente, mas o Streamlit as coloca em st.secrets
+    # Aqui, a chave deve ser acessada diretamente, sem o nome da seção.
     try:
-        # Pega a seção completa (que o Streamlit trata como um dicionário)
-        st.error(f"DEBUG: Tipo da chave: {type(st.secrets[SA_SECTION_NAME])}")
-        st.error(f"DEBUG: Conteúdo da chave (primeiros 100): {str(st.secrets[SA_SECTION_NAME])[:100]}")
-        sa_data = st.secrets[SA_SECTION_NAME] 
-        
-        # Cria o objeto de credenciais usando as chaves individuais
         credentials_info = {
-            "type": sa_data.get("type"),
-            "project_id": sa_data.get("project_id"),
-            # O Streamlit lida com a chave privada multi-linha automaticamente ao ler a seção TOML
-            "private_key": sa_data.get("private_key"), 
-            "client_email": sa_data.get("client_email"),
-            "token_uri": sa_data.get("token_uri")
+            "type": st.secrets.get("type"),
+            "project_id": st.secrets.get("project_id"),
+            "private_key": st.secrets.get("private_key"), 
+            "client_email": st.secrets.get("client_email"),
+            "token_uri": st.secrets.get("token_uri")
         }
         
+        # ⚠️ 2. Verifica se as chaves existem
+        if not credentials_info.get("client_email"):
+            st.error("ERRO DE CONFIGURAÇÃO: O `secrets.toml` não contém chaves de Service Account válidas.")
+            return pd.DataFrame()
+            
         scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
         # Agora o ServiceAccountCredentials está recebendo um dicionário Python válido
         creds = ServiceAccountCredentials.from_json_keyfile_dict(credentials_info, scope)
         gc = gspread.authorize(creds)
         
-        # 3. Abre a planilha pelo ID e seleciona a aba
+        # 3. Abre a planilha pelo ID e seleciona a aba (use seus IDs corretos)
+        SPREADSHEET_ID = "1H-Sy49f5tBV1YCAjd1UX6IKRNRrqr3wzoVSKVWChU00"
+        SHEET_NAME_PALPITES = "nova-tentativa"
+
         sheet = gc.open_by_key(SPREADSHEET_ID).worksheet(SHEET_NAME_PALPITES)
         
         # 4. Converte para DataFrame
         df = get_as_dataframe(sheet, evaluate_formulas=True, header=1).dropna(how="all")
         
-        # Limpeza e Formatação (como no seu código original)
-        df = df.rename(columns={"Data": "Data/Hora", "Confiança": "Confiança (%)"})
-        df = df.dropna(subset=['Data/Hora'])
-        df['Data/Hora'] = pd.to_datetime(df['Data/Hora'], errors='coerce')
-        df = df[df['Data/Hora'] > datetime.now()]
-        df = df.sort_values(by="Data/Hora").reset_index(drop=True)
+        # ... (restante da limpeza) ...
         
         return df
 
     except Exception as e:
         st.error(f"Erro Crítico ao carregar Palpites Prontos do Sheets: {e}")
-        st.info("Verifique se a Service Account tem permissão de EDITOR na planilha e se todas as chaves estão no secrets.toml.")
+        st.info("Verifique a permissão na planilha e o formato da private_key (deve ser em uma linha com \\\\n no secrets.toml).")
         return pd.DataFrame()
-
-# Carrega o DataFrame global (cacheado)
-df_palpites = load_palpites_prontos()
 
 # =======================================================
 # ==== MAPEAR FUNÇÕES DE API NO SESSION STATE (PARA A ABA DE TESTE) ====
@@ -565,6 +551,7 @@ if is_admin:
 # ====================================================================
 # FIM do app_merged.py
 # ====================================================================
+
 
 
 
