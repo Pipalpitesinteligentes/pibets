@@ -1,4 +1,4 @@
-# app_merged.py - CÓDIGO CORRIGIDO E UNIFICADO
+# app_merged.py - CÓDIGO FINAL COM FLUXO WORKER/SHEETS
 # ====================================================================
 # ==== 0. IMPORTS, VARIÁVEIS DE AMBIENTE E BIBLIOTECAS UNIFICADAS ====
 # ====================================================================
@@ -12,14 +12,14 @@ import json
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 from google.oauth2.service_account import Credentials
-from oauth2client.service_account import ServiceAccountCredentials # Para compatibilidade gspread/oauth2client
+from oauth2client.service_account import ServiceAccountCredentials
 from gspread_dataframe import get_as_dataframe
 from PIL import Image
 from typing import Optional
 
 # Configuração de Ambiente
 os.environ["MEMBERS_FILE"] = "secure/members.json"
-APP_INTERNAL_KEY = "pi-internal-123" # <-- MESMO valor do Worker
+APP_INTERNAL_KEY = "pi-internal-123"
 
 # Credenciais e Chaves API
 API_KEY = st.secrets.get("API_FOOTBALL_KEY") or os.getenv("API_FOOTBALL_KEY")
@@ -27,9 +27,15 @@ API_BASE = "https://v3.football.api-sports.io"
 HEADERS = {"x-apisports-key": API_KEY} if API_KEY else {}
 st.session_state.API_KEY = API_KEY
 
+# ID da Planilha de Palpites Prontos (O SEU LINK)
+SPREADSHEET_ID = "1tYBSELOEdvDWaLx9KhU7cOOutaYzKAj6OxORUmlM-Vw"
+SHEET_NAME_PALPITES = "Sheet1" # Assumindo a primeira aba do seu Sheet
+
 # ====================================================================
 # ==== TOPO ROBUSTO (guard_gsheet + worker) - SEM ALTERAÇÕES ESSENCIAIS
 # ====================================================================
+
+# ... (CÓDIGO DO TOPO ROBUSTO INALTERADO) ...
 
 # Ler query params (compatível com versões diferentes)
 try:
@@ -49,7 +55,6 @@ if getp("key") == APP_INTERNAL_KEY:
     cmd    = (getp("cmd", "") or "").lower()
     email = (getp("email", "") or "").strip().lower()
     try:
-        # Assumindo que 'guard_gsheet' é um módulo separado ou você o definiu antes
         from guard_gsheet import issue_token, revoke_user # importa só aqui
         if cmd == "issue" and email:
             tok = issue_token(email, days=30)
@@ -67,6 +72,7 @@ if getp("key") == APP_INTERNAL_KEY:
         st.write("trace:", traceback.format_exc())
         st.stop()
 
+
 # ====================================================================
 # ==== CONFIGURAÇÃO E CSS (Ajuste do MainMenu corrigido) ====
 # ====================================================================
@@ -74,6 +80,7 @@ if getp("key") == APP_INTERNAL_KEY:
 st.set_page_config(page_title="Palpite Inteligente", page_icon="⚽", layout="wide")
 HIDE_TOOLBAR = """
 <style>
+/* ... (CSS INALTERADO) ... */
 /* toolbar inteiro (inclui GitHub/Fork) */
 div[data-testid="stToolbar"] { display: none !important; }
 
@@ -128,6 +135,7 @@ from guard_gsheet import require_login, issue_token
 
 # Mapa de Logos (também global)
 logos_times = {
+    # ... (MAPA DE LOGOS INALTERADO) ...
     "CR Flamengo": "https://logodetimes.com/times/flamengo/logo-flamengo-256.png",
     "SE Palmeiras": "https://logodetimes.com/times/palmeiras/logo-palmeiras-256.png",
     "RB Bragantino": "https://logodetimes.com/times/red-bull-bragantino/logo-red-bull-bragantino-256.png",
@@ -151,58 +159,45 @@ logos_times = {
 }
 
 # ====================================================================
-# ==== API-FOOTBALL: funções de integração (COM CORREÇÕES) ====
+# ==== API-FOOTBALL: funções de integração (APENAS PARA TESTE) ====
 # ====================================================================
-
+# OBS: O conteúdo dessas funções permanece o mesmo da correção anterior.
 @st.cache_data(ttl=60)
 def api_get(path, params=None):
+    # ... (CÓDIGO INALTERADO) ...
     url = API_BASE.rstrip("/") + "/" + path.lstrip("/")
-    # Adicionei uma verificação básica de chave antes de tentar a request
     if not API_KEY:
         raise ConnectionError("API_FOOTBALL_KEY não configurada.")
         
     resp = requests.get(url, headers=HEADERS, params=params or {}, timeout=15)
-    resp.raise_for_status() # Lança exceção para 4xx e 5xx
+    resp.raise_for_status()
     return resp.json()
 
 @st.cache_data(ttl=60*60)
 def find_league_id_by_name(country_name=None, league_name=None):
+    # ... (CÓDIGO INALTERADO) ...
     try:
         params = {}
         if country_name:
             params["country"] = country_name
-        
-        # A API v3 exige o parâmetro 'search' para buscar por nome/país
-        # É mais seguro buscar por um país e iterar ou usar o endpoint /leagues
-        # Vamos manter a lógica original, que busca em todas as ligas filtradas.
-        
         data = api_get("/leagues", params=params)
         for item in data.get("response", []):
             league = item.get("league", {})
-            country = item.get("country", {})
-            
-            # Tenta encontrar por nome da liga
             if league_name and league_name.lower() in league.get("name", "").lower():
                 return league.get("id")
-            
-            # Tenta encontrar por nome do país (este trecho era redundante e pode ser confuso)
-            # if country_name and country_name.lower() in country.get("name", "").lower():
-            #     return league.get("id")
-                
     except Exception:
         return None
     return None
 
 @st.cache_data(ttl=30)
 def get_upcoming_fixtures(league_id: int | None = None, days: int = 7, season: int | None = None):
+    # ... (CÓDIGO INALTERADO) ...
     if not API_KEY:
         raise RuntimeError("Coloque sua API_FOOTBALL_KEY em st.secrets ou como variável de ambiente API_FOOTBALL_KEY.")
 
     tz = ZoneInfo("America/Sao_Paulo")
     now = datetime.now(tz)
     
-    # Adiciona season/ano ao filtro. O ano atual é 2025 (data_atual)
-    # Se a liga for de 2024, o usuário pode ter que digitar 2024 no input.
     if season is None:
         season = now.year 
 
@@ -213,8 +208,8 @@ def get_upcoming_fixtures(league_id: int | None = None, days: int = 7, season: i
         "from": from_date, 
         "to": to_date, 
         "timezone": "America/Sao_Paulo",
-        "status": "NS", # Não iniciados
-        "season": str(season)  # <--- CORREÇÃO: Adicionando o filtro season!
+        "status": "NS",
+        "season": str(season)
     }
     
     if league_id:
@@ -230,12 +225,10 @@ def get_upcoming_fixtures(league_id: int | None = None, days: int = 7, season: i
         fixture_dt_iso = f.get("date")
         
         try:
-            # Garante que a conversão de fuso horário esteja correta
             dt = datetime.fromisoformat(fixture_dt_iso.replace("Z", "+00:00")).astimezone(tz)
         except Exception:
             continue
             
-        # Filtra jogos que já começaram (embora o status="NS" deva fazer isso)
         if dt <= now:
             continue
             
@@ -255,10 +248,60 @@ def get_upcoming_fixtures(league_id: int | None = None, days: int = 7, season: i
     return fixtures
 
 # =======================================================
-# ==== MAPEAR FUNÇÕES DE API NO SESSION STATE ====
+# ==== FUNÇÃO DE CARREGAMENTO DO WORKER (GSHEET) ====
 # =======================================================
 
-# Mapeia as funções após suas definições
+@st.cache_data(ttl=600) # Cache por 10 minutos
+def load_palpites_prontos():
+    """Carrega o DataFrame de palpites processados do Google Sheets."""
+    if "GCP_SERVICE_ACCOUNT" not in st.secrets:
+        st.error("ERRO DE CONFIGURAÇÃO: O `st.secrets` não contém a chave `GCP_SERVICE_ACCOUNT` para autenticar no Google Sheets.")
+        return pd.DataFrame()
+
+    try:
+        # Autenticação (Reutilizando a lógica do guard_gsheet)
+        service_account_info = json.loads(st.secrets["GCP_SERVICE_ACCOUNT"])
+        scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
+        creds = ServiceAccountCredentials.from_json_keyfile_dict(service_account_info, scope)
+        gc = gspread.authorize(creds)
+        
+        # Abre a planilha pelo ID e seleciona a aba
+        sheet = gc.open_by_key(SPREADSHEET_ID).worksheet(SHEET_NAME_PALPITES)
+        
+        # Converte para DataFrame
+        df = get_as_dataframe(sheet, evaluate_formulas=True, header=1).dropna(how="all")
+        
+        # Limpeza e Formatação (Assumindo as colunas do seu worker)
+        df = df.rename(columns={
+            "Data": "Data/Hora", 
+            "Confiança": "Confiança (%)"
+        })
+        
+        # Remove linhas com Data/Hora vazia
+        df = df.dropna(subset=['Data/Hora'])
+        
+        # Converte a coluna de data (o formato pode variar, então usamos 'coerce' para lidar com erros)
+        df['Data/Hora'] = pd.to_datetime(df['Data/Hora'], errors='coerce')
+        
+        # Filtra apenas jogos futuros (para o caso do Worker não ter filtrado)
+        df = df[df['Data/Hora'] > datetime.now()]
+        
+        # Ordena por data
+        df = df.sort_values(by="Data/Hora").reset_index(drop=True)
+        
+        return df
+
+    except Exception as e:
+        st.error(f"Erro ao carregar Palpites Prontos do Sheets: {e}")
+        st.info("Verifique se a conta de serviço do Google Sheets tem permissão de leitura para a sua planilha.")
+        return pd.DataFrame()
+
+# Carrega o DataFrame global (cacheado)
+df_palpites = load_palpites_prontos()
+
+# =======================================================
+# ==== MAPEAR FUNÇÕES DE API NO SESSION STATE (PARA A ABA DE TESTE) ====
+# =======================================================
 if 'get_upcoming_fixtures' not in st.session_state:
     st.session_state.get_upcoming_fixtures = get_upcoming_fixtures
     
@@ -278,81 +321,62 @@ def mostrar_jogos_e_palpites():
         st.header("Logo não encontrada")
         
     st.title("π - Palpites Inteligentes 🇧🇷⚽")
-    st.markdown("Use esta tela para gerar palpites em tempo real, consultando a API.")
+    st.markdown("Os palpites são gerados por um Worker de IA em segundo plano e carregados a partir do Sheets. Atualize a página para ver novos palpites.")
     st.markdown("---") 
     
-    if 'API_KEY' not in st.session_state or not st.session_state.API_KEY:
-        st.error("Chave da API-Football não configurada. Por favor, configure a chave na seção de credenciais.")
+    if df_palpites.empty:
+        st.warning("Nenhum palpite processado encontrado ou erro de carregamento no Google Sheets.")
+        st.info("Verifique se o seu script Colab (Worker) rodou e salvou dados na planilha.")
         return
-        
-    st.info("Buscar jogos futuros para gerar palpites. (Nota: Palpites em tempo real podem ser lentos e gastar o limite da API. O ideal é usar um Worker que salva os palpites prontos.)")
+
+    st.subheader(f"Palpites Prontos ({len(df_palpites)} jogos futuros)")
     
-    # --- INPUTS DE BUSCA ---
-    col_l, col_d = st.columns(2)
-    with col_l:
-        # Valor padrão 71 (Brasil Série A)
-        league_input = st.text_input("🏆 1. Insira **league_id** ou nome da liga / país (ex: '71' ou 'Premier League')", value="71")
-    with col_d:
-        days = st.number_input("📆 2. Buscar jogos nos próximos (dias)", min_value=1, max_value=30, value=7)
+    # Prepara a lista para a caixa de seleção
+    jogos_disponiveis = [
+        f"{row['Jogo']} ({row['Data/Hora'].strftime('%d/%m %H:%M')})" 
+        for index, row in df_palpites.iterrows()
+    ]
+    
+    # 1. Escolha o confronto
+    jogo_escolhido_str = st.selectbox("⚽ Escolha o confronto para visualizar o palpite:", jogos_disponiveis)
+    
+    if jogo_escolhido_str:
+        # Filtra o DataFrame para o jogo selecionado
+        nome_jogo = jogo_escolhido_str.split('(')[0].strip()
+        palpite_selecionado = df_palpites[df_palpites['Jogo'] == nome_jogo].iloc[0]
+
+        st.markdown(f"### Palpite Analisado: {palpite_selecionado['Jogo']}")
+        st.markdown(f"🗓️ **Data/Hora:** {palpite_selecionado['Data/Hora'].strftime('%d/%m/%Y %H:%M')}")
+
+        # Exibe os principais dados do palpite
+        col_p, col_c, col_o = st.columns(3)
         
-    # Campo para inserir o ano da Season (se necessário)
-    season_input = st.number_input("📅 3. Insira o ano da Season (Ex: 2025)", min_value=2000, max_value=datetime.now().year + 1, value=datetime.now().year)
+        with col_p:
+            st.metric(label="Predição IA", value=palpite_selecionado['Palpite'])
+        
+        with col_c:
+            # Formata a confiança como percentual
+            confianca_val = palpite_selecionado.get('Confiança (%)', 'N/D')
+            if isinstance(confianca_val, (int, float)):
+                st.metric(label="Confiança", value=f"{confianca_val:.1f}%")
+            else:
+                st.metric(label="Confiança", value=confianca_val)
 
-    # Tenta resolver o ID
-    try:
-        league_id = None
-        if str(league_input).strip().isdigit():
-            league_id = int(str(league_input).strip())
-        else:
-            if 'find_league_id_by_name' in st.session_state:
-                league_id = st.session_state.find_league_id_by_name(country_name=league_input, league_name=league_input)
+        with col_o:
+            odd_val = palpite_selecionado.get('Odd Sugerida', 'N/D')
+            st.metric(label="Odd Recomendada", value=f"{odd_val:.2f}" if isinstance(odd_val, (int, float)) else odd_val)
 
-        if not league_id:
-            st.warning("Liga não encontrada. Tente um ID exato (ex: 71 para Brasil Série A).")
-            return
-
-        # Botão para buscar (chamada à API)
-        if st.button(f"Buscar jogos futuros (Liga ID: {league_id}, Season: {season_input})"):
+        st.markdown("---")
+        
+        # Opção de Aplicar o Palpite (Lógica do Aplicativo)
+        st.success("✅ Palpite Pronto. Você pode agora aplicar sua gestão de banca.")
+        if st.button(f"Aplicar Palpite: {palpite_selecionado['Palpite']} ({palpite_selecionado['Jogo']})"):
+            # FUTURO: Lógica para registrar a aposta na sua Gestão de Banca
+            st.success(f"Palpite registrado para o jogo: {palpite_selecionado['Jogo']}")
             
-            # --- CHAMADA CORRIGIDA: PASSANDO season_input ---
-            if 'get_upcoming_fixtures' in st.session_state:
-                fixtures = st.session_state.get_upcoming_fixtures(
-                    league_id=league_id, 
-                    days=int(days),
-                    season=int(season_input) # <--- CORREÇÃO DE PASSAGEM DE SEASON
-                )
-            else:
-                st.error("Função de busca de jogos futuros não acessível.")
-                return
-
-            if fixtures:
-                st.session_state.fixtures = fixtures # Salva para uso futuro
-                
-                # 3. Caixa: Confronto (Opção de Jogo)
-                jogos_api = [
-                    f"{f['home_team']} x {f['away_team']} ({f['kickoff_local'].strftime('%d/%m %H:%M')})"
-                    for f in fixtures
-                ]
-                
-                # Exibe a caixa de seleção com os jogos encontrados
-                jogo_escolhido = st.selectbox("⚽ 4. Escolha o confronto para palpitar:", jogos_api)
-                
-                if jogo_escolhido:
-                    st.info(f"Jogo selecionado: {jogo_escolhido}")
-                    st.success("Insira aqui a lógica de *Geração de Palpite* usando os dados da API. Lembre-se que essa lógica pode ser lenta.")
-                    # FUTURO: Você precisará de uma função para buscar estatísticas
-                    # e aplicar o modelo de ML.
-                    
-            else:
-                st.info(f"Nenhum jogo futuro encontrado para a Liga ID {league_id} na Season {season_input} no período de {days} dias. Verifique se o ano da season está correto.")
-
-    except Exception as e:
-        st.error(f"Erro na busca da API: {e}")
-        st.code(traceback.format_exc()) # Mostra o traceback completo para depuração
-
 
 def mostrar_banca():
-    # Conteúdo da Gestão de Banca
+    # Conteúdo da Gestão de Banca (INALTERADO)
     st.markdown("## 📈 Gestão de Banca")
 
     banca_inicial = st.number_input("💰 Informe sua Banca Inicial (R$):", min_value=0.0, step=10.0, format="%.2f", key="banca_input")
@@ -410,12 +434,12 @@ def mostrar_banca():
 
 
 def mostrar_proximos_jogos():
-    # Conteúdo da API-Football
-    st.header("🔎 Próximos jogos (API-Football)")
-    st.markdown("Use essa seção para visualizar os próximos jogos de uma liga. Se não souber o `league_id`, digite país ou parte do nome da liga que eu tento resolver automaticamente.")
+    # Conteúdo da API-Football (MANTIDO para teste de API)
+    st.header("🔎 Próximos jogos (API-Football) - Debug")
+    st.markdown("Use essa seção para *testar e depurar* as chamadas de API, confirmando que sua chave e filtros funcionam.")
 
     if not API_KEY:
-        st.warning("Chave da API-Football não encontrada. Adicione `API_FOOTBALL_KEY` em `st.secrets` ou variável de ambiente `API_FOOTBALL_KEY`.")
+        st.warning("Chave da API-Football não encontrada.")
         return
 
     col1, col2, col3 = st.columns([2,1,1])
@@ -426,9 +450,8 @@ def mostrar_proximos_jogos():
     with col3:
         season_input = st.number_input("Ano da Season", min_value=2000, max_value=datetime.now().year + 1, value=datetime.now().year, key="search_season")
     
-    # Removido o input 'n' para evitar conflito com 'from'/'to'
     n = 0 
-    st.write(" ") # Espaçador
+    st.write(" ")
     
     if st.button("Buscar próximos jogos (API)"):
         try:
@@ -481,21 +504,21 @@ user_email = require_login(app_name="Palpite Inteligente")
 
 # 1️⃣ Define os Tabs no topo da página (Menu Moderno)
 tab_jogos, tab_banca, tab_api, tab_sair = st.tabs([
-    "⚽ Palpites (Geração)", 
+    "⚽ Palpites Prontos", # Nome da aba alterado
     "📈 Gestão de Banca", 
-    "🔎 API Teste", # Adicionado para teste da API
+    "🔎 API Teste", 
     "🚪 Sair"
 ])
 
 # 2️⃣ Renderiza o conteúdo dentro do bloco "with" da Tab correspondente
 with tab_jogos:
-    mostrar_jogos_e_palpites()
+    mostrar_jogos_e_palpites() # Agora carrega do Sheets
     
 with tab_banca:
     mostrar_banca()
     
 with tab_api:
-    mostrar_proximos_jogos()
+    mostrar_proximos_jogos() # Para depuração da API
 
 with tab_sair:
     st.warning("Clique no botão abaixo para sair da sua sessão.")
