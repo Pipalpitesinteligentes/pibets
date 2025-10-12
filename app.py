@@ -132,7 +132,7 @@ from guard_gsheet import require_login, issue_token
 
 @st.cache_resource(ttl=3600)
 def load_gsheet_data():
-    """Carrega o DataFrame da planilha do Google Sheets."""
+    "Carrega o DataFrame da planilha do Google Sheets."""
     try:
         # Tenta o método ServiceAccountCredentials (mais antigo/compatível)
         service_account_info = json.loads(st.secrets["GCP_SERVICE_ACCOUNT"])
@@ -534,6 +534,7 @@ if is_admin:
 # ====================================================================
 # FIM do app_merged.py
 # ====================================================================
+
 
 
 
