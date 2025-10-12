@@ -90,11 +90,6 @@ def logout():
     # ... Lógica de deslogar
     st.warning("Você saiu.")
 
-# 4️⃣ Renderiza conteúdo de acordo com o menu (Chamadas agora funcionarão)
-if menu == "📊 Palpites":
-    mostrar_palpites()
-# ... (restante do código)
-
 # ========== EXIBIR CONTEÚDO CONFORME O MENU =========
 if menu == "📊 Palpites":
     st.title(" ")
@@ -580,6 +575,7 @@ if menu == "🔎 Próximos jogos (API-Football)":
 # ===========================================================
 # FIM do app_merged.py
 # ===========================================================
+
 
 
 
