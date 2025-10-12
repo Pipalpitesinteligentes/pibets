@@ -254,7 +254,7 @@ def get_upcoming_fixtures(league_id: int | None = None, days: int = 7, season: i
 # =======================================================
 # ==== FUNÇÃO DE CARREGAMENTO (FORÇANDO JSON DE CHAVES) ====
 # =======================================================
-@st.cache_data(ttl=600) 
+
 def load_palpites_prontos():
     """Carrega o DataFrame de palpites processados do Google Sheets, usando gspread."""
     
@@ -566,6 +566,7 @@ if is_admin:
 # ====================================================================
 # FIM do app_merged.py
 # ====================================================================
+
 
 
 
