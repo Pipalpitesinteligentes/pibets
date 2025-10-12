@@ -30,8 +30,8 @@ st.session_state.API_KEY = API_KEY
 
 # ID da Planilha de Palpites Prontos (O SEU LINK)
 # ⚠️ VALORES CONFIRMADOS PELO USUÁRIO. NÃO ALTERAR.
-SPREADSHEET_ID = "1H-Sy49f5tBV1YCAjd1UX6IKRNRrqr3wzoVSKVWChU00"
-SHEET_NAME_PALPITES = "nova-tentativa"
+SPREADSHEET_ID = "1H-Sy49f5tBV1YCAjd1UX6IKRNRrqr3wzoVSKVWChU00" 
+SHEET_NAME_PALPITES = "nova-tentativa" 
 
 # ====================================================================
 # ==== TOPO ROBUSTO (guard_gsheet + worker) - SEM ALTERAÇÕES ESSENCIAIS
@@ -563,5 +563,6 @@ if is_admin:
 # ====================================================================
 # FIM do app_merged.py
 # ====================================================================
+
 
 
