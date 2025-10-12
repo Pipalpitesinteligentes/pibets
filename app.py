@@ -488,22 +488,23 @@ def logout():
 # A partir daqui, o usuário está autenticado pelo guard_gsheet
 user_email = require_login(app_name="Palpite Inteligente")
 
-# 2️⃣ Sidebar: Definida antes do bloco de renderização principal
-with st.sidebar:
-    st.error("DEBUG: A BARRA LATERAL ESTÁ AQUI!!!") # <-- Adicione esta linha
-    st.markdown("## 👋 Bem-vindo" + (f", {user_email}" if user_email else "!"))
-    menu = st.radio(
-        "Escolha uma opção:",
-        ["📊 Palpites", "📈 Gestão de Banca", "🔎 Próximos jogos (API-Football)", "🚪 Sair"],
-        key="main_menu_radio"
-    )
+# 1️⃣ Define o menu no topo da página
+menu = st.radio(
+    "Escolha uma opção:",
+    ["📊 Palpites", "📈 Gestão de Banca", "🔎 Próximos jogos (API-Football)", "🚪 Sair"],
+    key="main_menu_radio_top",
+    horizontal=True # Isso garante que os itens apareçam lado a lado
+)
 
-# 3️⃣ Segurança (garantia): Garante que 'menu' tenha um valor
+# 2️⃣ Sidebar: Reduzida para ser apenas a "saudação" e debug (agora é opcional)
+with st.sidebar:
+    st.markdown("## 👋 Bem-vindo" + (f", {user_email}" if user_email else "!"))
+
+# 3️⃣ Segurança (garantia) - Mantida, mas pode ser redundante após a definição
 if "menu" not in locals():
-    # Isso só acontece na primeira execução se o st.radio estivesse abaixo
     menu = "📊 Palpites"
 
-# 4️⃣ Renderiza conteúdo de acordo com o menu: Chamadas de função limpas
+# 4️⃣ Renderiza conteúdo de acordo com o menu (Sem alterações aqui)
 if menu == "📊 Palpites":
     mostrar_palpites()
 elif menu == "📈 Gestão de Banca":
@@ -534,6 +535,7 @@ if is_admin:
 # ====================================================================
 # FIM do app_merged.py
 # ====================================================================
+
 
 
 
