@@ -69,6 +69,29 @@ from guard_gsheet import require_login, issue_token
 # Login primeiro
 user_email = require_login(app_name="Palpite Inteligente")
 
+# 2️⃣ Sidebar (sempre criada, mesmo se login falhar)
+with st.sidebar:
+    st.markdown("## 👋 Bem-vindo" + (f", {user_email}" if user_email else "!"))
+    menu = st.radio(
+        "Escolha uma opção:",
+        ["📊 Palpites", "📈 Gestão de Banca", "🔎 Próximos jogos (API-Football)", "🚪 Sair"],
+        key="main_menu_radio"
+    )
+
+# 3️⃣ Segurança (garantia)
+if "menu" not in locals():
+    menu = "📊 Palpites"
+
+# 4️⃣ Renderiza conteúdo de acordo com o menu
+if menu == "📊 Palpites":
+    mostrar_palpites()
+elif menu == "📈 Gestão de Banca":
+    mostrar_banca()
+elif menu == "🔎 Próximos jogos (API-Football)":
+    mostrar_proximos_jogos()
+elif menu == "🚪 Sair":
+    logout()
+
 # Debugs úteis
 st.caption(f"Usuário autenticado: {user_email or 'N/D'}")
 
@@ -531,6 +554,7 @@ if menu == "🔎 Próximos jogos (API-Football)":
 # ===========================================================
 # FIM do app_merged.py
 # ===========================================================
+
 
 
 
