@@ -15,6 +15,7 @@ from google.oauth2.service_account import Credentials
 from oauth2client.service_account import ServiceAccountCredentials # Para compatibilidade gspread/oauth2client
 from gspread_dataframe import get_as_dataframe
 from PIL import Image
+from typing import Optional
 
 # Configuração de Ambiente
 os.environ["MEMBERS_FILE"] = "secure/members.json"
@@ -533,5 +534,6 @@ if is_admin:
 # ====================================================================
 # FIM do app_merged.py
 # ====================================================================
+
 
 
