@@ -56,9 +56,11 @@ a[data-testid="toolbar-github-icon"],
 a[aria-label="Open GitHub Repo"],
 a[href*="github.com"][target="_blank"] { display: none !important; }
 
-/* hambúrguer (MainMenu) e rodapé padrão */
-#MainMenu { visibility: hidden; }
+/* rodapé padrão */
 footer { visibility: hidden; }
+
+/* O problema era aqui! Deixei o MainMenu visível */
+/* #MainMenu { visibility: hidden; } */ 
 </style>
 """
 st.markdown(HIDE_TOOLBAR, unsafe_allow_html=True)
@@ -554,6 +556,7 @@ if menu == "🔎 Próximos jogos (API-Football)":
 # ===========================================================
 # FIM do app_merged.py
 # ===========================================================
+
 
 
 
