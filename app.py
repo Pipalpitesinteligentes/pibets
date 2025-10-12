@@ -252,26 +252,49 @@ def get_upcoming_fixtures(league_id: int | None = None, days: int = 7, n: int | 
 # ==== 1. FUNÇÕES DE CONTEÚDO (Implementando a lógica dentro) ====
 # ====================================================================
 
-def mostrar_palpites():
+def mostrar_jogos_e_palpites():
     # LOGO E TÍTULO
-    logo = Image.open("logo_pi.png")
-    st.image(logo, width=200)
+    from PIL import Image
+    try:
+        logo = Image.open("logo_pi.png")
+        st.image(logo, width=200)
+    except FileNotFoundError:
+        st.header("Logo não encontrada")
+        
     st.title("π - Palpites Inteligentes 🇧🇷⚽")
-    st.markdown("Escolha um confronto abaixo e veja as previsões estatísticas para o jogo.")
+    st.markdown("Selecione a fonte de dados e o jogo para ver as previsões.")
+
+    # Opção 1: Selecionar a fonte dos jogos (Palpites do Sheets ou Jogos da API)
+    origem = st.radio(
+        "Selecione a fonte dos dados:",
+        ["Palpites da Rodada (Sheets)", "Próximos Jogos (API-Football)"],
+        horizontal=True
+    )
     
-    # Verifica se o DataFrame foi carregado corretamente
-    if df.empty:
-        st.warning("Não há dados de palpites para exibir.")
-        return
+    st.markdown("---") 
 
-    # Lógica de interface de palpites
-    rodadas_disponiveis = sorted(df["Rodada"].dropna().unique())
-    rodada_escolhida = st.selectbox("📆 Selecione a rodada:", rodadas_disponiveis)
+    if origem == "Palpites da Rodada (Sheets)":
+        # Lógica para os dados do Sheets
+        if df.empty:
+            st.warning("Não há dados de palpites para exibir.")
+            return
 
-    df_rodada = df[df["Rodada"] == rodada_escolhida]
-    confrontos_disponiveis = df_rodada.apply(lambda x: f"{x['Mandante']} x {x['Visitante']}", axis=1).tolist()
-    confronto = st.selectbox("⚽ Escolha o confronto:", confrontos_disponiveis)
+        # 1. Caixa: Campeonato
+        campeonatos = sorted(df["Campeonato"].dropna().unique())
+        campeonato_escolhido = st.selectbox("🏆 Selecione o Campeonato:", campeonatos)
+        
+        df_campeonato = df[df["Campeonato"] == campeonato_escolhido]
 
+        # 2. Caixa: Rodada
+        rodadas_disponiveis = sorted(df_campeonato["Rodada"].dropna().unique())
+        rodada_escolhida = st.selectbox("📆 Selecione a rodada:", rodadas_disponiveis)
+
+        df_rodada = df_campeonato[df_campeonato["Rodada"] == rodada_escolhida]
+        
+        # 3. Caixa: Confronto
+        confrontos_disponiveis = df_rodada.apply(lambda x: f"{x['Mandante']} x {x['Visitante']}", axis=1).tolist()
+        confronto = st.selectbox("⚽ Escolha o confronto:", confrontos_disponiveis)
+        
     if confronto:
         mandante, visitante = [t.strip() for t in confronto.split("x")]
         jogo = df[(df["Mandante"] == mandante) & (df["Visitante"] == visitante)]
@@ -367,6 +390,50 @@ def mostrar_palpites():
                         st.success("✅ Palpite de escanteios correto!")
                     else:
                         st.error("❌ Palpite de escanteios incorreto!")
+                        
+else: # origem == "Próximos Jogos (API-Football)"
+        # Lógica para os dados da API
+        if not API_KEY:
+            st.error("Chave da API-Football não configurada.")
+            return
+            
+        st.info("Buscar jogos futuros para gerar palpites em tempo real.")
+        
+        # 1. Caixa: Liga/Campeonato (Para a API, usamos o ID ou nome)
+        league_input = st.text_input("Insira league_id ou nome da liga / país (ex: '39' ou 'Brasil')", value="71")
+        
+        # Tenta resolver o ID na hora
+        try:
+            league_id = None
+            if str(league_input).strip().isdigit():
+                league_id = int(str(league_input).strip())
+            else:
+                league_id = find_league_id_by_name(country_name=league_input, league_name=league_input)
+                if not league_id:
+                    st.warning("Liga não encontrada. Tente um ID exato (ex: 71 para Brasil Série A).")
+
+            if league_id:
+                # 2. Caixa: Período (Substitui Rodada)
+                days = st.number_input("Buscar próximos (dias)", min_value=1, max_value=30, value=7)
+                
+                # Botão para buscar (pois é uma chamada de API)
+                if st.button(f"Buscar {days} dias de jogos (Liga ID: {league_id})"):
+                    fixtures = get_upcoming_fixtures(league_id=league_id, days=int(days))
+                    
+                    if fixtures:
+                        # 3. Caixa: Confronto (Opção de Jogo)
+                        jogos_api = [
+                            f"{f['home_team']} x {f['away_team']} ({f['kickoff_local'].strftime('%d/%m %H:%M')})"
+                            for f in fixtures
+                        ]
+                        jogo_escolhido = st.selectbox("⚽ Escolha o jogo (API):", jogos_api)
+                        
+                        st.info(f"Detalhes: {jogo_escolhido} (Você pode adicionar a lógica de geração de palpite aqui)")
+                    else:
+                        st.info("Nenhum jogo futuro encontrado no período selecionado.")
+
+        except Exception as e:
+            st.error(f"Erro na busca da API: {e}")
 
 def mostrar_banca():
     # Conteúdo da Gestão de Banca
@@ -535,6 +602,7 @@ if is_admin:
 # ====================================================================
 # FIM do app_merged.py
 # ====================================================================
+
 
 
 
