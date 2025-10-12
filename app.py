@@ -94,7 +94,7 @@ st.set_page_config(page_title="Palpite Inteligente", page_icon="⚽", layout="wi
     #margin-top: 40px;
     #gap: 40px;
     #flex-wrap: wrap;
-}
+#}
 #.box {
     #background-color: #1a1b2e;
     #padding: 20px;
@@ -102,7 +102,7 @@ st.set_page_config(page_title="Palpite Inteligente", page_icon="⚽", layout="wi
     #width: 220px;
     #text-align: center;
     #box-shadow: 0 0 10px #00FF88;
-}
+#}
 #.emoji { font-size: 28px; margin-bottom: 10px; }
 #.titulo { font-size: 18px; font-weight: bold; color: #00FF88; }
 #.valor { font-size: 24px; font-weight: bold; color: white; margin-top: 5px; }
@@ -111,12 +111,12 @@ st.set_page_config(page_title="Palpite Inteligente", page_icon="⚽", layout="wi
 #.stDataFrame, .st-emotion-cache-1uixxvy {
     #background-color: #13141f !important;
     #color: #ffffff !important;
-}
+#}
 #.st-emotion-cache-1v0mbdj p {
     #color: #00ff99;
     #font-size: 20px;
     #font-weight: bold;
-}
+#}
 #</style>
 """
 #st.markdown(HIDE_TOOLBAR, unsafe_allow_html=True)
@@ -533,4 +533,5 @@ if is_admin:
 # ====================================================================
 # FIM do app_merged.py
 # ====================================================================
+
 
