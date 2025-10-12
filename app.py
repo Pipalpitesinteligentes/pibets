@@ -16,6 +16,7 @@ from oauth2client.service_account import ServiceAccountCredentials
 from gspread_dataframe import get_as_dataframe
 from PIL import Image
 from typing import Optional
+from sheets_reader import read_palpites_from_sheets
 
 # Configuração de Ambiente
 os.environ["MEMBERS_FILE"] = "secure/members.json"
@@ -252,52 +253,6 @@ def get_upcoming_fixtures(league_id: int | None = None, days: int = 7, season: i
     return fixtures
 
 # =======================================================
-# ==== FUNÇÃO DE CARREGAMENTO (FORÇANDO JSON DE CHAVES) ====
-# =======================================================
-
-def load_palpites_prontos():
-    """Carrega o DataFrame de palpites processados do Google Sheets, usando gspread."""
-    
-    # ⚠️ 1. As chaves são lidas individualmente, mas o Streamlit as coloca em st.secrets
-    # Aqui, a chave deve ser acessada diretamente, sem o nome da seção.
-    try:
-        credentials_info = {
-            "type": st.secrets.get("type"),
-            "project_id": st.secrets.get("project_id"),
-            "private_key": st.secrets.get("private_key"), 
-            "client_email": st.secrets.get("client_email"),
-            "token_uri": st.secrets.get("token_uri")
-        }
-        
-        # ⚠️ 2. Verifica se as chaves existem
-        if not credentials_info.get("client_email"):
-            st.error("ERRO DE CONFIGURAÇÃO: O `secrets.toml` não contém chaves de Service Account válidas.")
-            return pd.DataFrame()
-            
-        scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
-        # Agora o ServiceAccountCredentials está recebendo um dicionário Python válido
-        creds = ServiceAccountCredentials.from_json_keyfile_dict(credentials_info, scope)
-        gc = gspread.authorize(creds)
-        
-        # 3. Abre a planilha pelo ID e seleciona a aba (use seus IDs corretos)
-        SPREADSHEET_ID = "1H-Sy49f5tBV1YCAjd1UX6IKRNRrqr3wzoVSKVWChU00"
-        SHEET_NAME_PALPITES = "nova-tentativa"
-
-        sheet = gc.open_by_key(SPREADSHEET_ID).worksheet(SHEET_NAME_PALPITES)
-        
-        # 4. Converte para DataFrame
-        df = get_as_dataframe(sheet, evaluate_formulas=True, header=1).dropna(how="all")
-        
-        # ... (restante da limpeza) ...
-        
-        return df
-
-    except Exception as e:
-        st.error(f"Erro Crítico ao carregar Palpites Prontos do Sheets: {e}")
-        st.info("Verifique a permissão na planilha e o formato da private_key (deve ser em uma linha com \\\\n no secrets.toml).")
-        return pd.DataFrame()
-
-# =======================================================
 # ==== MAPEAR FUNÇÕES DE API NO SESSION STATE (PARA A ABA DE TESTE) ====
 # =======================================================
 if 'get_upcoming_fixtures' not in st.session_state:
@@ -318,14 +273,17 @@ def mostrar_jogos_e_palpites():
     except FileNotFoundError:
         st.header("Logo não encontrada")
         
-    st.title("π - Palpites Inteligentes 🇧🇷⚽")
-    st.markdown("Os palpites são gerados por um Worker de IA em segundo plano e carregados a partir do Sheets. Atualize a página para ver novos palpites.")
+    st.title("π - Palpites Inteligentes⚽")
+    st.markdown("Atualize a página para ver novos palpites.")
     st.markdown("---") 
     
     if df_palpites.empty:
         st.warning("Nenhum palpite processado encontrado ou erro de carregamento no Google Sheets.")
+        if sheets_error_message:
+             st.error(f"Erro detalhado de Sheets: {sheets_error_message}") # Exibe o erro de leitura que estava escondido
+             
         st.info("Verifique se o seu script Colab (Worker) rodou e salvou dados na planilha.")
-        return
+        return  
 
     st.subheader(f"Palpites Prontos ({len(df_palpites)} jogos futuros)")
     
@@ -566,6 +524,7 @@ if is_admin:
 # ====================================================================
 # FIM do app_merged.py
 # ====================================================================
+
 
 
 
