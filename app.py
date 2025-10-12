@@ -126,10 +126,6 @@ client = gspread.authorize(creds)
 
 # ========= CONTEÚDO LIBERADO APÓS LOGIN =========
 
-with st.sidebar:
-    st.markdown("## 👋 Bem-vindo, felipesouza!")
-    menu = st.radio("Escolha uma opção:", ["📊 Palpites", "📈 Gestão de Banca", "🔎 Próximos jogos (API-Football)", "🚪 Sair"])
-
 # ================= API-FOOTBALL: funções de integração =================
 # ATENÇÃO: coloque sua chave em st.secrets["API_FOOTBALL_KEY"] ou variavel de ambiente API_FOOTBALL_KEY
 API_KEY = st.secrets.get("API_FOOTBALL_KEY") or os.getenv("API_FOOTBALL_KEY")
@@ -545,4 +541,5 @@ if menu == "🔎 Próximos jogos (API-Football)":
 # ===========================================================
 # FIM do app_merged.py
 # ===========================================================
+
 
