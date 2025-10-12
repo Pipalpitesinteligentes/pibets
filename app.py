@@ -28,8 +28,8 @@ HEADERS = {"x-apisports-key": API_KEY} if API_KEY else {}
 st.session_state.API_KEY = API_KEY
 
 # ID da Planilha de Palpites Prontos (O SEU LINK)
-SPREADSHEET_ID = "1tYBSELOEdvDWaLx9KhU7cOOutaYzKAj6OxORUmlM-Vw"
-SHEET_NAME_PALPITES = "nova_tentativa_01" # Assumindo a primeira aba do seu Sheet
+SPREADSHEET_ID = "1kn-zVYiECH9GpySLlqr5afvKhrn-dXSnCyurNqyCw4w"
+SHEET_NAME_PALPITES = "palpites_prontos" # Assumindo a primeira aba do seu Sheet
 
 # ====================================================================
 # ==== TOPO ROBUSTO (guard_gsheet + worker) - SEM ALTERAÇÕES ESSENCIAIS
@@ -546,4 +546,5 @@ if is_admin:
 # ====================================================================
 # FIM do app_merged.py
 # ====================================================================
+
 
