@@ -16,10 +16,24 @@ SHEET_NAME = os.environ.get("MEMBERS_SHEET_NAME", "members")      # nome da plan
 WORKSHEET = os.environ.get("MEMBERS_WORKSHEET_NAME", "usuarios")  # aba
 
 # --- UTILITÁRIOS ---
+def _now():
+    """Retorna o datetime atual no fuso horário configurado."""
+    return datetime.now(TZ)
+
+def sha256_hex(x: str) -> str:
+    """Calcula o hash SHA256 de uma string."""
+    return hashlib.sha256(x.encode("utf-8")).hexdigest()
+
+def constant_time_equal(a: str, b: str) -> bool:
+    """Compara duas strings em tempo constante para segurança."""
+    return hmac.compare_digest(a, b)
+
+# --------------------------------------------------------------------------------
+# CÓDIGO CSS CUSTOMIZADO PARA O LAYOUT DE LOGIN (NOVO)
+# --------------------------------------------------------------------------------
+
 def _apply_login_style():
     """Injeta CSS para criar o layout de duas colunas do login."""
-    # Garanta que o corpo desta função esteja COMPLETAMENTE COLADO AQUI
-    # (Incluindo o st.markdown e o CSS longo)
     st.markdown("""
         <style>
         /* 1. Remove padding padrão do Streamlit (para a coluna 1 poder ser 100% da tela) */
@@ -71,7 +85,6 @@ def _apply_login_style():
         </style>
     """, unsafe_allow_html=True)
 
-# ATENÇÃO: def começa na coluna 1 (sem espaços antes)
 def _benefit_card(icon, text):
     """Função auxiliar para criar os 'cards' de benefício em HTML puro."""
     st.markdown(f"""
