@@ -240,31 +240,37 @@ def validate_email_token(email: str, token_plain: str) -> bool:
 
 # ---------- UI (st_login MODIFICADO) ----------
 def st_login(app_name: str = "Painel", show_logo: bool = True):
-    # ✅ Agora que movemos a definição da função para cima, esta chamada funcionará!
+    
+    # 1. Aplica o CSS customizado e limpa o padding da página
     _apply_login_style() 
 
     # já autenticado?
     if "auth_email" in st.session_state and is_active(st.session_state["auth_email"]):
         return st.session_state["auth_email"]
     
-    # --- Estrutura de Duas Colunas (Layout 50/50) ---
+    # 2. ESTRUTURA DE DUAS COLUNAS 50/50
+    # O Streamlit só deve criar DUAS colunas aqui: col_info e col_login
     col_info, col_login = st.columns([5, 5], gap="large") 
 
     # ==========================================================
-    # 1. COLUNA DA ESQUERDA (Informações / Vendas)
+    # 1. COLUNA DA ESQUERDA (Informações / Benefícios)
     # ==========================================================
     with col_info:
-        # Títulos e Benefícios (como no exemplo do meu post anterior)
-        st.markdown(f'<h1 style="color: #FFFFFF;">NEXUS {app_name}</h1>', unsafe_allow_html=True)
-        # ... (Restante do conteúdo da COLUNA DA ESQUERDA) ...
+        # A. Logo e Título principal
+        st.markdown(f'<h1 style="color: #FFFFFF;">Pibets {app_name}</h1>', unsafe_allow_html=True)
+        
+        # B. Subtítulo
         st.markdown(f"""
             <p class='text-login-info'>
-            Explore estratégias inteligentes e maximize seus ganhos com nossa plataforma.
+            Acesse as melhores análises e maximize seus resultados em palpites de futebol.
             </p>
         """, unsafe_allow_html=True)
 
-        st.markdown("---") 
+        st.markdown("---") # Divisor sutil
+
+        # C. Lista de Benefícios
         st.markdown("<h4>O que oferecemos:</h4>", unsafe_allow_html=True)
+        _benefit_card("⚽", "Palpites inteligentes (Plapites de futebol)") # Ajustado
         _benefit_card("📈", "Análises em tempo real")
         _benefit_card("🛡️", "100% Seguro e Confiável")
         _benefit_card("🏆", "Estratégias otimizadas para alta performance")
@@ -274,9 +280,12 @@ def st_login(app_name: str = "Painel", show_logo: bool = True):
     # 2. COLUNA DA DIREITA (Formulário de Login)
     # ==========================================================
     with col_login:
-        # Formulário de Login (como no exemplo do meu post anterior)
+        # Título do Formulário
         st.title("Acesso Restrito")
         st.subheader("Entre com suas credenciais")
+        
+        # ... (O restante da lógica do Formulário de Login com st.form) ...
+        # (Seu código de formulário antigo deve ser mantido aqui)
         
         with st.form("login_form"):
             st.markdown("E-MAIL")
@@ -307,6 +316,7 @@ def st_login(app_name: str = "Painel", show_logo: bool = True):
                 use_container_width=True
             )
 
+        # Divisor e Link Secundário
         st.markdown("""
             <div style="text-align: center; color: #555555; margin-top: 10px; margin-bottom: 10px;">
             <hr style="border: 0.5px solid #222;">
@@ -318,8 +328,9 @@ def st_login(app_name: str = "Painel", show_logo: bool = True):
             unsafe_allow_html=True
         )
 
-        # Lógica de Submissão (IMPORTANTE: A lógica de validação do seu código original)
+        # Lógica de Submissão
         if submitted:
+            # ... (Sua lógica de validação aqui) ...
             if not email:
                 st.error("Digite seu e-mail.")
             elif not token:
@@ -340,7 +351,6 @@ def st_login(app_name: str = "Painel", show_logo: bool = True):
                     st.error("E-mail ou código inválido/expirado.")
                     
     return None
-
 def require_login(app_name: str = "Painel", show_logo: bool = True) -> str:
     """Função principal que exige login antes de prosseguir."""
     user = st_login(app_name=app_name, show_logo=show_logo)
