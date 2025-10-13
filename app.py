@@ -41,13 +41,6 @@ SHEET_NAME_PALPITES = "nova-tentativa"
 
 # ... (CÓDIGO DO TOPO ROBUSTO INALTERADO) ...
 
-# Logo e Título
-    try:
-        logo = Image.open("logo_pi.png")
-        st.image(logo, width=200)
-    except FileNotFoundError:
-        st.header("Logo não encontrada")
-
 # Ler query params (compatível com versões diferentes)
 try:
     _qp = st.query_params
@@ -585,6 +578,7 @@ if is_admin:
 # ====================================================================
 # FIM do app_merged.py
 # ====================================================================
+
 
 
 
