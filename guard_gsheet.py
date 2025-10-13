@@ -1,10 +1,12 @@
-# guard_gsheet.py — usa Google Sheets como storage
+# guard_gsheet.py (TOPO)
 import os, time, hashlib, hmac
 from datetime import datetime, timedelta, timezone
 from typing import Optional, Dict, List
 
 import streamlit as st
 import gspread
+# Usaremos os imports necessários para a Service Account:
+# Importação da biblioteca correta de credenciais do Google
 from google.oauth2.service_account import Credentials
 
 TZ = timezone(timedelta(hours=-3))  # America/Sao_Paulo
@@ -21,19 +23,22 @@ def constant_time_equal(a: str, b: str) -> bool:
     return hmac.compare_digest(a, b)
 
 def _client():
-    # Agora que o Secret está limpo, podemos ir direto à chave de dicionário:
+    """Autentica o gspread usando o dicionário st.secrets['gcp_service_account']."""
+    
+    # 1. Tenta ler o dicionário diretamente (formato TOML [gcp_service_account])
     creds_dict = st.secrets.get("gcp_service_account")
     
+    # 2. Verifica a validade.
     if not creds_dict or not isinstance(creds_dict, dict):
-        st.error("Erro Crítico de Secret: Chave GCP de Login não encontrada ou inválida. Verifique o bloco [gcp_service_account] no secrets.")
+        st.error("Erro Crítico de Secret: Chave GCP de Login não encontrada. Verifique o bloco [gcp_service_account] no secrets.")
         st.stop()
         
-    # ... (Restante da autenticação)
+    # 3. Autentica
     scope = [
         "https://spreadsheets.google.com/feeds",
         "https://www.googleapis.com/auth/drive",
     ]
-    from google.oauth2.service_account import Credentials
+    # Usamos o objeto de credenciais do google.oauth2, compatível com gspread e Streamlit.
     creds = Credentials.from_service_account_info(creds_dict, scopes=scope) 
     return gspread.authorize(creds)
 
