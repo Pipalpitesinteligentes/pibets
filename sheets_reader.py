@@ -54,10 +54,6 @@ def read_palpites_from_sheets(spreadsheet_id: str, sheet_name: str) -> pd.DataFr
         # Converte para DataFrame
         df = get_as_dataframe(sheet, evaluate_formulas=True, header=1).dropna(how="all")
 
-        st.write("Shape do df:", df.shape)
-st.write("Colunas encontradas:", df.columns.tolist())
-st.dataframe(df.head(8))
-
         if df.empty:
              st.session_state["sheets_error"] = f"Planilha lida, mas a aba '{sheet_name}' está vazia ou sem dados."
              return pd.DataFrame()
