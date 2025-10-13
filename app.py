@@ -41,6 +41,13 @@ SHEET_NAME_PALPITES = "nova-tentativa"
 
 # ... (CÓDIGO DO TOPO ROBUSTO INALTERADO) ...
 
+# Logo e Título
+    try:
+        logo = Image.open("logo_pi.png")
+        st.image(logo, width=200)
+    except FileNotFoundError:
+        st.header("Logo não encontrada")
+
 # Ler query params (compatível com versões diferentes)
 try:
     _qp = st.query_params
@@ -267,12 +274,6 @@ if 'find_league_id_by_name' not in st.session_state:
 # ====================================================================
 
 def mostrar_jogos_e_palpites():
-    # Logo e Título
-    try:
-        logo = Image.open("logo_pi.png")
-        st.image(logo, width=200)
-    except FileNotFoundError:
-        st.header("Logo não encontrada")
     
     st.title("π - Palpites Inteligentes⚽")
     st.markdown("Atualize a página para ver novos palpites.")
@@ -584,6 +585,7 @@ if is_admin:
 # ====================================================================
 # FIM do app_merged.py
 # ====================================================================
+
 
 
 
