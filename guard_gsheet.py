@@ -69,7 +69,7 @@ def _create_gspread_client():
         st.exception(e)
         st.stop()
         
-ef _ws():
+def _ws():
     try:
         c = _client()
         sh = c.open(SHEET_NAME)
