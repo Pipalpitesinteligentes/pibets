@@ -19,6 +19,27 @@ import hmac
 import hashlib
 import guard_gsheet as guard
 
+# 1. Configurações da Página (É sempre bom definir isso primeiro)
+st.set_page_config(
+    page_title="Palpites Inteligentes",
+    layout="wide",
+    initial_sidebar_state="auto"
+)
+
+# 2. Definição do Logo (Branding no Canto Superior)
+# Você não precisa mais usar o bloco try/except com Image.open
+# O st.logo lida com o caminho do arquivo diretamente e o redimensionamento.
+try:
+    # 🚨 ATENÇÃO: Troque st.image() por st.logo()
+    st.logo(
+        image="logo_pi.png", 
+        size="small"  # 'small' garante que ele fique pequeno e discreto (aprox. 20px de altura)
+    )
+except Exception:
+    # Se houver qualquer erro no carregamento, o Streamlit simplesmente omite o logo.
+    # Não precisamos mais de uma mensagem de erro explícita na tela principal para o usuário.
+    pass 
+
 # Configuração de Ambiente
 os.environ["MEMBERS_FILE"] = "secure/members.json"
 APP_INTERNAL_KEY = "pi-internal-123"
@@ -48,13 +69,6 @@ try:
 except Exception:
     _qp = st.experimental_get_query_params()
     getp = lambda k, d=None: (_qp.get(k, [d]) or [d])[0]
-
-# Logo e Título
-    try:
-        logo = Image.open("logo_pi.png")
-        st.image(logo, width=200)
-    except FileNotFoundError:
-        st.header("Logo não encontrada")
 
 # Healthcheck
 if getp("health") == "1":
@@ -585,6 +599,7 @@ if is_admin:
 # ====================================================================
 # FIM do app_merged.py
 # ====================================================================
+
 
 
 
