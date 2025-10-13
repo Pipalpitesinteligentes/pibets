@@ -313,12 +313,13 @@ def mostrar_jogos_e_palpites():
             st.metric(label="Predição IA", value=palpite_selecionado['Palpite'])
         
         with col_c:
-            # Formata a confiança como percentual
-            confianca_val = palpite_selecionado.get('Confiança (%)', 'N/D')
+            # Lê o valor da confiança
+            confianca_val = palpite_selecionado.get('Confiança', 'N/D')
+            # Formata corretamente se for número
             if isinstance(confianca_val, (int, float)):
                 st.metric(label="Confiança", value=f"{confianca_val:.1f}%")
             else:
-                st.metric(label="Confiança", value=confianca_val)
+                st.metric(label="Confiança", value=str(confianca_val))
 
         with col_o:
             odd_val = palpite_selecionado.get('Odd Sugerida', 'N/D')
@@ -540,6 +541,7 @@ if is_admin:
 # ====================================================================
 # FIM do app_merged.py
 # ====================================================================
+
 
 
 
