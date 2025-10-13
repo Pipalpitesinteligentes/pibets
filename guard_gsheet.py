@@ -249,12 +249,12 @@ def st_login(app_name: str = "Painel", show_logo: bool = True):
     # ==========================================================
     with col_info:
         # A. Logo e Título principal
-        st.markdown(f'<h1 style="color: #FFFFFF;">Pibets {app_name}</h1>', unsafe_allow_html=True)
+        st.markdown(f'<h1 style="color: #FFFFFF;">π - Palpites Inteligentes {app_name}</h1>', unsafe_allow_html=True)
         
         # B. Subtítulo
         st.markdown(f"""
             <p class='text-login-info'>
-            Acesse as melhores análises e maximize seus resultados em palpites de futebol.
+            Acesse as melhores análises e maximize seus resultados no mercado esportivo.
             </p>
         """, unsafe_allow_html=True)
 
@@ -262,7 +262,7 @@ def st_login(app_name: str = "Painel", show_logo: bool = True):
 
         # C. Lista de Benefícios
         st.markdown("<h4>O que oferecemos:</h4>", unsafe_allow_html=True)
-        _benefit_card("⚽", "Palpites inteligentes (Plapites de futebol)") # Ajustado
+        _benefit_card("⚽", "Palpites inteligentes") # Ajustado
         _benefit_card("📈", "Análises em tempo real")
         _benefit_card("🛡️", "100% Seguro e Confiável")
         _benefit_card("🏆", "Estratégias otimizadas para alta performance")
