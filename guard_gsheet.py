@@ -23,16 +23,22 @@ def constant_time_equal(a: str, b: str) -> bool:
     return hmac.compare_digest(a, b)
 
 def _client():
-    creds_dict = st.secrets.get("gcp_service_account")
+    json_str = st.secrets.get("GCP_SERVICE_ACCOUNT")
     
-    if not creds_dict or not isinstance(creds_dict, dict):
-        st.error("Erro Crítico de Secret: Chave GCP de Login não encontrada ou inválida. Verifique o bloco [gcp_service_account] no secrets.")
+    if not isinstance(json_str, str) or not json_str.strip().startswith("{"):
+        # Se a string não for encontrada ou não for JSON
+        st.error("Erro Crítico de Secret: Chave GCP de Login não encontrada ou inválida. Verifique a chave GCP_SERVICE_ACCOUNT (string JSON).")
         st.stop()
         
-    scope = [
-        "https://spreadsheets.google.com/feeds",
-        "https://www.googleapis.com/auth/drive",
-    ]
+    import json
+    try:
+        creds_dict = json.loads(json_str)
+    except json.JSONDecodeError:
+        st.error("Erro Crítico de Secret: JSON da chave GCP_SERVICE_ACCOUNT mal formatado.")
+        st.stop()
+
+    # O resto da autenticação continua igual
+    scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
     from google.oauth2.service_account import Credentials
     creds = Credentials.from_service_account_info(creds_dict, scopes=scope) 
     return gspread.authorize(creds)
