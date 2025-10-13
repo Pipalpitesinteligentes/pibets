@@ -37,22 +37,23 @@ def constant_time_equal(a: str, b: str) -> bool:
 # --------------------------------------------------------------------------------
 def _apply_login_style():
     """Injeta CSS simples, usando as cores da logo para o estilo do botão e cards."""
+    # As variáveis LOGO_CYAN e LOGO_DARK_BLUE DEVEM estar definidas fora desta função
     st.markdown(f"""
         <style>
         /* Estilo do botão de ação principal (Entrar) */
-        .stButton>button.primary {
+        .stButton>button.primary {{
             /* Cor do botão: O ciano/verde-água vibrante da logo */
             background-color: {LOGO_CYAN}; 
             color: #000000; 
             font-weight: bold;
-        }
-        .stButton>button.primary:hover {
+        }}
+        .stButton>button.primary:hover {{
             /* Sombra ou tom levemente diferente para hover */
             background-color: #00E0E0; 
-        }
+        }}
         
         /* Estilo do "card" de benefícios */
-        .benefit-card {
+        .benefit-card {{
             /* Fundo dos cards: Um azul escuro sutil que combina com o fundo do app */
             background-color: {LOGO_DARK_BLUE}; 
             padding: 10px 15px; 
@@ -60,15 +61,15 @@ def _apply_login_style():
             border-radius: 8px; 
             display: flex; 
             align-items: center;
-        }
+        }}
         
         /* Cor dos ícones dentro dos cards */
-        .benefit-icon {
+        .benefit-icon {{
             font-size: 1.5em; 
             /* Cor dos ícones: Ciano vibrante */
             color: {LOGO_CYAN}; 
             margin-right: 15px;
-        }
+        }}
         
         /* Estilo para links/textos de apoio */
         a {{
