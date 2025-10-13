@@ -23,25 +23,36 @@ def constant_time_equal(a: str, b: str) -> bool:
     return hmac.compare_digest(a, b)
 
 def _client():
-    """Autentica o gspread usando o dicionário st.secrets['gcp_service_account']."""
-    
-    # 1. Tenta ler o dicionário diretamente (formato TOML [gcp_service_account])
+    # 1. Tenta o formato padrão do Streamlit (seção [gcp_service_account])
     creds_dict = st.secrets.get("gcp_service_account")
     
-    # 2. Verifica a validade.
+    # 2. Se não encontrar o dicionário, tenta a chave simples "GCP_SERVICE_ACCOUNT"
+    if not isinstance(creds_dict, dict) or not creds_dict:
+        json_str = st.secrets.get("GCP_SERVICE_ACCOUNT")
+        
+        if isinstance(json_str, str) and json_str.strip().startswith("{"):
+            import json
+            try:
+                # Tenta decodificar a string JSON se ela existir
+                creds_dict = json.loads(json_str)
+            except Exception:
+                # Se a decodificação falhar, creds_dict continua None/inválido
+                pass
+                
+    # 3. Se creds_dict ainda não for válido, exibe o erro e para.
     if not creds_dict or not isinstance(creds_dict, dict):
-        st.error("Erro Crítico de Secret: Chave GCP de Login não encontrada. Verifique o bloco [gcp_service_account] no secrets.")
+        st.error("Erro Crítico de Secret: Chave GCP de Login não encontrada ou inválida. Verifique o secrets.toml.")
         st.stop()
         
-    # 3. Autentica
+    # 4. Continua a autenticação
     scope = [
         "https://spreadsheets.google.com/feeds",
         "https://www.googleapis.com/auth/drive",
     ]
-    # Usamos o objeto de credenciais do google.oauth2, compatível com gspread e Streamlit.
+    from google.oauth2.service_account import Credentials
     creds = Credentials.from_service_account_info(creds_dict, scopes=scope) 
     return gspread.authorize(creds)
-
+    
 def _ws():
     c = _client()
     sh = c.open(SHEET_NAME)
