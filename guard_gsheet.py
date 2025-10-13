@@ -178,7 +178,6 @@ def validate_email_token(email: str, token_plain: str) -> bool:
 
 # ---------- UI ----------
 def st_login(app_name: str = "Painel", show_logo: bool = True):
-    """Exibe o formulário de login e verifica a sessão."""
     # já autenticado?
     if "auth_email" in st.session_state and is_active(st.session_state["auth_email"]):
         return st.session_state["auth_email"]
@@ -186,20 +185,35 @@ def st_login(app_name: str = "Painel", show_logo: bool = True):
     with st.container():
         if show_logo:
             st.markdown("### 🔐 Acesso ao " + app_name)
-        email = st.text_input("E-mail", key="guard_email", placeholder="seuemail@exemplo.com").strip().lower()
+        email = st.text_input("E-mail", key="guard_email", placeholder="seuemail@exemplo.com")
+        if email:
+            email = email.strip().lower()
         token = st.text_input("Seu código de acesso", key="guard_token", type="password", placeholder="Cole o código recebido")
         col1, col2 = st.columns([1, 1])
         with col1:
             if st.button("Entrar", key="guard_btn_enter"):
-                if validate_email_token(email, token):
-                    st.session_state["auth_email"] = email
-                    st.success("Login realizado! Recarregando...")
-                    try:
-                        st.rerun()
-                    except Exception:
-                        st.experimental_rerun()
+                # checa campos vazios
+                if not email:
+                    st.error("Digite seu e-mail.")
+                elif not token:
+                    st.error("Digite seu código de acesso.")
                 else:
-                    st.error("E-mail ou código inválido/expirado.")
+                    try:
+                        ok = validate_email_token(email, token)
+                    except Exception as e:
+                        st.error("Erro interno ao validar token. Veja detalhes abaixo:")
+                        st.exception(e)
+                        ok = False
+
+                    if ok:
+                        st.session_state["auth_email"] = email
+                        st.success("Login realizado!")
+                        try:
+                            st.rerun()
+                        except Exception:
+                            st.experimental_rerun()
+                    else:
+                        st.error("E-mail ou código inválido/expirado.")
         with col2:
             if st.button("Esqueci meu código", key="guard_btn_forgot"):
                 st.info("Fale com o suporte para receber um novo código.")
