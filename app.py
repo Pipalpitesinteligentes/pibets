@@ -350,11 +350,11 @@ def mostrar_jogos_e_palpites():
         if pd.isna(confianca_val) or confianca_val is None:
             confianca_val = 'N/D'
         elif isinstance(confianca_val, (int, float)):
-                # Multiplica por 100 se valor <= 1 (decimais)
-        if confianca_val <= 1:
-            confianca_val = f"{confianca_val*100:.1f}%"
-        else:
-            confianca_val = f"{confianca_val:.1f}%"
+            # Multiplica por 100 se valor <= 1 (decimais)
+            if confianca_val <= 1:
+                confianca_val = f"{confianca_val*100:.1f}%"
+            else:
+                confianca_val = f"{confianca_val:.1f}%"
                 
         st.metric(label="Confiança", value=confianca_val)
 
@@ -584,6 +584,7 @@ if is_admin:
 # ====================================================================
 # FIM do app_merged.py
 # ====================================================================
+
 
 
 
