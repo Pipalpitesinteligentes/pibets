@@ -19,6 +19,31 @@ import hmac
 import hashlib
 import guard_gsheet as guard
 
+import streamlit as st
+import json, traceback
+
+s = st.secrets.get("GCP_SERVICE_ACCOUNT", None)
+st.write("Tipo em st.secrets['GCP_SERVICE_ACCOUNT']:", type(s).__name__)
+
+if s is None:
+    st.warning("GCP_SERVICE_ACCOUNT ausente em st.secrets")
+else:
+    # mostra um preview (mascado) para confirmar formato
+    s_str = s if isinstance(s, str) else str(s)
+    preview = s_str[:200] + " ... " + s_str[-200:] if len(s_str) > 400 else s_str
+    st.code(preview)
+
+    # tenta fazer json.loads e mostra erro detalhado se falhar
+    try:
+        parsed = json.loads(s) if isinstance(s, str) else s
+        st.success("json.loads funcionou — credenciais carregadas como dict.")
+        st.write("client_email (preview):", parsed.get("client_email"))
+    except Exception as e:
+        st.error("json.loads falhou — veja traceback completo abaixo:")
+        st.exception(e)
+        st.stop()
+
+
 
 # Configuração de Ambiente
 os.environ["MEMBERS_FILE"] = "secure/members.json"
@@ -541,6 +566,7 @@ if is_admin:
 # ====================================================================
 # FIM do app_merged.py
 # ====================================================================
+
 
 
 
