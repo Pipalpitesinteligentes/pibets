@@ -308,25 +308,48 @@ def _format_item_safe(row):
     else:
         return f"{jogo}"
 
-# cria items a partir do df
-items = [_format_item_safe(r) for _, r in df.iterrows()]
-selected = st.selectbox("Escolha o confronto para visualizar o palpite:", items, index=0)
-selected_idx = items.index(selected)
-row = df.loc[selected_idx]
-    
-    # 1. Escolha o confronto
-    jogo_escolhido_str = st.selectbox("⚽ Escolha o confronto para visualizar o palpite:", jogos_disponiveis)
-    
-    if jogo_escolhido_str:
-        # Filtra o DataFrame para o jogo selecionado
-        nome_jogo = jogo_escolhido_str.split('(')[0].strip()
-        palpite_selecionado = df_palpites[df_palpites['Jogo'] == nome_jogo].iloc[0]
+# === Cria lista de jogos de forma segura ===
+def _format_item_safe(row):
+    # tenta vários nomes possíveis para a data
+    dt = row.get('Data/Hora') or row.get('Data_Hora') or row.get('DataHora') or row.get('data_hora')
+    jogo = row.get('Jogo') or row.get('jogo') or row.get('Partida') or "Jogo sem nome"
 
-        st.markdown(f"### Palpite Analisado: {palpite_selecionado['Jogo']}")
-        st.markdown(f"🗓️ **Data/Hora:** {palpite_selecionado['Data/Hora'].strftime('%d/%m/%Y %H:%M')}")
+    if pd.notna(dt):
+        try:
+            dt_str = pd.to_datetime(dt).strftime("%d/%m %H:%M")
+            return f"{jogo} ({dt_str})"
+        except Exception:
+            return f"{jogo} (Data inválida)"
+    else:
+        return f"{jogo}"
 
-        # Exibe os principais dados do palpite
-        col_p, col_c, col_o = st.columns(3)
+# cria lista de jogos disponíveis
+jogos_disponiveis = [_format_item_safe(r) for _, r in df.iterrows()]
+
+# selectbox do confronto
+jogo_escolhido_str = st.selectbox("⚽ Escolha o confronto para visualizar o palpite:", jogos_disponiveis)
+
+if jogo_escolhido_str:
+    nome_jogo = jogo_escolhido_str.split('(')[0].strip()
+
+    if 'Jogo' in df.columns:
+        palpite_selecionado = df[df['Jogo'] == nome_jogo].iloc[0]
+    else:
+        palpite_selecionado = df.iloc[0]
+
+    st.markdown(f"### Palpite Analisado: {palpite_selecionado.get('Jogo', 'Sem nome')}")
+    
+    data_col = palpite_selecionado.get('Data/Hora') or palpite_selecionado.get('Data_Hora')
+    if pd.notna(data_col):
+        try:
+            st.markdown(f"🗓️ **Data/Hora:** {pd.to_datetime(data_col).strftime('%d/%m/%Y %H:%M')}")
+        except Exception:
+            st.markdown("🗓️ **Data/Hora:** formato inválido")
+    else:
+        st.markdown("🗓️ **Data/Hora:** não informada")
+
+    # Exibe os principais dados do palpite
+    col_p, col_c, col_o = st.columns(3)
         
         with col_p:
             st.metric(label="Predição IA", value=palpite_selecionado['Palpite'])
@@ -560,6 +583,7 @@ if is_admin:
 # ====================================================================
 # FIM do app_merged.py
 # ====================================================================
+
 
 
 
