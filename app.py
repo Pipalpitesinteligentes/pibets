@@ -279,15 +279,6 @@ def mostrar_jogos_e_palpites():
     # 🛑 CORREÇÃO: Lê as variáveis do Session State
     df_palpites = st.session_state.df_palpites
     sheets_error_message = st.session_state.sheets_error_message
-    
-    if st.session_state.df_palpites.empty: 
-        st.warning("Nenhum palpite processado encontrado ou erro de carregamento no Google Sheets.")
-        
-    if st.session_state.sheets_error_message:
-            st.error(f"Erro detalhado de Sheets: {st.session_state.sheets_error_message}")
-            
-    if st.info("Verifique se o seu script Colab (Worker) rodou e salvou dados na planilha.")
-        return
 
     st.subheader(f"Palpites Prontos ({len(df_palpites)} jogos futuros)")
     
@@ -542,6 +533,7 @@ if is_admin:
 # ====================================================================
 # FIM do app_merged.py
 # ====================================================================
+
 
 
 
