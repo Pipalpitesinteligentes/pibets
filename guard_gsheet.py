@@ -66,7 +66,12 @@ def _create_gspread_client():
         st.error("Falha ao autenticar no Google Sheets. Verifique credenciais e permissões.")
         st.exception(e)
         st.stop()
-        
+
+# Wrapper compatível com chamadas antigas no código
+def _client():
+    return _create_gspread_client()
+
+# Abre a worksheet com tratamento de erro
 def _ws():
     try:
         c = _client()
@@ -75,6 +80,9 @@ def _ws():
         return ws
     except gspread.SpreadsheetNotFound:
         st.error(f"Planilha '{SHEET_NAME}' não encontrada (verifique nome).")
+        st.stop()
+    except gspread.WorksheetNotFound:
+        st.error(f"Aba '{WORKSHEET}' não encontrada na planilha '{SHEET_NAME}'.")
         st.stop()
     except Exception as e:
         st.error("Erro ao abrir a worksheet.")
