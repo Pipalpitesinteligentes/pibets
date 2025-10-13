@@ -4,22 +4,26 @@ import gspread
 from gspread_dataframe import get_as_dataframe
 from google.oauth2.service_account import Credentials
 
-def read_palpites_from_sheets(spreadsheet_id: str, sheet_name: str) -> pd.DataFrame:
+ddef read_palpites_from_sheets(spreadsheet_id: str, sheet_name: str) -> pd.DataFrame:
     # ...
+    json_str = st.secrets.get("GCP_SERVICE_ACCOUNT")
+    
+    if not isinstance(json_str, str) or not json_str.strip().startswith("{"):
+         st.session_state["sheets_error"] = "Chave 'GCP_SERVICE_ACCOUNT' não encontrada ou formatada incorretamente (esperado string JSON)."
+         return pd.DataFrame()
+
+    import json
     try:
-        # Agora buscamos o dicionário direto do Streamlit Secret
-        creds_dict = st.secrets.get("gcp_service_account")
-
-        if not creds_dict or not isinstance(creds_dict, dict):
-             st.session_state["sheets_error"] = "Chave 'gcp_service_account' não encontrada ou formatada incorretamente nas Streamlit Secrets."
-             return pd.DataFrame()
-
-        # O gspread pode se autenticar com o dicionário direto
-        scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
-        # Use google.oauth2.service_account.Credentials, não oauth2client.service_account
-        from google.oauth2.service_account import Credentials
-        creds = Credentials.from_service_account_info(creds_dict, scopes=scope)
-        gc = gspread.authorize(creds)
+         creds_dict = json.loads(json_str)
+    except json.JSONDecodeError as e:
+         st.session_state["sheets_error"] = f"Erro ao decodificar JSON do GCP_SERVICE_ACCOUNT: {e}"
+         return pd.DataFrame()
+    
+    # O resto da autenticação continua igual
+    scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
+    from google.oauth2.service_account import Credentials
+    creds = Credentials.from_service_account_info(creds_dict, scopes=scope)
+    gc = gspread.authorize(creds)
         # 3. Abre a planilha e a aba
         sheet = gc.open_by_key(spreadsheet_id).worksheet(sheet_name)
         
