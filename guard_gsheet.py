@@ -16,17 +16,60 @@ SHEET_NAME = os.environ.get("MEMBERS_SHEET_NAME", "members")      # nome da plan
 WORKSHEET = os.environ.get("MEMBERS_WORKSHEET_NAME", "usuarios")  # aba
 
 # --- UTILITÁRIOS ---
-def _now():
-    """Retorna o datetime atual no fuso horário configurado."""
-    return datetime.now(TZ)
-
-def sha256_hex(x: str) -> str:
-    """Calcula o hash SHA256 de uma string."""
-    return hashlib.sha256(x.encode("utf-8")).hexdigest()
-
-def constant_time_equal(a: str, b: str) -> bool:
-    """Compara duas strings em tempo constante para segurança."""
-    return hmac.compare_digest(a, b)
+def _apply_login_style():
+    """Injeta CSS para criar o layout de duas colunas do login."""
+    # Garanta que o corpo desta função esteja COMPLETAMENTE COLADO AQUI
+    # (Incluindo o st.markdown e o CSS longo)
+    st.markdown("""
+        <style>
+        /* 1. Remove padding padrão do Streamlit (para a coluna 1 poder ser 100% da tela) */
+        .block-container {
+            padding-top: 1rem !important;
+            padding-bottom: 1rem !important;
+            padding-left: 2rem !important;
+            padding-right: 2rem !important;
+        }
+        
+        /* 2. Seleciona a PRIMEIRA COLUNA (esquerda) e aplica o fundo */
+        div[data-testid="stVerticalBlock"] > div:first-child {
+            /* Fundo escuro com um toque */
+            background-color: #0d1217; 
+            border-right: 1px solid #1f272c; 
+            padding: 3rem; 
+            height: 100vh; 
+            overflow: auto; 
+        }
+        
+        /* 3. Estilo do botão de ação principal (Entrar) */
+        .stButton>button.primary {
+            background-color: #00FF90; /* Cor Verde Neon/Ciano */
+            color: #000000; /* Texto Preto */
+            font-weight: bold;
+        }
+        .stButton>button.primary:hover {
+            background-color: #00E080; /* Um pouco mais escuro no hover */
+        }
+        
+        /* 4. Estilo do "card" de benefícios */
+        .benefit-card {
+            background-color: #1a2228; 
+            padding: 10px 15px; 
+            margin-bottom: 15px; 
+            border-radius: 8px; 
+            display: flex; 
+            align-items: center;
+        }
+        .benefit-icon {
+            font-size: 1.5em; 
+            color: #00FF90; 
+            margin-right: 15px;
+        }
+        .text-login-info {
+            color: #888888; 
+            font-size: 1.1em;
+        }
+        </style>
+    """, unsafe_allow_html=True)
 
 # ATENÇÃO: def começa na coluna 1 (sem espaços antes)
 def _benefit_card(icon, text):
