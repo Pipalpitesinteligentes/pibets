@@ -17,6 +17,7 @@ from gspread_dataframe import get_as_dataframe
 from PIL import Image
 from typing import Optional
 from sheets_reader import read_palpites_from_sheets
+import guard_gsheet as guard
 
 # Configuração de Ambiente
 os.environ["MEMBERS_FILE"] = "secure/members.json"
@@ -539,6 +540,7 @@ if is_admin:
 # ====================================================================
 # FIM do app_merged.py
 # ====================================================================
+
 
 
 
