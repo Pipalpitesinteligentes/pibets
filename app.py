@@ -19,6 +19,14 @@ import hmac
 import hashlib
 import guard_gsheet as guard
 
+import json
+import streamlit as st
+
+service_account_raw = st.secrets["GCP_SERVICE_ACCOUNT"]
+print("Tipo em st.secrets['GCP_SERVICE_ACCOUNT']:", type(service_account_raw))
+parsed = json.loads(service_account_raw)
+print("Chave parseada com sucesso:", parsed["project_id"])
+
 import streamlit as st
 import json, traceback
 
@@ -566,6 +574,7 @@ if is_admin:
 # ====================================================================
 # FIM do app_merged.py
 # ====================================================================
+
 
 
 
