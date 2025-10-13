@@ -31,7 +31,6 @@ def constant_time_equal(a: str, b: str) -> bool:
 # --------------------------------------------------------------------------------
 # CÓDIGO CSS CUSTOMIZADO PARA O LAYOUT DE LOGIN (NOVO)
 # --------------------------------------------------------------------------------
-
 def _apply_login_style():
     """Injeta CSS simples, usando as cores da logo para o estilo do botão e cards."""
     st.markdown(f"""
