@@ -21,10 +21,28 @@ def constant_time_equal(a: str, b: str) -> bool:
     return hmac.compare_digest(a, b)
 
 def _client():
-    creds_dict = st.secrets["GCP_SERVICE_ACCOUNT"]
+    # ⚠️ NOVO BLOCO: Tenta o formato padrão do Streamlit (seção [gcp_service_account]) primeiro
+    creds_dict = st.secrets.get("gcp_service_account")
+    
+    # 2. Se não encontrar o formato padrão, tenta o formato de string JSON usado anteriormente
+    if not creds_dict or not isinstance(creds_dict, dict):
+        # Tenta ler a string JSON do segredo antigo (sem colchetes)
+        creds_dict = st.secrets.get("GCP_SERVICE_ACCOUNT")
+
+    # 3. Se for uma string (formato antigo), decodifica o JSON
     if isinstance(creds_dict, str):
         import json
-        creds_dict = json.loads(creds_dict)
+        try:
+            creds_dict = json.loads(creds_dict)
+        except Exception as e:
+            st.error(f"Erro de Decodificação do JSON (GCP_SERVICE_ACCOUNT): {e}")
+            st.stop()
+            
+    # 4. Se creds_dict ainda não for um dicionário válido, falha
+    if not creds_dict or not isinstance(creds_dict, dict):
+        st.error("Erro Crítico de Secret: Chave GCP de Login não encontrada ou inválida.")
+        st.stop()
+
     scope = [
         "https://spreadsheets.google.com/feeds",
         "https://www.googleapis.com/auth/drive",
