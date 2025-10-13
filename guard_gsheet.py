@@ -15,6 +15,10 @@ TZ = timezone(timedelta(hours=-3)) # America/Sao_Paulo
 SHEET_NAME = os.environ.get("MEMBERS_SHEET_NAME", "members")      # nome da planilha
 WORKSHEET = os.environ.get("MEMBERS_WORKSHEET_NAME", "usuarios")  # aba
 
+# --- CONSTANTES DE COR BASEADAS NA LOGO ---
+LOGO_CYAN = "#00FFFF" 
+LOGO_DARK_BLUE = "#1a1d33"
+
 # --- UTILITÁRIOS ---
 def _now():
     """Retorna o datetime atual no fuso horário configurado."""
