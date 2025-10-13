@@ -29,9 +29,7 @@ def constant_time_equal(a: str, b: str) -> bool:
     return hmac.compare_digest(a, b)
 
 # 🚨 INSERÇÃO DAS NOVAS FUNÇÕES 🚨
-
-# ATENÇÃO: def começa na coluna 1 (sem espaços antes)
-def _apply_login_style():
+    def _apply_login_style():
     """Injeta CSS para criar o layout de duas colunas do login."""
     # Garanta que o corpo desta função esteja COMPLETAMENTE COLADO AQUI
     # (Incluindo o st.markdown e o CSS longo)
@@ -85,7 +83,6 @@ def _apply_login_style():
         }
         </style>
     """, unsafe_allow_html=True)
-
 
 # ATENÇÃO: def começa na coluna 1 (sem espaços antes)
 def _benefit_card(icon, text):
