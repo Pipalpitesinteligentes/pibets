@@ -5,31 +5,33 @@ import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 from gspread_dataframe import get_as_dataframe
 
-# ⚠️ Usamos o cache para evitar chamadas repetitivas à API do Sheets
-@st.cache_data(ttl=60)
 def read_palpites_from_sheets(spreadsheet_id: str, sheet_name: str) -> pd.DataFrame:
-    """Carrega o DataFrame de palpites processados do Google Sheets."""
+    """Carrega o DataFrame de palpites processados do Google Sheets (Modo Inverso)."""
     
-    # Limpa o erro anterior antes de tentar novamente
     st.session_state["sheets_error"] = None 
     
     try:
-        # 1. ACESSO CORRETO: Busca o dicionário de credenciais 'gcp_service_account'
-        # Se a chave for complexa, st.secrets pode retornar um dicionário.
-        # Se você está usando o método Service Account, ele deve estar sob essa chave.
-        creds_dict = st.secrets.get("gcp_service_account")
+        # 1. ACESSO INVERSO: Busca a string JSON da chave simples
+        json_str = st.secrets.get("GCP_SERVICE_ACCOUNT")
         
-        if not creds_dict or not isinstance(creds_dict, dict):
-             # Define o erro para ser capturado no app_merged.py
-             st.session_state["sheets_error"] = "Chave 'gcp_service_account' não encontrada ou formatada incorretamente nas Streamlit Secrets."
+        if not json_str or not isinstance(json_str, str):
+             # Se a chave não for encontrada como string, assume que a Secret está incorreta
+             st.session_state["sheets_error"] = "Chave 'GCP_SERVICE_ACCOUNT' não encontrada ou não é uma string JSON. Verifique suas Secrets."
              return pd.DataFrame()
-        
-        # 2. Autenticação (usando o método gspread/oauth2client)
+
+        # 2. Decodifica a string JSON
+        import json
+        try:
+            creds_dict = json.loads(json_str)
+        except json.JSONDecodeError as e:
+            st.session_state["sheets_error"] = f"Erro ao decodificar JSON do GCP_SERVICE_ACCOUNT: {e}"
+            return pd.DataFrame()
+
+        # 3. Autenticação (continua igual)
         scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
-        # Usa o dicionário LIDO da Secret para autenticar
+        from oauth2client.service_account import ServiceAccountCredentials
         creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
         gc = gspread.authorize(creds)
-        
         # 3. Abre a planilha e a aba
         sheet = gc.open_by_key(spreadsheet_id).worksheet(sheet_name)
         
