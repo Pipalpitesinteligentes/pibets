@@ -33,34 +33,44 @@ def constant_time_equal(a: str, b: str) -> bool:
 # --------------------------------------------------------------------------------
 
 def _apply_login_style():
-    """Injeta CSS simples para o estilo do botão."""
-    # Removemos o CSS complexo de 100vh (altura total)
-    st.markdown("""
+    """Injeta CSS simples, usando as cores da logo para o estilo do botão e cards."""
+    st.markdown(f"""
         <style>
         /* Estilo do botão de ação principal (Entrar) */
         .stButton>button.primary {
-            background-color: #00FF90; /* Cor Verde Neon/Ciano */
-            color: #000000; /* Texto Preto */
+            /* Cor do botão: O ciano/verde-água vibrante da logo */
+            background-color: {LOGO_CYAN}; 
+            color: #000000; 
             font-weight: bold;
         }
         .stButton>button.primary:hover {
-            background-color: #00E080; /* Um pouco mais escuro no hover */
+            /* Sombra ou tom levemente diferente para hover */
+            background-color: #00E0E0; 
         }
         
         /* Estilo do "card" de benefícios */
         .benefit-card {
-            background-color: #1a2228; /* Fundo escuro sutil */
+            /* Fundo dos cards: Um azul escuro sutil que combina com o fundo do app */
+            background-color: {LOGO_DARK_BLUE}; 
             padding: 10px 15px; 
             margin-bottom: 15px; 
             border-radius: 8px; 
             display: flex; 
             align-items: center;
         }
+        
+        /* Cor dos ícones dentro dos cards */
         .benefit-icon {
             font-size: 1.5em; 
-            color: #00FF90; 
+            /* Cor dos ícones: Ciano vibrante */
+            color: {LOGO_CYAN}; 
             margin-right: 15px;
         }
+        
+        /* Estilo para links/textos de apoio */
+        a {{
+            color: {LOGO_CYAN}; /* Torna links (como 'Fale com o Suporte') ciano */
+        }}
         </style>
     """, unsafe_allow_html=True)
 
