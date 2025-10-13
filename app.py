@@ -272,19 +272,19 @@ def mostrar_jogos_e_palpites():
         st.image(logo, width=200)
     except FileNotFoundError:
         st.header("Logo não encontrada")
-        
     st.title("π - Palpites Inteligentes⚽")
     st.markdown("Atualize a página para ver novos palpites.")
     st.markdown("---") 
+    
     # 🛑 CORREÇÃO: Lê as variáveis do Session State
     df_palpites = st.session_state.df_palpites
     sheets_error_message = st.session_state.sheets_error_message
     
-   if df_palpites.empty: 
+ f st.session_state.df_palpites.empty: 
         st.warning("Nenhum palpite processado encontrado ou erro de carregamento no Google Sheets.")
         
-        if sheets_error_message:
-            st.error(f"Erro detalhado de Sheets: {sheets_error_message}")
+        if st.session_state.sheets_error_message:
+            st.error(f"Erro detalhado de Sheets: {st.session_state.sheets_error_message}")
             
         st.info("Verifique se o seu script Colab (Worker) rodou e salvou dados na planilha.")
         return
@@ -540,6 +540,7 @@ if is_admin:
 # ====================================================================
 # FIM do app_merged.py
 # ====================================================================
+
 
 
 
