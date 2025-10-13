@@ -17,7 +17,7 @@ from typing import Optional
 from sheets_reader import read_palpites_from_sheets
 import hmac
 import hashlib
-import login_gcp as guard
+import guard_gsheet as guard
 
 
 # Configuração de Ambiente
@@ -541,6 +541,7 @@ if is_admin:
 # ====================================================================
 # FIM do app_merged.py
 # ====================================================================
+
 
 
 
