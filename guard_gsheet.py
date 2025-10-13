@@ -29,50 +29,59 @@ def constant_time_equal(a: str, b: str) -> bool:
     return hmac.compare_digest(a, b)
 
 # --- GOOGLE SHEETS AUTHENTICATION ---
-def _get_creds_dict():
-    """Tenta obter o dicionário de credenciais em vários formatos."""
-    
-    # 1. Tenta o formato padrão TOML: [gcp_service_account]
-    creds_dict = st.secrets.get("gcp_service_account")
-    
-    # 2. Se não for um dicionário válido, tenta a string simples (GCP_SERVICE_ACCOUNT)
-    if not isinstance(creds_dict, dict) or not creds_dict:
-        json_str = st.secrets.get("GCP_SERVICE_ACCOUNT")
-        if isinstance(json_str, str) and json_str.strip().startswith("{"):
+st.cache_resource
+def _create_gspread_client():
+    # tenta várias formas de ler o secret
+    sa = st.secrets.get("GCP_SERVICE_ACCOUNT")
+    creds_dict = None
+
+    # se veio como dict (provável), usa direto
+    if isinstance(sa, dict):
+        creds_dict = sa
+    elif isinstance(sa, str):
+        s = sa.strip()
+        # se for string com chaves JSON
+        if s.startswith("{"):
             try:
-                # Decodifica a string JSON
-                creds_dict = json.loads(json_str)
+                creds_dict = json.loads(s)
             except Exception:
-                # Falha silenciosa no JSON, prossegue para o erro abaixo
-                pass 
-    
-    # Retorna o dicionário se for válido
-    return creds_dict if isinstance(creds_dict, dict) and creds_dict else None
-
-
-def _client():
-    """Autentica com o Google Sheets e retorna o cliente gspread."""
-    creds_dict = _get_creds_dict()
-    
-    if not creds_dict:
-        st.error("Erro Crítico de Secret: Chave GCP de Login não encontrada. Verifique as Secrets.")
+                st.error("JSON em GCP_SERVICE_ACCOUNT está mal formado.")
+                st.stop()
+        else:
+            # talvez o usuário tenha colocado linha por linha no secrets; tenta parse mesmo assim
+            try:
+                creds_dict = json.loads(s)
+            except Exception:
+                st.error("Formato desconhecido em GCP_SERVICE_ACCOUNT. Verifique o segredo.")
+                st.stop()
+    else:
+        st.error("Erro Crítico de Secret: Chave GCP_SERVICE_ACCOUNT não encontrada.")
         st.stop()
         
     try:
-        scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-        # Usa as credenciais importadas no topo
-        creds = Credentials.from_service_account_info(creds_dict, scopes=scope) 
-        return gspread.authorize(creds)
+        scope = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
+        creds = Credentials.from_service_account_info(creds_dict, scopes=scope)
+        client = gspread.authorize(creds)
+        return client
     except Exception as e:
-        # Erros de permissão, chave inválida, etc.
-        st.error(f"Erro Crítico de Conexão: Não foi possível acessar o Google Sheets. {type(e).__name__}: {str(e)}")
+        st.error("Falha ao autenticar no Google Sheets. Verifique credenciais e permissões.")
+        # mostra a exceção técnica para debug mas sem crashar silenciosamente
+        st.exception(e)
         st.stop()
         
-def _ws():
-    """Retorna a aba 'usuarios' da planilha de membros."""
-    c = _client()
-    sh = c.open(SHEET_NAME)
-    return sh.worksheet(WORKSHEET)
+ef _ws():
+    try:
+        c = _client()
+        sh = c.open(SHEET_NAME)
+        ws = sh.worksheet(WORKSHEET)
+        return ws
+    except gspread.SpreadsheetNotFound:
+        st.error(f"Planilha '{SHEET_NAME}' não encontrada (verifique nome).")
+        st.stop()
+    except Exception as e:
+        st.error("Erro ao abrir a worksheet.")
+        st.exception(e)
+        st.stop()
 
 # --- (RESTO DAS FUNÇÕES DE BUSCA E VALIDAÇÃO) ---
 
