@@ -468,17 +468,26 @@ user_email = require_login(app_name="Palpite Inteligente")
 # -------------------------------------------------------------------
 # Carregamento Principal do DataFrame
 # -------------------------------------------------------------------
-# 1. Inicializa com um DataFrame vazio para evitar NameError
-df_palpites = pd.DataFrame() 
+# 1. Inicializa o estado se não existir
+if 'df_palpites' not in st.session_state:
+    st.session_state.df_palpites = pd.DataFrame()
+if 'sheets_error_message' not in st.session_state:
+    st.session_state.sheets_error_message = None
 
-try:
-    # 2. Chama a função que agora está autenticando corretamente
-    df_palpites = load_palpites_prontos() 
-except Exception as e:
-    # A função load_palpites_prontos já tem um try/except interno,
-    # mas mantemos este bloco caso haja falhas no cache ou fora da função.
-    st.error(f"Não foi possível carregar os palpites prontos: {e}")
-    # df_palpites permanece como um DataFrame vazio (o que é o esperado para falha).
+# Se o df estiver vazio, tente carregar (ou se for a primeira vez)
+if st.session_state.df_palpites.empty:
+    try:
+        # 2. Chama a função do módulo externo
+        df = read_palpites_from_sheets(SPREADSHEET_ID, SHEET_NAME_PALPITES) 
+        st.session_state.df_palpites = df
+        st.session_state.sheets_error_message = st.session_state.get("sheets_error") # Pega o erro detalhado, se houver
+        if not df.empty:
+            st.session_state.sheets_error_message = None # Limpa se o carregamento foi bem-sucedido
+            
+    except Exception as e:
+        # O try/except na função read_palpites_from_sheets já deve cuidar disso, 
+        # mas capturamos exceções aqui também por segurança.
+        st.session_state.sheets_error_message = f"Erro no app ao carregar: {e}"
 
 # 1️⃣ Define os Tabs no topo da página (Menu Moderno)
 tab_jogos, tab_banca, tab_api, tab_sair = st.tabs([
@@ -524,6 +533,7 @@ if is_admin:
 # ====================================================================
 # FIM do app_merged.py
 # ====================================================================
+
 
 
 
