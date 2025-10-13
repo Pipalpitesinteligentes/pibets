@@ -290,10 +290,16 @@ def mostrar_jogos_e_palpites():
     st.subheader(f"Palpites Prontos ({len(df_palpites)} jogos futuros)")
     
     # Prepara a lista para a caixa de seleção
-    jogos_disponiveis = [
-        f"{row['Jogo']} ({row['Data/Hora'].strftime('%d/%m %H:%M')})" 
-        for index, row in df_palpites.iterrows()
-    ]
+   dt = row.get('Data_Hora') or row.get('Data/Hora') or row.get('Data / Hora') or row.get('DataHora') or None
+
+if pd.notna(dt):
+    try:
+        dt_parsed = pd.to_datetime(dt)
+        jogo_label = f"{row.get('Jogo', 'N/D')} ({dt_parsed.strftime('%d/%m %H:%M')})"
+    except Exception:
+        jogo_label = f"{row.get('Jogo', 'N/D')} (Data inválida)"
+else:
+    jogo_label = f"{row.get('Jogo', 'N/D')}"
     
     # 1. Escolha o confronto
     jogo_escolhido_str = st.selectbox("⚽ Escolha o confronto para visualizar o palpite:", jogos_disponiveis)
@@ -541,6 +547,7 @@ if is_admin:
 # ====================================================================
 # FIM do app_merged.py
 # ====================================================================
+
 
 
 
