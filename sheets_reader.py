@@ -2,7 +2,6 @@
 import pandas as pd
 import streamlit as st
 import gspread
-from oauth2client.service_account import ServiceAccountCredentials
 from gspread_dataframe import get_as_dataframe
 
 def read_palpites_from_sheets(...):
