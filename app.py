@@ -280,6 +280,12 @@ def mostrar_jogos_e_palpites():
     df_palpites = st.session_state.df_palpites
     sheets_error_message = st.session_state.sheets_error_message
 
+    # ⚠️ NOVO BLOCO: EXIBE A MENSAGEM DE ERRO REAL!
+    if sheets_error_message:
+        st.error(f"Erro na Conexão com Google Sheets: {sheets_error_message}")
+        st.warning("Verifique sua Service Account e permissões.")
+    # FIM DO NOVO BLOCO
+
     st.subheader(f"Palpites Prontos ({len(df_palpites)} jogos futuros)")
     
     # Prepara a lista para a caixa de seleção
@@ -533,6 +539,7 @@ if is_admin:
 # ====================================================================
 # FIM do app_merged.py
 # ====================================================================
+
 
 
 
