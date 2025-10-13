@@ -1,10 +1,10 @@
-# sheets_reader.py
 import pandas as pd
 import streamlit as st
 import gspread
 from gspread_dataframe import get_as_dataframe
+from google.oauth2.service_account import Credentials
 
-def read_palpites_from_sheets(...):
+def read_palpites_from_sheets(spreadsheet_id: str, sheet_name: str) -> pd.DataFrame:
     # ...
     try:
         # Agora buscamos o dicionário direto do Streamlit Secret
