@@ -5,7 +5,7 @@ import hmac
 import json
 from datetime import datetime, timedelta, timezone
 from typing import Optional, Dict, List
-
+import traceback
 import streamlit as st
 import gspread
 from google.oauth2.service_account import Credentials # Importada no topo
