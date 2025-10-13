@@ -290,16 +290,29 @@ def mostrar_jogos_e_palpites():
     st.subheader(f"Palpites Prontos ({len(df_palpites)} jogos futuros)")
     
     # Prepara a lista para a caixa de seleção
-   dt = row.get('Data_Hora') or row.get('Data/Hora') or row.get('Data / Hora') or row.get('DataHora') or None
+   # === Montar lista de itens para selectbox de forma robusta ===
+def _format_item_safe(row):
+    # tenta vários nomes que podem existir para a data
+    dt = row.get('Data_Hora') or row.get('Data/Hora') or row.get('Data / Hora') or row.get('DataHora') or row.get('data_hora') or None
+    jogo = row.get('Jogo') or row.get('jogo') or row.get('Partida') or "Jogo sem nome"
 
-if pd.notna(dt):
-    try:
-        dt_parsed = pd.to_datetime(dt)
-        jogo_label = f"{row.get('Jogo', 'N/D')} ({dt_parsed.strftime('%d/%m %H:%M')})"
-    except Exception:
-        jogo_label = f"{row.get('Jogo', 'N/D')} (Data inválida)"
-else:
-    jogo_label = f"{row.get('Jogo', 'N/D')}"
+    # parse seguro
+    if pd.notna(dt):
+        try:
+            dt_parsed = pd.to_datetime(dt)
+            dt_str = dt_parsed.strftime("%d/%m %H:%M")
+            return f"{jogo} ({dt_str})"
+        except Exception:
+            # se não conseguir parsear, mostra apenas o jogo com aviso
+            return f"{jogo} (Data inválida)"
+    else:
+        return f"{jogo}"
+
+# cria items a partir do df
+items = [_format_item_safe(r) for _, r in df.iterrows()]
+selected = st.selectbox("Escolha o confronto para visualizar o palpite:", items, index=0)
+selected_idx = items.index(selected)
+row = df.loc[selected_idx]
     
     # 1. Escolha o confronto
     jogo_escolhido_str = st.selectbox("⚽ Escolha o confronto para visualizar o palpite:", jogos_disponiveis)
@@ -547,6 +560,7 @@ if is_admin:
 # ====================================================================
 # FIM do app_merged.py
 # ====================================================================
+
 
 
 
