@@ -17,15 +17,15 @@ def _get_creds_dict():
     # 1. Tenta o formato padrão TOML: [gcp_service_account] (Deve falhar, mas é um bom fallback)
     creds_dict = st.secrets.get("gcp_service_account")
     
-    # 2. Se não for dicionário, tenta a string simples (GCP_SERVICE_ACCOUNT) <-- ESTE É O FOCO AGORA
+   # 2. Tenta a string simples (GCP_SERVICE_ACCOUNT) <--- FOCO AQUI
     if not isinstance(creds_dict, dict) or not creds_dict:
         json_str = st.secrets.get("GCP_SERVICE_ACCOUNT")
         if isinstance(json_str, str) and json_str.strip().startswith("{"):
-            import json # Certifique-se de que o import json está no topo do arquivo!
+            import json # Certifique-se de que o import json está no topo!
             try:
                 creds_dict = json.loads(json_str)
             except Exception:
-                return None # Falha na decodificação
+                return None 
 
     # Retorna o dicionário, se for válido
     return creds_dict if isinstance(creds_dict, dict) and creds_dict else None
