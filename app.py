@@ -341,7 +341,9 @@ def mostrar_jogos_e_palpites():
             st.metric(label="Predição IA", value=palpite_selecionado.get('Palpite', 'N/D'))
 
         with col_c:
+            # Lê o valor da confiança
             confianca_val = palpite_selecionado.get('Confiança', 'N/D')
+            # Formata corretamente se for número
             if isinstance(confianca_val, (int, float)):
                 st.metric(label="Confiança", value=f"{confianca_val:.1f}%")
             else:
@@ -564,6 +566,7 @@ if is_admin:
 # ====================================================================
 # FIM do app_merged.py
 # ====================================================================
+
 
 
 
