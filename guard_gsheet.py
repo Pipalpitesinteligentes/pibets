@@ -27,6 +27,19 @@ def sha256_hex(x: str) -> str:
 def constant_time_equal(a: str, b: str) -> bool:
     """Compara duas strings em tempo constante para segurança."""
     return hmac.compare_digest(a, b)
+    
+# 🚨 INSERIR AQUI AS NOVAS FUNÇÕES UTILITÁRIAS 🚨
+
+def _apply_login_style():
+    """Injeta CSS para criar o layout de duas colunas do login."""
+    # ... (CÓDIGO CSS LONGO) ...
+
+def _benefit_card(icon, text):
+    # ... (CÓDIGO BENEFIT CARD) ...
+
+def constant_time_equal(a: str, b: str) -> bool:
+    """Compara duas strings em tempo constante para segurança."""
+    return hmac.compare_digest(a, b)
 
 # --- GOOGLE SHEETS AUTHENTICATION ---
 # Cria e mantém o client em cache (Streamlit >= 1.12)
