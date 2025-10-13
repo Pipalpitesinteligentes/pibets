@@ -273,91 +273,75 @@ def mostrar_jogos_e_palpites():
         st.image(logo, width=200)
     except FileNotFoundError:
         st.header("Logo não encontrada")
+    
     st.title("π - Palpites Inteligentes⚽")
     st.markdown("Atualize a página para ver novos palpites.")
     st.markdown("---") 
     
-    # 🛑 CORREÇÃO: Lê as variáveis do Session State
+    # 🛑 Pega df do session_state
     df_palpites = st.session_state.df_palpites
     sheets_error_message = st.session_state.sheets_error_message
 
-    # ⚠️ NOVO BLOCO: EXIBE A MENSAGEM DE ERRO REAL!
+    # Mostra mensagem de erro do Sheets, se houver
     if sheets_error_message:
         st.error(f"Erro na Conexão com Google Sheets: {sheets_error_message}")
         st.warning("Verifique sua Service Account e permissões.")
-    # FIM DO NOVO BLOCO
+        return
 
+    if df_palpites.empty:
+        st.info("Nenhum palpite disponível no momento.")
+        return
+    
     st.subheader(f"Palpites Prontos ({len(df_palpites)} jogos futuros)")
-    
-    # Prepara a lista para a caixa de seleção
-   # === Montar lista de itens para selectbox de forma robusta ===
-def _format_item_safe(row):
-    # tenta vários nomes que podem existir para a data
-    dt = row.get('Data_Hora') or row.get('Data/Hora') or row.get('Data / Hora') or row.get('DataHora') or row.get('data_hora') or None
-    jogo = row.get('Jogo') or row.get('jogo') or row.get('Partida') or "Jogo sem nome"
 
-    # parse seguro
-    if pd.notna(dt):
-        try:
-            dt_parsed = pd.to_datetime(dt)
-            dt_str = dt_parsed.strftime("%d/%m %H:%M")
-            return f"{jogo} ({dt_str})"
-        except Exception:
-            # se não conseguir parsear, mostra apenas o jogo com aviso
-            return f"{jogo} (Data inválida)"
-    else:
-        return f"{jogo}"
+    # Função segura para formatar os itens
+    def _format_item_safe(row):
+        dt = row.get('Data/Hora') or row.get('Data_Hora') or row.get('DataHora') or row.get('data_hora')
+        jogo = row.get('Jogo') or row.get('jogo') or row.get('Partida') or "Jogo sem nome"
 
-# === Cria lista de jogos de forma segura ===
-def _format_item_safe(row):
-    # tenta vários nomes possíveis para a data
-    dt = row.get('Data/Hora') or row.get('Data_Hora') or row.get('DataHora') or row.get('data_hora')
-    jogo = row.get('Jogo') or row.get('jogo') or row.get('Partida') or "Jogo sem nome"
+        if pd.notna(dt):
+            try:
+                dt_str = pd.to_datetime(dt).strftime("%d/%m %H:%M")
+                return f"{jogo} ({dt_str})"
+            except Exception:
+                return f"{jogo} (Data inválida)"
+        else:
+            return f"{jogo}"
 
-    if pd.notna(dt):
-        try:
-            dt_str = pd.to_datetime(dt).strftime("%d/%m %H:%M")
-            return f"{jogo} ({dt_str})"
-        except Exception:
-            return f"{jogo} (Data inválida)"
-    else:
-        return f"{jogo}"
+    # Lista de jogos para selectbox
+    jogos_disponiveis = [_format_item_safe(r) for _, r in df_palpites.iterrows()]
 
-# cria lista de jogos disponíveis
-jogos_disponiveis = [_format_item_safe(r) for _, r in df.iterrows()]
+    # Caixa de seleção
+    jogo_escolhido_str = st.selectbox("⚽ Escolha o confronto para visualizar o palpite:", jogos_disponiveis)
 
-# selectbox do confronto
-jogo_escolhido_str = st.selectbox("⚽ Escolha o confronto para visualizar o palpite:", jogos_disponiveis)
+    if jogo_escolhido_str:
+        nome_jogo = jogo_escolhido_str.split('(')[0].strip()
 
-if jogo_escolhido_str:
-    nome_jogo = jogo_escolhido_str.split('(')[0].strip()
+        if 'Jogo' in df_palpites.columns:
+            palpite_selecionado = df_palpites[df_palpites['Jogo'] == nome_jogo].iloc[0]
+        else:
+            palpite_selecionado = df_palpites.iloc[0]
 
-    if 'Jogo' in df.columns:
-        palpite_selecionado = df[df['Jogo'] == nome_jogo].iloc[0]
-    else:
-        palpite_selecionado = df.iloc[0]
+        st.markdown(f"### Palpite Analisado: {palpite_selecionado.get('Jogo', 'Sem nome')}")
 
-    st.markdown(f"### Palpite Analisado: {palpite_selecionado.get('Jogo', 'Sem nome')}")
-    
-    data_col = palpite_selecionado.get('Data/Hora') or palpite_selecionado.get('Data_Hora')
-    if pd.notna(data_col):
-        try:
-            st.markdown(f"🗓️ **Data/Hora:** {pd.to_datetime(data_col).strftime('%d/%m/%Y %H:%M')}")
-        except Exception:
-            st.markdown("🗓️ **Data/Hora:** formato inválido")
-    else:
-        st.markdown("🗓️ **Data/Hora:** não informada")
+        # Data/Hora
+        data_col = palpite_selecionado.get('Data/Hora') or palpite_selecionado.get('Data_Hora')
+        if pd.notna(data_col):
+            try:
+                st.markdown(f"🗓️ **Data/Hora:** {pd.to_datetime(data_col).strftime('%d/%m/%Y %H:%M')}")
+            except Exception:
+                st.markdown("🗓️ **Data/Hora:** formato inválido")
+        else:
+            st.markdown("🗓️ **Data/Hora:** não informada")
 
-        # Exibe os principais dados do palpite
+        # Exibe métricas do palpite
         col_p, col_c, col_o = st.columns(3)
-        
+
         with col_p:
-            st.metric(label="Predição IA", value=palpite_selecionado['Palpite'])
-        
+            st.metric(label="Predição IA", value=palpite_selecionado.get('Palpite', 'N/D'))
+
         with col_c:
-            # Lê o valor da confiança
             confianca_val = palpite_selecionado.get('Confiança', 'N/D')
-            # Formata corretamente se for número
             if isinstance(confianca_val, (int, float)):
                 st.metric(label="Confiança", value=f"{confianca_val:.1f}%")
             else:
@@ -368,13 +352,10 @@ if jogo_escolhido_str:
             st.metric(label="Odd Recomendada", value=f"{odd_val:.2f}" if isinstance(odd_val, (int, float)) else odd_val)
 
         st.markdown("---")
-        
-        # Opção de Aplicar o Palpite (Lógica do Aplicativo)
-        st.success("✅ Palpite Pronto. Você pode agora aplicar sua gestão de banca.")
-        if st.button(f"Aplicar Palpite: {palpite_selecionado['Palpite']} ({palpite_selecionado['Jogo']})"):
-            # FUTURO: Lógica para registrar a aposta na sua Gestão de Banca
-            st.success(f"Palpite registrado para o jogo: {palpite_selecionado['Jogo']}")
-            
+
+        # Botão para aplicar palpite
+        if st.button(f"Aplicar Palpite: {palpite_selecionado.get('Palpite', 'N/D')} ({palpite_selecionado.get('Jogo', 'Sem nome')})"):
+            st.success(f"Palpite registrado para o jogo: {palpite_selecionado.get('Jogo', 'Sem nome')}")
 
 def mostrar_banca():
     # Conteúdo da Gestão de Banca (INALTERADO)
@@ -583,6 +564,7 @@ if is_admin:
 # ====================================================================
 # FIM do app_merged.py
 # ====================================================================
+
 
 
 
