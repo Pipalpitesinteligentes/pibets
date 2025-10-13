@@ -18,6 +18,39 @@ from PIL import Image
 from typing import Optional
 from sheets_reader import read_palpites_from_sheets
 
+import streamlit as st
+from streamlit_gsheets import GSheetsConnection
+import pandas as pd
+
+# ⚠️ Variáveis que você está usando
+SPREADSHEET_ID = "1H-Sy49f5tBV1YCAjd1UX6IKRNRrqr3wzoVSKVWChU00"
+SHEET_NAME_PALPITES = "nova-tentativa" 
+
+# --- INÍCIO DO BLOCO DE TESTE DE CONEXÃO ---
+with st.expander("Teste Rápido de Conexão com Sheets"):
+    st.header("Status do Teste de Conexão (gcp_service_account)")
+    df_teste = pd.DataFrame()
+    
+    try:
+        # Tenta inicializar a conexão usando as Secrets configuradas
+        conn = st.connection("gcp_service_account", type=GSheetsConnection)
+        
+        # Tenta ler a planilha
+        df_teste = conn.read(
+            spreadsheet_id=SPREADSHEET_ID, 
+            worksheet=SHEET_NAME_PALPITES, 
+            ttl="0s" # Não usa cache para este teste
+        )
+        st.success("Conexão e Leitura da Planilha BEM SUCEDIDAS!")
+        st.info(f"DataFrame lido com {len(df_teste)} linhas e {len(df_teste.columns)} colunas.")
+        st.dataframe(df_teste.head())
+        
+    except Exception as e:
+        st.error("ERRO CRÍTICO NA CONEXÃO OU LEITURA!")
+        st.exception(e)
+        st.warning("Verifique: 1. `secrets.toml` na cloud está correto. 2. Service Account tem permissão de EDITOR.")
+# --- FIM DO BLOCO DE TESTE DE CONEXÃO ---
+
 # Configuração de Ambiente
 os.environ["MEMBERS_FILE"] = "secure/members.json"
 APP_INTERNAL_KEY = "pi-internal-123"
@@ -533,6 +566,7 @@ if is_admin:
 # ====================================================================
 # FIM do app_merged.py
 # ====================================================================
+
 
 
 
