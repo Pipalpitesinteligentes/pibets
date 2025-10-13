@@ -33,28 +33,11 @@ def constant_time_equal(a: str, b: str) -> bool:
 # --------------------------------------------------------------------------------
 
 def _apply_login_style():
-    """Injeta CSS para criar o layout de duas colunas do login."""
+    """Injeta CSS simples para o estilo do botão."""
+    # Removemos o CSS complexo de 100vh (altura total)
     st.markdown("""
         <style>
-        /* 1. Remove padding padrão do Streamlit (para a coluna 1 poder ser 100% da tela) */
-        .block-container {
-            padding-top: 1rem !important;
-            padding-bottom: 1rem !important;
-            padding-left: 2rem !important;
-            padding-right: 2rem !important;
-        }
-        
-        /* 2. Seleciona a PRIMEIRA COLUNA (esquerda) e aplica o fundo */
-        div[data-testid="stVerticalBlock"] > div:first-child {
-            /* Fundo escuro com um toque */
-            background-color: #0d1217; 
-            border-right: 1px solid #1f272c; 
-            padding: 3rem; 
-            height: 100vh; 
-            overflow: auto; 
-        }
-        
-        /* 3. Estilo do botão de ação principal (Entrar) */
+        /* Estilo do botão de ação principal (Entrar) */
         .stButton>button.primary {
             background-color: #00FF90; /* Cor Verde Neon/Ciano */
             color: #000000; /* Texto Preto */
@@ -64,9 +47,9 @@ def _apply_login_style():
             background-color: #00E080; /* Um pouco mais escuro no hover */
         }
         
-        /* 4. Estilo do "card" de benefícios */
+        /* Estilo do "card" de benefícios */
         .benefit-card {
-            background-color: #1a2228; 
+            background-color: #1a2228; /* Fundo escuro sutil */
             padding: 10px 15px; 
             margin-bottom: 15px; 
             border-radius: 8px; 
@@ -77,10 +60,6 @@ def _apply_login_style():
             font-size: 1.5em; 
             color: #00FF90; 
             margin-right: 15px;
-        }
-        .text-login-info {
-            color: #888888; 
-            font-size: 1.1em;
         }
         </style>
     """, unsafe_allow_html=True)
