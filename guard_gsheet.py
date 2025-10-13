@@ -44,7 +44,7 @@ def _apply_login_style():
         .stButton>button.primary {{
             /* Cor do botão: O ciano/verde-água vibrante da logo */
             background-color: {LOGO_CYAN}; 
-            color: #000000; 
+            color: #00FFFF; 
             font-weight: bold;
         }}
         .stButton>button.primary:hover {{
