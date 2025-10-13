@@ -17,8 +17,8 @@ def _get_creds_dict():
     # 1. Tenta o formato padrão TOML: [gcp_service_account] (Deve falhar, mas é um bom fallback)
     creds_dict = st.secrets.get("gcp_service_account")
     
-   # 2. Tenta a string simples (GCP_SERVICE_ACCOUNT) <--- FOCO AQUI
-   def _get_creds_dict():
+    # 2. Tenta a string simples (GCP_SERVICE_ACCOUNT) <--- FOCO AQUI
+    def _get_creds_dict():
     """Tenta obter o dicionário de credenciais do formato TOML padrão."""
     
     # Prioriza o formato de dicionário TOML (o novo Secret)
