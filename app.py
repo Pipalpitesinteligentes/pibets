@@ -276,14 +276,16 @@ def mostrar_jogos_e_palpites():
     st.title("π - Palpites Inteligentes⚽")
     st.markdown("Atualize a página para ver novos palpites.")
     st.markdown("---") 
+    # 🛑 CORREÇÃO: Lê as variáveis do Session State
+    df_palpites = st.session_state.df_palpites
+    sheets_error_message = st.session_state.sheets_error_message
     
-    if df_palpites.empty:
-        st.warning("Nenhum palpite processado encontrado ou erro de carregamento no Google Sheets.")
-        if sheets_error_message:
-             st.error(f"Erro detalhado de Sheets: {sheets_error_message}") # Exibe o erro de leitura que estava escondido
-             
-        st.info("Verifique se o seu script Colab (Worker) rodou e salvou dados na planilha.")
-        return  
+    f df_palpites.empty: 
+        st.warning("Nenhum palpite processado encontrado ou erro de carregamento no Google Sheets.")
+        if sheets_error_message:
+            st.error(f"Erro detalhado de Sheets: {sheets_error_message}")
+        st.info("Verifique se o seu script Colab (Worker) rodou e salvou dados na planilha.")
+        return
 
     st.subheader(f"Palpites Prontos ({len(df_palpites)} jogos futuros)")
     
@@ -464,9 +466,8 @@ if not API_KEY:
 
 # Login primeiro
 user_email = require_login(app_name="Palpite Inteligente")
-# 🛑 NOVO CÓDIGO AQUI
-# -------------------------------------------------------------------
-# Carregamento Principal do DataFrame
+
+# NOVO BLOCO: Carregamento Principal do DataFrame (RESOLVE NameError)
 # -------------------------------------------------------------------
 # 1. Inicializa o estado se não existir
 if 'df_palpites' not in st.session_state:
@@ -474,20 +475,24 @@ if 'df_palpites' not in st.session_state:
 if 'sheets_error_message' not in st.session_state:
     st.session_state.sheets_error_message = None
 
-# Se o df estiver vazio, tente carregar (ou se for a primeira vez)
+# 2. Se o DataFrame estiver vazio, tenta carregar (ou sempre que quiser recarregar)
 if st.session_state.df_palpites.empty:
     try:
-        # 2. Chama a função do módulo externo
-        df = read_palpites_from_sheets(SPREADSHEET_ID, SHEET_NAME_PALPITES) 
-        st.session_state.df_palpites = df
-        st.session_state.sheets_error_message = st.session_state.get("sheets_error") # Pega o erro detalhado, se houver
-        if not df.empty:
-            st.session_state.sheets_error_message = None # Limpa se o carregamento foi bem-sucedido
+        # Chama a função de leitura do Sheets
+        df_lido = read_palpites_from_sheets(SPREADSHEET_ID, SHEET_NAME_PALPITES) 
+        
+        # Armazena o resultado no Session State
+        st.session_state.df_palpites = df_lido
+        st.session_state.sheets_error_message = st.session_state.get("sheets_error") # Pega o erro do sheets_reader
+        
+        # Se carregou, limpa o erro
+        if not df_lido.empty:
+            st.session_state.sheets_error_message = None 
             
     except Exception as e:
-        # O try/except na função read_palpites_from_sheets já deve cuidar disso, 
-        # mas capturamos exceções aqui também por segurança.
-        st.session_state.sheets_error_message = f"Erro no app ao carregar: {e}"
+        # Captura erros gerais
+        st.session_state.sheets_error_message = f"Erro geral ao carregar Sheets: {e}"
+
 
 # 1️⃣ Define os Tabs no topo da página (Menu Moderno)
 tab_jogos, tab_banca, tab_api, tab_sair = st.tabs([
@@ -533,6 +538,7 @@ if is_admin:
 # ====================================================================
 # FIM do app_merged.py
 # ====================================================================
+
 
 
 
