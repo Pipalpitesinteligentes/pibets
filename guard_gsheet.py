@@ -288,7 +288,7 @@ def st_login(app_name: str = "Painel", show_logo: bool = True):
                 placeholder="seuemail@exemplo.com"
             )
             
-            st.markdown("CÓDIGO DE ACESSO")
+            st.markdown("TOKEN")
             token = st.text_input(
                 label="Seu código de acesso",
                 key="guard_token_input",
