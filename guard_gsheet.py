@@ -29,35 +29,34 @@ def constant_time_equal(a: str, b: str) -> bool:
     return hmac.compare_digest(a, b)
 
 # --- GOOGLE SHEETS AUTHENTICATION ---
-st.cache_resource
+# Cria e mantém o client em cache (Streamlit >= 1.12)
+@st.cache_resource
 def _create_gspread_client():
-    # tenta várias formas de ler o secret
     sa = st.secrets.get("GCP_SERVICE_ACCOUNT")
     creds_dict = None
 
-    # se veio como dict (provável), usa direto
     if isinstance(sa, dict):
         creds_dict = sa
     elif isinstance(sa, str):
         s = sa.strip()
-        # se for string com chaves JSON
         if s.startswith("{"):
             try:
                 creds_dict = json.loads(s)
-            except Exception:
+            except Exception as e:
                 st.error("JSON em GCP_SERVICE_ACCOUNT está mal formado.")
+                st.exception(e)
                 st.stop()
         else:
-            # talvez o usuário tenha colocado linha por linha no secrets; tenta parse mesmo assim
             try:
                 creds_dict = json.loads(s)
-            except Exception:
+            except Exception as e:
                 st.error("Formato desconhecido em GCP_SERVICE_ACCOUNT. Verifique o segredo.")
+                st.exception(e)
                 st.stop()
     else:
         st.error("Erro Crítico de Secret: Chave GCP_SERVICE_ACCOUNT não encontrada.")
         st.stop()
-        
+
     try:
         scope = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
         creds = Credentials.from_service_account_info(creds_dict, scopes=scope)
@@ -65,7 +64,6 @@ def _create_gspread_client():
         return client
     except Exception as e:
         st.error("Falha ao autenticar no Google Sheets. Verifique credenciais e permissões.")
-        # mostra a exceção técnica para debug mas sem crashar silenciosamente
         st.exception(e)
         st.stop()
         
@@ -98,7 +96,10 @@ def _find_row_index(email: str) -> Optional[int]:
         if len(row) > 0 and row[0].strip().lower() == email.strip().lower():
             return idx
     return None
-
+    
+def _client():
+    return _create_gspread_client()
+    
 def get_user(email: str) -> Optional[Dict]:
     """Retorna os dados do usuário como um dicionário."""
     vals = _rows()
@@ -225,3 +226,20 @@ def require_login(app_name: str = "Painel", show_logo: bool = True) -> str:
     if not user:
         st.stop()
     return user
+
+def _ws():
+    try:
+        c = _client()
+        sh = c.open(SHEET_NAME)
+        ws = sh.worksheet(WORKSHEET)
+        return ws
+    except gspread.SpreadsheetNotFound:
+        st.error(f"Planilha '{SHEET_NAME}' não encontrada (verifique nome).")
+        st.stop()
+    except gspread.WorksheetNotFound:
+        st.error(f"Aba '{WORKSHEET}' não encontrada na planilha '{SHEET_NAME}'.")
+        st.stop()
+    except Exception as e:
+        st.error("Erro ao abrir a worksheet.")
+        st.exception(e)
+        st.stop()
