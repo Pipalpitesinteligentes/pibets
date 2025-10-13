@@ -18,14 +18,18 @@ def _get_creds_dict():
     creds_dict = st.secrets.get("gcp_service_account")
     
    # 2. Tenta a string simples (GCP_SERVICE_ACCOUNT) <--- FOCO AQUI
+   def _get_creds_dict():
+    """Tenta obter o dicionário de credenciais do formato TOML padrão."""
+    
+    # Prioriza o formato de dicionário TOML (o novo Secret)
+    creds_dict = st.secrets.get("gcp_service_account")
+    
+    # Remove a lógica de fallback para a string JSON para evitar a confusão
+    # APENAS verifica se o TOML foi lido corretamente
     if not isinstance(creds_dict, dict) or not creds_dict:
-        json_str = st.secrets.get("GCP_SERVICE_ACCOUNT")
-        if isinstance(json_str, str) and json_str.strip().startswith("{"):
-            import json # Certifique-se de que o import json está no topo!
-            try:
-                creds_dict = json.loads(json_str)
-            except Exception:
-                return None 
+        # Se não for dicionário ou estiver vazio, lança o erro padrão.
+        # Não tentamos mais o json.loads()
+        return None 
 
     # Retorna o dicionário, se for válido
     return creds_dict if isinstance(creds_dict, dict) and creds_dict else None
