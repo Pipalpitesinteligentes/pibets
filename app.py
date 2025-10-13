@@ -348,8 +348,8 @@ if jogo_escolhido_str:
     else:
         st.markdown("🗓️ **Data/Hora:** não informada")
 
-    # Exibe os principais dados do palpite
-    col_p, col_c, col_o = st.columns(3)
+        # Exibe os principais dados do palpite
+        col_p, col_c, col_o = st.columns(3)
         
         with col_p:
             st.metric(label="Predição IA", value=palpite_selecionado['Palpite'])
@@ -583,6 +583,7 @@ if is_admin:
 # ====================================================================
 # FIM do app_merged.py
 # ====================================================================
+
 
 
 
