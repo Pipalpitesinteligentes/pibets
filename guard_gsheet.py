@@ -185,47 +185,107 @@ def validate_email_token(email: str, token_plain: str) -> bool:
         
     return constant_time_equal(sha256_hex(token_plain), u["token_sha256"])
 
-# ---------- UI ----------
+# ---------- UI (st_login MODIFICADO) ----------
 def st_login(app_name: str = "Painel", show_logo: bool = True):
+    # Aplica o CSS customizado
+    _apply_login_style() 
+
     # já autenticado?
     if "auth_email" in st.session_state and is_active(st.session_state["auth_email"]):
         return st.session_state["auth_email"]
+    
+    # --- Estrutura de Duas Colunas (Layout 50/50) ---
+    col_info, col_login = st.columns([5, 5], gap="large") 
 
-    with st.container():
-        if show_logo:
-            st.markdown("### 🔐 Acesso ao " + app_name)
-        email = st.text_input("E-mail", key="guard_email", placeholder="seuemail@exemplo.com")
-        if email:
-            email = email.strip().lower()
-        token = st.text_input("Seu código de acesso", key="guard_token", type="password", placeholder="Cole o código recebido")
-        col1, col2 = st.columns([1, 1])
-        with col1:
-            if st.button("Entrar", key="guard_btn_enter"):
-                # checa campos vazios
-                if not email:
-                    st.error("Digite seu e-mail.")
-                elif not token:
-                    st.error("Digite seu código de acesso.")
+    # ==========================================================
+    # 1. COLUNA DA ESQUERDA (Informações / Vendas)
+    # ==========================================================
+    with col_info:
+        # Títulos e Benefícios (como no exemplo do meu post anterior)
+        st.markdown(f'<h1 style="color: #FFFFFF;">NEXUS {app_name}</h1>', unsafe_allow_html=True)
+        # ... (Restante do conteúdo da COLUNA DA ESQUERDA) ...
+        st.markdown(f"""
+            <p class='text-login-info'>
+            Explore estratégias inteligentes e maximize seus ganhos com nossa plataforma.
+            </p>
+        """, unsafe_allow_html=True)
+
+        st.markdown("---") 
+        st.markdown("<h4>O que oferecemos:</h4>", unsafe_allow_html=True)
+        _benefit_card("📈", "Análises em tempo real")
+        _benefit_card("🛡️", "100% Seguro e Confiável")
+        _benefit_card("🏆", "Estratégias otimizadas para alta performance")
+
+
+    # ==========================================================
+    # 2. COLUNA DA DIREITA (Formulário de Login)
+    # ==========================================================
+    with col_login:
+        # Formulário de Login (como no exemplo do meu post anterior)
+        st.title("Acesso Restrito")
+        st.subheader("Entre com suas credenciais")
+        
+        with st.form("login_form"):
+            st.markdown("E-MAIL")
+            email = st.text_input(
+                label="E-mail",
+                key="guard_email_input",
+                label_visibility="collapsed",
+                placeholder="seuemail@exemplo.com"
+            )
+            
+            st.markdown("CÓDIGO DE ACESSO")
+            token = st.text_input(
+                label="Seu código de acesso",
+                key="guard_token_input",
+                label_visibility="collapsed",
+                type="password", 
+                placeholder="Cole o código recebido"
+            )
+            
+            if email:
+                email = email.strip().lower()
+            
+            st.markdown("<br>", unsafe_allow_html=True)
+            
+            submitted = st.form_submit_button(
+                "Entrar na plataforma →", 
+                type="primary", 
+                use_container_width=True
+            )
+
+        st.markdown("""
+            <div style="text-align: center; color: #555555; margin-top: 10px; margin-bottom: 10px;">
+            <hr style="border: 0.5px solid #222;">
+            </div>
+        """, unsafe_allow_html=True)
+        
+        st.markdown(
+            "Não tem acesso? **[Fale com o Suporte](https://seusite.com/suporte)**", 
+            unsafe_allow_html=True
+        )
+
+        # Lógica de Submissão (IMPORTANTE: A lógica de validação do seu código original)
+        if submitted:
+            if not email:
+                st.error("Digite seu e-mail.")
+            elif not token:
+                st.error("Digite seu código de acesso.")
+            else:
+                try:
+                    ok = validate_email_token(email, token)
+                except Exception as e:
+                    st.error("Erro interno ao validar token. Veja detalhes abaixo:")
+                    st.exception(e)
+                    ok = False
+
+                if ok:
+                    st.session_state["auth_email"] = email
+                    st.success("Login realizado!")
+                    st.rerun()
                 else:
-                    try:
-                        ok = validate_email_token(email, token)
-                    except Exception as e:
-                        st.error("Erro interno ao validar token. Veja detalhes abaixo:")
-                        st.exception(e)
-                        ok = False
-
-                    if ok:
-                        st.session_state["auth_email"] = email
-                        st.success("Login realizado!")
-                        try:
-                            st.rerun()
-                        except Exception:
-                            st.experimental_rerun()
-                    else:
-                        st.error("E-mail ou código inválido/expirado.")
-        with col2:
-            if st.button("Esqueci meu código", key="guard_btn_forgot"):
-                st.info("Fale com o suporte para receber um novo código.")
+                    st.error("E-mail ou código inválido/expirado.")
+                    
     return None
 
 def require_login(app_name: str = "Painel", show_logo: bool = True) -> str:
