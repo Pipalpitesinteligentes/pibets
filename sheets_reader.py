@@ -6,6 +6,59 @@ from gspread_dataframe import get_as_dataframe
 from google.oauth2.service_account import Credentials
 import json
 import unicodedata
+# Adicione/cole no topo do sheets_reader.py
+import json
+import re
+from json.decoder import JSONDecodeError
+
+def _get_sheets_client():
+    """
+    Retorna um dict com as credenciais do service account em vários formatos possíveis.
+    Tenta corrigir automaticamente strings JSON onde a private_key contém quebras de linha reais.
+    """
+    # Tenta as duas chaves comuns que você tem usado
+    creds_raw = st.secrets.get("gcp_service_account") or st.secrets.get("GCP_SERVICE_ACCOUNT")
+
+    # Se já é dict, devolve diretamente
+    if isinstance(creds_raw, dict):
+        return creds_raw if creds_raw else None
+
+    # Se for None ou vazio
+    if not creds_raw:
+        return None
+
+    # Se for string, tenter decodificar direto
+    if isinstance(creds_raw, str):
+        s = creds_raw.strip()
+
+        # 1) Tentativa direta
+        try:
+            return json.loads(s)
+        except JSONDecodeError as e:
+            # 2) Tenta escapar quebras de linha reais (substitui linhas reais por \\n)
+            try:
+                s_fix = s.replace('\r\n', '\\n').replace('\n', '\\n')
+                return json.loads(s_fix)
+            except JSONDecodeError:
+                pass
+
+            # 3) Se ainda falhar, tenta extrair a chave privada e escapar apenas ela
+            #    procura por "private_key": " ... "
+            try:
+                # tenta localizar trecho "private_key": " ... "
+                m = re.search(r'"private_key"\s*:\s*"(.+?)"\s*(,|\})', s, flags=re.DOTALL)
+                if m:
+                    pk_raw = m.group(1)  # conteúdo entre aspas (pode ter quebras reais)
+                    # Se tiver quebras de linha reais, substitui só elas
+                    if '\n' in pk_raw or '\r' in pk_raw:
+                        pk_fixed = pk_raw.replace('\r\n', '\\n').replace('\n', '\\n')
+                        s2 = s[:m.start(1)] + pk_fixed + s[m.end(1):]
+                        return json.loads(s2)
+            except Exception:
+                pass
+
+    # Se nada funcionou, devolve None
+    return None
 
 def _get_sheets_client():
     """Tenta obter o dicionário de credenciais em vários formatos."""
