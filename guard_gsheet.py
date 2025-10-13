@@ -249,7 +249,7 @@ def st_login(app_name: str = "Painel", show_logo: bool = True):
     # ==========================================================
     with col_info:
         # A. Logo e Título principal
-        st.markdown(f'<h1 style="color: #FFFFFF;">π - Palpites Inteligentes {app_name}</h1>', unsafe_allow_html=True)
+        st.markdown(f'<h1 style="color: #FFFFFF;">π - Palpites Inteligentes</h1>', unsafe_allow_html=True)
         
         # B. Subtítulo
         st.markdown(f"""
