@@ -49,6 +49,13 @@ except Exception:
     _qp = st.experimental_get_query_params()
     getp = lambda k, d=None: (_qp.get(k, [d]) or [d])[0]
 
+# Logo e Título
+    try:
+        logo = Image.open("logo_pi.png")
+        st.image(logo, width=200)
+    except FileNotFoundError:
+        st.header("Logo não encontrada")
+
 # Healthcheck
 if getp("health") == "1":
     st.write("ok")
@@ -578,6 +585,7 @@ if is_admin:
 # ====================================================================
 # FIM do app_merged.py
 # ====================================================================
+
 
 
 
