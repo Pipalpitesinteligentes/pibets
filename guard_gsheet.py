@@ -29,6 +29,7 @@ def constant_time_equal(a: str, b: str) -> bool:
     return hmac.compare_digest(a, b)
 
 # 🚨 INSERÇÃO DAS NOVAS FUNÇÕES 🚨
+    
     def _apply_login_style():
     """Injeta CSS para criar o layout de duas colunas do login."""
     # Garanta que o corpo desta função esteja COMPLETAMENTE COLADO AQUI
