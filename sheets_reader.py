@@ -12,11 +12,11 @@ def read_palpites_from_sheets(spreadsheet_id: str, sheet_name: str) -> pd.DataFr
     
     try:
         # 1. ACESSO INVERSO: Busca a string JSON da chave simples
-        json_str = st.secrets.get("GCP_SERVICE_ACCOUNT")
+        json_str = st.secrets.get("gcp_service_account")
         
         if not json_str or not isinstance(json_str, str):
              # Se a chave não for encontrada como string, assume que a Secret está incorreta
-             st.session_state["sheets_error"] = "Chave 'GCP_SERVICE_ACCOUNT' não encontrada ou não é uma string JSON. Verifique suas Secrets."
+             st.session_state["sheets_error"] = "Chave 'gcp_service_accountT' não encontrada ou não é uma string JSON. Verifique suas Secrets."
              return pd.DataFrame()
 
         # 2. Decodifica a string JSON
