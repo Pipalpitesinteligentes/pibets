@@ -200,7 +200,7 @@ def validate_email_token(email: str, token_plain: str) -> bool:
 
 # ---------- UI (st_login MODIFICADO) ----------
 def st_login(app_name: str = "Painel", show_logo: bool = True):
-    # Aplica o CSS customizado
+    # ✅ Agora que movemos a definição da função para cima, esta chamada funcionará!
     _apply_login_style() 
 
     # já autenticado?
