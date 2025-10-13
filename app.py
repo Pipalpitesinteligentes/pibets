@@ -19,21 +19,6 @@ import hmac
 import hashlib
 import guard_gsheet as guard
 
-df.columns = df.columns.astype(str).str.strip()
-# renomeia variações para o padrão usado no app
-rename_map = {}
-if 'Data/Hora' in df.columns and 'Data_Hora' not in df.columns:
-    rename_map['Data/Hora'] = 'Data_Hora'
-if 'data_hora' in df.columns and 'Data_Hora' not in df.columns:
-    rename_map['data_hora'] = 'Data_Hora'
-if 'Confiança' in df.columns and 'Confianca' not in df.columns:
-    rename_map['Confiança'] = 'Confianca'
-if 'Odd Sugerida' in df.columns and 'Odd_Sugerida' not in df.columns:
-    rename_map['Odd Sugerida'] = 'Odd_Sugerida'
-
-if rename_map:
-    df = df.rename(columns=rename_map)
-
 # Configuração de Ambiente
 os.environ["MEMBERS_FILE"] = "secure/members.json"
 APP_INTERNAL_KEY = "pi-internal-123"
@@ -575,6 +560,7 @@ if is_admin:
 # ====================================================================
 # FIM do app_merged.py
 # ====================================================================
+
 
 
 
