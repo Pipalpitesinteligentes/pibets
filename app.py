@@ -15,7 +15,10 @@ from google.oauth2.service_account import Credentials
 from PIL import Image
 from typing import Optional
 from sheets_reader import read_palpites_from_sheets
+import hmac
+import hashlib
 import login_gcp as guard
+
 
 # Configuração de Ambiente
 os.environ["MEMBERS_FILE"] = "secure/members.json"
@@ -538,6 +541,7 @@ if is_admin:
 # ====================================================================
 # FIM do app_merged.py
 # ====================================================================
+
 
 
 
