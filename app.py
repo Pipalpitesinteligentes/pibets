@@ -280,7 +280,7 @@ def mostrar_jogos_e_palpites():
     df_palpites = st.session_state.df_palpites
     sheets_error_message = st.session_state.sheets_error_message
     
-    f df_palpites.empty: 
+    if df_palpites.empty: 
         st.warning("Nenhum palpite processado encontrado ou erro de carregamento no Google Sheets.")
         if sheets_error_message:
             st.error(f"Erro detalhado de Sheets: {sheets_error_message}")
@@ -538,6 +538,7 @@ if is_admin:
 # ====================================================================
 # FIM do app_merged.py
 # ====================================================================
+
 
 
 
