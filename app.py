@@ -253,15 +253,6 @@ def get_upcoming_fixtures(league_id: int | None = None, days: int = 7, season: i
     fixtures.sort(key=lambda x: x["kickoff_local"])
     return fixtures
 
-# =======================================================
-# ==== MAPEAR FUNÇÕES DE API NO SESSION STATE (PARA A ABA DE TESTE) ====
-# =======================================================
-if 'get_upcoming_fixtures' not in st.session_state:
-    st.session_state.get_upcoming_fixtures = get_upcoming_fixtures
-    
-if 'find_league_id_by_name' not in st.session_state:
-    st.session_state.find_league_id_by_name = find_league_id_by_name
-
 # ====================================================================
 # ==== 1. FUNÇÕES DE CONTEÚDO (Implementando a lógica dentro) ====
 # ====================================================================
@@ -578,6 +569,7 @@ if is_admin:
 # ====================================================================
 # FIM do app_merged.py
 # ====================================================================
+
 
 
 
