@@ -21,37 +21,19 @@ def constant_time_equal(a: str, b: str) -> bool:
     return hmac.compare_digest(a, b)
 
 def _client():
-    # 1. Tenta o formato padrão do Streamlit (seção [gcp_service_account])
-    # Este formato é um dicionário nativo e é o que o sheets_reader.py usa.
+    # Agora que o Secret está limpo, podemos ir direto à chave de dicionário:
     creds_dict = st.secrets.get("gcp_service_account")
     
-    # 2. Se não for um dicionário (ou não existir), tenta o formato de string JSON (GCP_SERVICE_ACCOUNT)
-    if not isinstance(creds_dict, dict):
-        # Tenta ler a string JSON do segredo antigo (a chave simples, sem colchetes)
-        json_str = st.secrets.get("GCP_SERVICE_ACCOUNT")
-
-        if isinstance(json_str, str):
-            import json
-            try:
-                # Se for string, tentamos decodificar em dicionário
-                creds_dict = json.loads(json_str)
-            except Exception:
-                # Se falhar, creds_dict permanece como estava (não dicionário)
-                creds_dict = None
-        
-    # 3. Se creds_dict ainda não for um dicionário válido após todas as tentativas, para a execução.
     if not creds_dict or not isinstance(creds_dict, dict):
-        # Exibe o erro crítico que você viu
-        st.error("Erro Crítico de Secret: Chave GCP de Login não encontrada ou inválida.")
+        st.error("Erro Crítico de Secret: Chave GCP de Login não encontrada ou inválida. Verifique o bloco [gcp_service_account] no secrets.")
         st.stop()
         
-    # 4. Continua a autenticação (igual ao seu original)
+    # ... (Restante da autenticação)
     scope = [
         "https://spreadsheets.google.com/feeds",
         "https://www.googleapis.com/auth/drive",
     ]
-    # Usa google.oauth2.service_account.Credentials
-    from google.oauth2.service_account import Credentials # Importa aqui para evitar conflitos
+    from google.oauth2.service_account import Credentials
     creds = Credentials.from_service_account_info(creds_dict, scopes=scope) 
     return gspread.authorize(creds)
 
