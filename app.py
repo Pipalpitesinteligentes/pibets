@@ -359,6 +359,53 @@ def mostrar_jogos_e_palpites():
         if st.button(f"Aplicar Palpite: {palpite_selecionado.get('Palpite', 'N/D')} ({palpite_selecionado.get('Jogo', 'Sem nome')})"):
             st.success(f"Palpite registrado para o jogo: {palpite_selecionado.get('Jogo', 'Sem nome')}")
 
+# ====== Bloco: Confiança com cor automática ======
+def _confiança_color(value, low=60, high=80):
+    """
+    Retorna cor hex com base em thresholds:
+      value < low   -> vermelho
+      low <= value < high -> amarelo
+      value >= high -> verde
+    """
+    try:
+        v = float(value)
+    except Exception:
+        return "#999999"  # cor cinza para N/D / inválido
+
+    if v >= high:
+        return "#16A34A"   # verde (Tailwind green-600)
+    if v >= low:
+        return "#D97706"   # amarelo/âmbar (Tailwind amber-600)
+    return "#DC2626"       # vermelho (Tailwind red-600)
+
+
+with col_c:
+    # nome da coluna pode ser 'Confiança' ou 'Confianca' dependendo do seu df
+    # ajuste aqui se necessário
+    confianca_val = palpite_selecionado.get('Confiança', palpite_selecionado.get('Confianca', None))
+
+    # prepara texto a mostrar
+    if isinstance(confianca_val, (int, float)):
+        value_text = f"{confianca_val:.1f}%"
+    else:
+        # tenta converter string numérica
+        try:
+            value_text = f"{float(str(confianca_val).replace(',', '.')):.1f}%"
+        except Exception:
+            value_text = "N/D"
+
+    color = _confiança_color(confianca_val)
+
+    # HTML simples (streamlit renderiza se unsafe_allow_html=True)
+    html = f"""
+    <div style="display:flex;flex-direction:column;gap:6px;">
+      <div style="font-size:14px;color:#9CA3AF;font-weight:600;">Confiança</div>
+      <div style="font-size:32px;font-weight:700;color:{color};line-height:1;">{value_text}</div>
+    </div>
+    """
+    st.markdown(html, unsafe_allow_html=True)
+# ====== fim do bloco ======
+
 def mostrar_banca():
     # Conteúdo da Gestão de Banca (INALTERADO)
     st.markdown("## 📈 Gestão de Banca")
@@ -566,6 +613,7 @@ if is_admin:
 # ====================================================================
 # FIM do app_merged.py
 # ====================================================================
+
 
 
 
