@@ -5,32 +5,21 @@ import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 from gspread_dataframe import get_as_dataframe
 
-def read_palpites_from_sheets(spreadsheet_id: str, sheet_name: str) -> pd.DataFrame:
-    """Carrega o DataFrame de palpites processados do Google Sheets (Modo Inverso)."""
-    
-    st.session_state["sheets_error"] = None 
-    
+def read_palpites_from_sheets(...):
+    # ...
     try:
-        # 1. ACESSO INVERSO: Busca a string JSON da chave simples
-        json_str = st.secrets.get("gcp_service_account")
-        
-        if not json_str or not isinstance(json_str, str):
-             # Se a chave não for encontrada como string, assume que a Secret está incorreta
-             st.session_state["sheets_error"] = "Chave 'gcp_service_accountT' não encontrada ou não é uma string JSON. Verifique suas Secrets."
+        # Agora buscamos o dicionário direto do Streamlit Secret
+        creds_dict = st.secrets.get("gcp_service_account")
+
+        if not creds_dict or not isinstance(creds_dict, dict):
+             st.session_state["sheets_error"] = "Chave 'gcp_service_account' não encontrada ou formatada incorretamente nas Streamlit Secrets."
              return pd.DataFrame()
 
-        # 2. Decodifica a string JSON
-        import json
-        try:
-            creds_dict = json.loads(json_str)
-        except json.JSONDecodeError as e:
-            st.session_state["sheets_error"] = f"Erro ao decodificar JSON do GCP_SERVICE_ACCOUNT: {e}"
-            return pd.DataFrame()
-
-        # 3. Autenticação (continua igual)
+        # O gspread pode se autenticar com o dicionário direto
         scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
-        from oauth2client.service_account import ServiceAccountCredentials
-        creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
+        # Use google.oauth2.service_account.Credentials, não oauth2client.service_account
+        from google.oauth2.service_account import Credentials
+        creds = Credentials.from_service_account_info(creds_dict, scopes=scope)
         gc = gspread.authorize(creds)
         # 3. Abre a planilha e a aba
         sheet = gc.open_by_key(spreadsheet_id).worksheet(sheet_name)
