@@ -36,23 +36,25 @@ def constant_time_equal(a: str, b: str) -> bool:
 # CÓDIGO CSS CUSTOMIZADO PARA O LAYOUT DE LOGIN (NOVO)
 # --------------------------------------------------------------------------------
 def _apply_login_style():
-    """Injeta CSS de forma mais robusta, usando as cores da logo."""
-    
-    # Usamos f-string, então as variáveis LOGO_CYAN e LOGO_DARK_BLUE devem estar acessíveis.
-    css_code = f"""
+    """Injeta CSS simples, usando as cores da logo para o estilo do botão e cards."""
+    # As variáveis LOGO_CYAN e LOGO_DARK_BLUE DEVEM estar definidas fora desta função
+    st.markdown(f"""
         <style>
         /* Estilo do botão de ação principal (Entrar) */
         .stButton>button.primary {{
+            /* Cor do botão: O ciano/verde-água vibrante da logo */
             background-color: {LOGO_CYAN}; 
             color: #000000; 
             font-weight: bold;
         }}
         .stButton>button.primary:hover {{
+            /* Sombra ou tom levemente diferente para hover */
             background-color: #00E0E0; 
         }}
         
         /* Estilo do "card" de benefícios */
         .benefit-card {{
+            /* Fundo dos cards: Um azul escuro sutil que combina com o fundo do app */
             background-color: {LOGO_DARK_BLUE}; 
             padding: 10px 15px; 
             margin-bottom: 15px; 
@@ -64,24 +66,17 @@ def _apply_login_style():
         /* Cor dos ícones dentro dos cards */
         .benefit-icon {{
             font-size: 1.5em; 
+            /* Cor dos ícones: Ciano vibrante */
             color: {LOGO_CYAN}; 
             margin-right: 15px;
         }}
         
         /* Estilo para links/textos de apoio */
         a {{
-            color: {LOGO_CYAN}; 
+            color: {LOGO_CYAN}; /* Torna links (como 'Fale com o Suporte') ciano */
         }}
         </style>
-    """
-    
-    # 1. Use um 'key' para forçar a renderização se o código mudar.
-    # 2. Use 'st.empty()' ou 'st.markdown()' no topo do app.
-    st.markdown(
-        css_code, 
-        unsafe_allow_html=True, 
-        key="login_style_injection" # Adicionamos um key único aqui
-    )
+    """, unsafe_allow_html=True)
 
 def _benefit_card(icon, text):
     """Função auxiliar para criar os 'cards' de benefício em HTML puro."""
