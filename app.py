@@ -12,8 +12,6 @@ import json
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 from google.oauth2.service_account import Credentials
-from oauth2client.service_account import ServiceAccountCredentials
-from gspread_dataframe import get_as_dataframe
 from PIL import Image
 from typing import Optional
 from sheets_reader import read_palpites_from_sheets
@@ -540,6 +538,7 @@ if is_admin:
 # ====================================================================
 # FIM do app_merged.py
 # ====================================================================
+
 
 
 
