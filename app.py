@@ -279,6 +279,10 @@ def mostrar_jogos_e_palpites():
     # 🛑 CORREÇÃO: Lê as variáveis do Session State
     df_palpites = st.session_state.df_palpites
     sheets_error_message = st.session_state.sheets_error_message
+    
+    if sheets_error_message:
+    st.error(f"Erro na Conexão com Google Sheets: {sheets_error_message}")
+    st.warning("Verifique sua Service Account e permissões.")
 
     st.subheader(f"Palpites Prontos ({len(df_palpites)} jogos futuros)")
     
@@ -533,6 +537,7 @@ if is_admin:
 # ====================================================================
 # FIM do app_merged.py
 # ====================================================================
+
 
 
 
