@@ -286,7 +286,7 @@ def mostrar_jogos_e_palpites():
     if st.session_state.sheets_error_message:
             st.error(f"Erro detalhado de Sheets: {st.session_state.sheets_error_message}")
             
-        st.info("Verifique se o seu script Colab (Worker) rodou e salvou dados na planilha.")
+    if st.info("Verifique se o seu script Colab (Worker) rodou e salvou dados na planilha.")
         return
 
     st.subheader(f"Palpites Prontos ({len(df_palpites)} jogos futuros)")
@@ -542,6 +542,7 @@ if is_admin:
 # ====================================================================
 # FIM do app_merged.py
 # ====================================================================
+
 
 
 
