@@ -4,7 +4,7 @@ import gspread
 from gspread_dataframe import get_as_dataframe
 from google.oauth2.service_account import Credentials
 
-ddef read_palpites_from_sheets(spreadsheet_id: str, sheet_name: str) -> pd.DataFrame:
+def read_palpites_from_sheets(spreadsheet_id: str, sheet_name: str) -> pd.DataFrame:
     # ...
     json_str = st.secrets.get("GCP_SERVICE_ACCOUNT")
     
