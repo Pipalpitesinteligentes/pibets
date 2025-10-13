@@ -337,21 +337,34 @@ def mostrar_jogos_e_palpites():
         # Exibe métricas do palpite
         col_p, col_c, col_o = st.columns(3)
 
-        with col_p:
-            st.metric(label="Predição IA", value=palpite_selecionado.get('Palpite', 'N/D'))
+        # 1️⃣ Predição IA
+        st.metric(label="Predição IA", value=palpite_selecionado.get('Palpite', 'N/D'))
 
-        with col_c:
-            # Lê o valor da confiança
-            confianca_val = palpite_selecionado.get('Confiança', 'N/D')
-            # Formata corretamente se for número
-            if isinstance(confianca_val, (int, float)):
-                st.metric(label="Confiança", value=f"{confianca_val:.1f}%")
-            else:
-                st.metric(label="Confiança", value=str(confianca_val))
+        # 2️⃣ Confiança (robusto)
+        conf_names = ['Confiança', 'Confiança (%)', 'Confianca', 'confidence']
+        confianca_val = None
+        for name in conf_names:
+            if name in palpite_selecionado:
+                confianca_val = palpite_selecionado[name]
+                break
+        if pd.isna(confianca_val) or confianca_val is None:
+            confianca_val = 'N/D'
+        elif isinstance(confianca_val, (int, float)):
+            confianca_val = f"{confianca_val:.1f}%"
+        st.metric(label="Confiança", value=confianca_val)
 
-        with col_o:
-            odd_val = palpite_selecionado.get('Odd Sugerida', 'N/D')
-            st.metric(label="Odd Recomendada", value=f"{odd_val:.2f}" if isinstance(odd_val, (int, float)) else odd_val)
+        # 3️⃣ Odd Sugerida (robusto)
+        odd_names = ['Odd Sugerida', 'Odd', 'odd', 'Odd_Sugerida']
+        odd_val = None
+        for name in odd_names:
+            if name in palpite_selecionado:
+                odd_val = palpite_selecionado[name]
+                break
+        if pd.isna(odd_val) or odd_val is None:
+            odd_val = 'N/D'
+        elif isinstance(odd_val, (int, float)):
+            odd_val = f"{odd_val:.2f}"
+        st.metric(label="Odd Recomendada", value=odd_val)
 
         st.markdown("---")
 
@@ -566,6 +579,7 @@ if is_admin:
 # ====================================================================
 # FIM do app_merged.py
 # ====================================================================
+
 
 
 
