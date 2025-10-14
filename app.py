@@ -525,9 +525,6 @@ if st.session_state.df_palpites.empty:
         # Captura erros gerais
         st.session_state.sheets_error_message = f"Erro geral ao carregar Sheets: {e}"
 
-st.write(f"DEBUG: df_palpites existe no state? {'df_palpites' in st.session_state}")
-st.write(f"DEBUG: df_palpites está vazio? {st.session_state.df_palpites.empty if 'df_palpites' in st.session_state else 'N/A'}")
-
 # 1️⃣ Define os Tabs no topo da página (Menu Moderno)
 tab_jogos, tab_banca, tab_api, tab_sair = st.tabs([
     "⚽ Palpites Prontos", # Nome da aba alterado
@@ -541,9 +538,6 @@ with tab_jogos:
     
 with tab_banca:
     mostrar_banca()
-    
-with tab_api:
-    mostrar_proximos_jogos() # Para depuração da API
 
 with tab_sair:
     st.warning("Clique no botão abaixo para sair da sua sessão.")
@@ -571,6 +565,7 @@ if is_admin:
 # ====================================================================
 # FIM do app_merged.py
 # ====================================================================
+
 
 
 
