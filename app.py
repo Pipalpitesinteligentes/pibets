@@ -261,10 +261,6 @@ def get_upcoming_fixtures(league_id: int | None = None, days: int = 7, season: i
 # ==== 1. FUNÇÕES DE CONTEÚDO (Implementando a lógica dentro) ====
 # ====================================================================
 
-# ====================================================================
-# ==== 1. FUNÇÕES DE CONTEÚDO (Implementando a lógica dentro) ====
-# ====================================================================
-
 # ... (Mantenha as funções api_get, find_league_id_by_name, get_upcoming_fixtures) ...
 # ... (Mantenha a função mostrar_banca/mostrar_calculadora_stake) ...
 
@@ -303,7 +299,7 @@ def mostrar_jogos_e_palpites():
         st.info("Nenhum palpite disponível no momento.")
         return
         
-    st.subheader(f"Selecione um Palpite (Total: {len(df_palpites)})")
+    st.subheader(f"Selecione um Jogo")
 
     # Lista de jogos para selectbox
     jogos_disponiveis = [_format_item_safe(r) for _, r in df_palpites.iterrows()]
@@ -667,6 +663,7 @@ if is_admin:
 # ====================================================================
 # FIM do app_merged.py
 # ====================================================================
+
 
 
 
