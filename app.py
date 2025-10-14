@@ -344,30 +344,41 @@ def mostrar_jogos_e_palpites():
         with col_jogo:
             st.markdown(f"### Confronto Analisado: {nome_jogo}")
             
-            # --- CARD DE DESTAQUE DO JOGO ---
-            col_logo_casa, col_vs, col_logo_fora = st.columns([2, 1, 2])
+            # --- CARD DE DESTAQUE DO JOGO (COM NOVO CSS) ---
+            st.markdown("<div class='confronto-card'>", unsafe_allow_html=True)
+            
+            # Divide o card em 3 colunas (3-1-3 para mais espaço)
+            col_logo_casa, col_vs, col_logo_fora = st.columns([3, 1, 3])
             
             # Logo Casa
             logo_casa_url = logos_times.get(time_casa, None)
             with col_logo_casa:
                 if logo_casa_url:
-                    st.image(logo_casa_url, caption=time_casa, width=100)
+                    st.image(logo_casa_url, width=100) # Removemos o caption
                 else:
                     st.markdown(f"#### {time_casa}")
+                # Nome do Time
+                st.markdown(f"<div class='time-nome'>{time_casa}</div>", unsafe_allow_html=True)
+
 
             # VS
             with col_vs:
-                st.markdown("<h2 style='text-align: center; margin-top: 30px;'>VS</h2>", unsafe_allow_html=True)
+                # Usando o novo CSS para alinhar o VS
+                st.markdown("<div class='vs-text'>VS</div>", unsafe_allow_html=True)
 
             # Logo Fora
             logo_fora_url = logos_times.get(time_fora, None)
             with col_logo_fora:
                 if logo_fora_url:
-                    st.image(logo_fora_url, caption=time_fora, width=100)
+                    st.image(logo_fora_url, width=100) # Removemos o caption
                 else:
                     st.markdown(f"#### {time_fora}")
+                # Nome do Time
+                st.markdown(f"<div class='time-nome'>{time_fora}</div>", unsafe_allow_html=True)
 
-            # Data/Hora
+            st.markdown("</div>", unsafe_allow_html=True) # Fecha o card
+
+            # Data/Hora (Abaixo do card)
             data_col = palpite_selecionado.get('Data/Hora') or palpite_selecionado.get('Data_Hora')
             if pd.notna(data_col):
                 try:
@@ -682,6 +693,7 @@ if is_admin:
 # ====================================================================
 # FIM do app_merged.py
 # ====================================================================
+
 
 
 
