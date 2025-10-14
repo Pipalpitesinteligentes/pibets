@@ -134,6 +134,34 @@ h1, h2, h3, p, .stMarkdown { color: white; }
     font-size: 20px;
     font-weight: bold;
 }
+
+/* ================================================= */
+/* ==== NOVO CSS PARA O LAYOUT DO CONFRONTO (Palpites Prontos) ==== */
+/* ================================================= */
+
+/* Estilo para o card de confronto */
+.confronto-card {
+    background-color: #1a1d33; /* Cor escura sutil */
+    padding: 20px 10px;
+    border-radius: 12px;
+    margin-top: 15px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    text-align: center; /* Centraliza tudo dentro do card */
+}
+.confronto-card img {
+    /* Garante que a imagem está centralizada */
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+/* A classe time-nome foi removida, mas o vs-text é essencial para o alinhamento vertical */
+.vs-text {
+    font-size: 2em;
+    font-weight: bold;
+    color: #DDDDDD; 
+    /* Ajusta a posição vertical do VS para alinhar com o centro das logos */
+    padding-top: 50px; 
+}
 </style>
 """
 st.markdown(HIDE_TOOLBAR, unsafe_allow_html=True)
@@ -339,45 +367,44 @@ def mostrar_jogos_e_palpites():
         col_jogo, col_metricas = st.columns([5, 3], gap="large") # Colunas 5/3
 
         # ------------------------------------------------------------------
-        # COLUNA ESQUERDA (JOGO E LOGOS) - CORRIGIDA
+        # COLUNA ESQUERDA (JOGO E LOGOS) - FINAL
         # ------------------------------------------------------------------
         with col_jogo:
-            # Mantemos o título principal
+            # 1. Título do Confronto
             st.markdown(f"### Confronto Analisado: {nome_jogo}")
             
-            # --- CARD DE DESTAQUE DO JOGO (COM NOVO CSS) ---
+            # --- CARD DE DESTAQUE DO JOGO (SOMENTE LOGOS) ---
             st.markdown("<div class='confronto-card'>", unsafe_allow_html=True)
             
-            # Divide o card em 3 colunas (3-1-3 para mais espaço)
+            # Divide o card em 3 colunas (3-1-3 para as logos)
             col_logo_casa, col_vs, col_logo_fora = st.columns([3, 1, 3])
             
-            # 1. Logo Casa e Nome
+            # 1. Logo Casa
             logo_casa_url = logos_times.get(time_casa, None)
             with col_logo_casa:
                 if logo_casa_url:
-                    # Exibe a logo
                     st.image(logo_casa_url, width=100) 
-                # Sempre exibe o nome do time, centralizado
-                st.markdown(f"<div class='time-nome'>{time_casa}</div>", unsafe_allow_html=True)
+                else:
+                    # Se não tiver logo, exibe o nome (como fallback)
+                    st.markdown(f"#### {time_casa}")
 
 
             # 2. VS
             with col_vs:
-                # Usando o novo CSS para alinhar o VS
                 st.markdown("<div class='vs-text'>VS</div>", unsafe_allow_html=True)
 
-            # 3. Logo Fora e Nome
+            # 3. Logo Fora
             logo_fora_url = logos_times.get(time_fora, None)
             with col_logo_fora:
                 if logo_fora_url:
-                    # Exibe a logo
                     st.image(logo_fora_url, width=100) 
-                # Sempre exibe o nome do time, centralizado
-                st.markdown(f"<div class='time-nome'>{time_fora}</div>", unsafe_allow_html=True)
+                else:
+                    # Se não tiver logo, exibe o nome (como fallback)
+                    st.markdown(f"#### {time_fora}")
 
             st.markdown("</div>", unsafe_allow_html=True) # Fecha o card
 
-            # Data/Hora (Abaixo do card)
+            # 4. Data/Hora (Abaixo do card)
             data_col = palpite_selecionado.get('Data/Hora') or palpite_selecionado.get('Data_Hora')
             if pd.notna(data_col):
                 try:
@@ -692,6 +719,7 @@ if is_admin:
 # ====================================================================
 # FIM do app_merged.py
 # ====================================================================
+
 
 
 
