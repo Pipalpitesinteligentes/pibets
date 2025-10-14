@@ -526,7 +526,7 @@ if st.session_state.df_palpites.empty:
         st.session_state.sheets_error_message = f"Erro geral ao carregar Sheets: {e}"
 
 # 1️⃣ Define os Tabs no topo da página (Menu Moderno)
-tab_jogos, tab_banca, tab_api, tab_sair = st.tabs([
+tab_jogos, tab_banca, tab_sair = st.tabs([
     "⚽ Palpites Prontos", # Nome da aba alterado
     "📈 Gestão de Banca", 
     "🚪 Sair"
@@ -565,6 +565,7 @@ if is_admin:
 # ====================================================================
 # FIM do app_merged.py
 # ====================================================================
+
 
 
 
