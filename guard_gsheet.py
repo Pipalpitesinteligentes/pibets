@@ -286,7 +286,7 @@ def st_login(app_name: str = "Painel", show_logo: bool = True):
     # ==========================================================
     with col_login:
         # Título do Formulário
-        st.title("Acesso Restrito")
+        st.title("Faça seu Login")
         st.subheader("Entre com suas credenciais")
         
         # ... (O restante da lógica do Formulário de Login com st.form) ...
