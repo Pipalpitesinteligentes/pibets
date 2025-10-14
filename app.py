@@ -339,9 +339,10 @@ def mostrar_jogos_e_palpites():
         col_jogo, col_metricas = st.columns([5, 3], gap="large") # Colunas 5/3
 
         # ------------------------------------------------------------------
-        # COLUNA ESQUERDA (JOGO E LOGOS)
+        # COLUNA ESQUERDA (JOGO E LOGOS) - CORRIGIDA
         # ------------------------------------------------------------------
         with col_jogo:
+            # Mantemos o título principal
             st.markdown(f"### Confronto Analisado: {nome_jogo}")
             
             # --- CARD DE DESTAQUE DO JOGO (COM NOVO CSS) ---
@@ -350,30 +351,28 @@ def mostrar_jogos_e_palpites():
             # Divide o card em 3 colunas (3-1-3 para mais espaço)
             col_logo_casa, col_vs, col_logo_fora = st.columns([3, 1, 3])
             
-            # Logo Casa
+            # 1. Logo Casa e Nome
             logo_casa_url = logos_times.get(time_casa, None)
             with col_logo_casa:
                 if logo_casa_url:
-                    st.image(logo_casa_url, width=100) # Removemos o caption
-                else:
-                    st.markdown(f"#### {time_casa}")
-                # Nome do Time
+                    # Exibe a logo
+                    st.image(logo_casa_url, width=100) 
+                # Sempre exibe o nome do time, centralizado
                 st.markdown(f"<div class='time-nome'>{time_casa}</div>", unsafe_allow_html=True)
 
 
-            # VS
+            # 2. VS
             with col_vs:
                 # Usando o novo CSS para alinhar o VS
                 st.markdown("<div class='vs-text'>VS</div>", unsafe_allow_html=True)
 
-            # Logo Fora
+            # 3. Logo Fora e Nome
             logo_fora_url = logos_times.get(time_fora, None)
             with col_logo_fora:
                 if logo_fora_url:
-                    st.image(logo_fora_url, width=100) # Removemos o caption
-                else:
-                    st.markdown(f"#### {time_fora}")
-                # Nome do Time
+                    # Exibe a logo
+                    st.image(logo_fora_url, width=100) 
+                # Sempre exibe o nome do time, centralizado
                 st.markdown(f"<div class='time-nome'>{time_fora}</div>", unsafe_allow_html=True)
 
             st.markdown("</div>", unsafe_allow_html=True) # Fecha o card
@@ -693,6 +692,7 @@ if is_admin:
 # ====================================================================
 # FIM do app_merged.py
 # ====================================================================
+
 
 
 
