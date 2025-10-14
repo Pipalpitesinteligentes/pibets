@@ -134,6 +134,37 @@ h1, h2, h3, p, .stMarkdown { color: white; }
     font-size: 20px;
     font-weight: bold;
 }
+@media (max-width: 600px) {
+    
+    /* 1. Ajusta os Cards de Resultado da Calculadora/Banca */
+    .resultado-container {
+        /* Reduz o gap entre os cards no celular */
+        gap: 20px;
+        /* Força a quebra de linha para garantir que fiquem verticais */
+        flex-direction: column; 
+        align-items: center;
+    }
+    
+    .box {
+        /* Ocupa a largura total na tela pequena, mas limita para não ficar muito largo */
+        width: 90%; 
+        max-width: 300px; /* Limite de largura para não esticar demais */
+        padding: 15px; /* Reduz o padding */
+    }
+
+    /* 2. Ajusta a Fonte para Telas Pequenas */
+    /* Reduz um pouco o tamanho de fontes grandes (se necessário) */
+    .valor { 
+        font-size: 20px; 
+    }
+    .titulo { 
+        font-size: 16px; 
+    }
+
+    /* 3. Ajusta a Centralização do Título/Link (Se tiver usado o link do Telegram) */
+    /* Garante que o container principal se adapte melhor */
+    
+}
 </style>
 """
 st.markdown(HIDE_TOOLBAR, unsafe_allow_html=True)
@@ -616,6 +647,7 @@ if is_admin:
 # ====================================================================
 # FIM do app_merged.py
 # ====================================================================
+
 
 
 
