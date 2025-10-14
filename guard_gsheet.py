@@ -261,6 +261,23 @@ def st_login(app_name: str = "Painel", show_logo: bool = True):
     # ==========================================================
     # 1. COLUNA DA ESQUERDA (Informações / Benefícios)
     # ==========================================================
+    # 🛑 INÍCIO DA EXIBIÇÃO DA LOGO 🛑
+    logo_col1, logo_col2, logo_col3 = st.columns([1, 2, 1])
+    
+    # ⬇️ GARANTA QUE O CÓDIGO ABAIXO ESTÁ INDENTADO ⬇️
+    with logo_col2:
+        # TUDO AQUI DEVE ESTAR INDENTADO (Linha 270 em diante)
+        try:
+            st.image(
+                "logo fundo.jpg", 
+                width=150, 
+            )
+        except Exception:
+             st.markdown("<h1 style='color: #00FFFF;'>π</h1>", unsafe_allow_html=True)
+             
+    st.markdown("<br>", unsafe_allow_html=True) 
+    # 🛑 FIM DA EXIBIÇÃO DA LOGO 🛑
+    
     with col_info:
         # A. Logo e Título principal
         st.markdown(f'<h1 style="color: #FFFFFF;">π - Palpites Inteligentes</h1>', unsafe_allow_html=True)
@@ -280,23 +297,6 @@ def st_login(app_name: str = "Painel", show_logo: bool = True):
         _benefit_card("📈", "Análises em tempo real")
         _benefit_card("🛡️", "100% Seguro e Confiável")
         _benefit_card("🏆", "Estratégias otimizadas para alta performance")
-
-# 🛑 INÍCIO DA EXIBIÇÃO DA LOGO 🛑
-    logo_col1, logo_col2, logo_col3 = st.columns([1, 2, 1])
-    
-    # ⬇️ GARANTA QUE O CÓDIGO ABAIXO ESTÁ INDENTADO ⬇️
-    with logo_col2:
-        # TUDO AQUI DEVE ESTAR INDENTADO (Linha 270 em diante)
-        try:
-            st.image(
-                "logo fundo.jpg", 
-                width=150, 
-            )
-        except Exception:
-             st.markdown("<h1 style='color: #00FFFF;'>π</h1>", unsafe_allow_html=True)
-             
-    st.markdown("<br>", unsafe_allow_html=True) 
-    # 🛑 FIM DA EXIBIÇÃO DA LOGO 🛑
     
     # ==========================================================
     # 2. COLUNA DA DIREITA (Formulário de Login)
