@@ -420,7 +420,7 @@ def mostrar_banca():
     """, unsafe_allow_html=True)
 
 
-def mostrar_proximos_jogos():
+ddef mostrar_proximos_jogos():
     # Conteúdo da API-Football (MANTIDO para teste de API)
     st.header("🔎 Próximos jogos (API-Football) - Debug")
     st.markdown("Use essa seção para *testar e depurar* as chamadas de API, confirmando que sua chave e filtros funcionam.")
@@ -429,16 +429,19 @@ def mostrar_proximos_jogos():
         st.warning("Chave da API-Football não encontrada.")
         return
 
-    col1, col2, col3 = st.columns([2,1,1])
-    with col1:
-        league_input = st.text_input("Insira league_id ou nome da liga / país (ex: '39' ou 'Premier League')", value="39", key="search_league_input")
-    with col2:
-        days = st.number_input("Buscar próximos (dias)", min_value=1, max_value=30, value=7, key="search_days")
-    with col3:
-        season_input = st.number_input("Ano da Season", min_value=2000, max_value=datetime.now().year + 1, value=datetime.now().year, key="search_season")
-    
-    n = 0 
-    st.write(" ")
+    # 🛑 ENVOLVENDO O LAYOUT EM UM CONTAINER EXCLUSIVO DA ABA
+    with st.container(): 
+        col1, col2, col3 = st.columns([2,1,1]) # ⬅️ AGORA ISOLADO
+        with col1:
+            league_input = st.text_input("Insira league_id ou nome da liga / país (ex: '39' ou 'Premier League')", value="39", key="search_league_input")
+        with col2:
+            days = st.number_input("Buscar próximos (dias)", min_value=1, max_value=30, value=7, key="search_days")
+        with col3:
+            season_input = st.number_input("Ano da Season", min_value=2000, max_value=datetime.now().year + 1, value=datetime.now().year, key="search_season")
+        
+        # ... (O restante da lógica da função continua aqui, fora do col1, col2, col3) ...
+        n = 0 
+        st.write(" ")
     
     if st.button("Buscar próximos jogos (API)"):
         try:
@@ -569,6 +572,7 @@ if is_admin:
 # ====================================================================
 # FIM do app_merged.py
 # ====================================================================
+
 
 
 
