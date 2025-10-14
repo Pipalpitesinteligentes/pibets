@@ -409,11 +409,9 @@ def mostrar_jogos_e_palpites():
             # 2. Inicializa ou adiciona o registro ao histórico no session_state
             if 'stake_history' not in st.session_state:
                 st.session_state.stake_history = []
-
                 st.session_state.stake_history.append(novo_registro)
-                
                 st.success(f"Palpite '{palpite_final}' do jogo '{nome_jogo}' registrado no Histórico! Acesse a aba 'Histórico de Stakes' para visualizá-lo e acompanhar.")
-                # st.rerun() # Opcional: para forçar re-render se houver mudança de estado
+                st.rerun() 
 
 # ====================================================================
 # NOVAS FUNÇÕES AUXILIARES NECESSÁRIAS
@@ -651,6 +649,7 @@ if is_admin:
 # ====================================================================
 # FIM do app_merged.py
 # ====================================================================
+
 
 
 
