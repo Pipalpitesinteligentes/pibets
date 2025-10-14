@@ -536,28 +536,6 @@ def mostrar_banca():
     st.markdown("---")
     st.info(f"O cálculo assume que: o risco máximo que você tolera é de {risco_max_percent:.1f}% da sua banca (R$ {valor_max_risco:,.2f}). O valor de entrada (stake) é ajustado proporcionalmente à confiança do palpite (entre 50% e 100%).")
 
-def mostrar_historico_stakes():
-    st.markdown("## ⏱️ Histórico de Stakes Aplicadas")
-    
-    # Inicializa a lista de histórico no session_state se não existir
-    if 'stake_history' not in st.session_state:
-        st.session_state.stake_history = []
-        
-    historico = st.session_state.stake_history
-    
-    if not historico:
-        st.info("Nenhuma stake aplicada ainda. Use o botão 'Aplicar Stake' na aba 'Palpites Prontos' para começar a registrar.")
-        return
-
-    # Converte a lista de dicionários para DataFrame para exibição
-    df_historico = pd.DataFrame(historico)
-    
-    st.subheader(f"Total de {len(df_historico)} stakes registradas")
-    
-    # Exibe o histórico de forma interativa
-    st.dataframe(df_historico, use_container_width=True, hide_index=True)
-
-
 def logout():
     # Lógica de deslogar
     if 'logado' in st.session_state:
@@ -606,10 +584,9 @@ if st.session_state.df_palpites.empty:
         st.session_state.sheets_error_message = f"Erro geral ao carregar Sheets: {e}"
 
 # 1️⃣ Define os Tabs no topo da página (Menu Moderno)
-tab_jogos, tab_banca, tab_historico, tab_sair = st.tabs([
+tab_jogos, tab_banca, tab_sair = st.tabs([
     "⚽ Palpites Prontos", # Nome da aba alterado
     "📈 Gestão de Banca", 
-    "⏱️ Histórico de Stakes",
     "🚪 Sair"
 ])
 
@@ -619,9 +596,6 @@ with tab_jogos:
     
 with tab_banca:
     mostrar_banca()
-
-with tab_historico: # NOVO BLOCO
-    mostrar_historico_stakes()
 
 with tab_sair:
     st.warning("Clique no botão abaixo para sair da sua sessão.")
@@ -649,6 +623,7 @@ if is_admin:
 # ====================================================================
 # FIM do app_merged.py
 # ====================================================================
+
 
 
 
