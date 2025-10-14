@@ -261,7 +261,7 @@ def st_login(app_name: str = "Painel", show_logo: bool = True):
     # ==========================================================
     # 1. COLUNA DA ESQUERDA (Informações / Benefícios)
     # ==========================================================
-    with col_info:
+with col_info:
         # 🛑 INÍCIO DA EXIBIÇÃO DA LOGO 🛑
         logo_col1, logo_col2, logo_col3 = st.columns([1, 2, 1])
         # ⬇️ GARANTA QUE O CÓDIGO ABAIXO ESTÁ INDENTADO ⬇️
