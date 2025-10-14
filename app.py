@@ -420,7 +420,7 @@ def mostrar_banca():
     """, unsafe_allow_html=True)
 
 
-ddef mostrar_proximos_jogos():
+def mostrar_proximos_jogos():
     # Conteúdo da API-Football (MANTIDO para teste de API)
     st.header("🔎 Próximos jogos (API-Football) - Debug")
     st.markdown("Use essa seção para *testar e depurar* as chamadas de API, confirmando que sua chave e filtros funcionam.")
@@ -572,6 +572,7 @@ if is_admin:
 # ====================================================================
 # FIM do app_merged.py
 # ====================================================================
+
 
 
 
