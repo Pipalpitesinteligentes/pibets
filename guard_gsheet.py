@@ -261,7 +261,9 @@ def st_login(app_name: str = "Painel", show_logo: bool = True):
     # ==========================================================
     # 1. COLUNA DA ESQUERDA (Informações / Benefícios)
     # ==========================================================
-    # 🛑 INÍCIO DA EXIBIÇÃO DA LOGO 🛑
+    
+    with col_info:
+        # 🛑 INÍCIO DA EXIBIÇÃO DA LOGO 🛑
     logo_col1, logo_col2, logo_col3 = st.columns([1, 2, 1])
     
     # ⬇️ GARANTA QUE O CÓDIGO ABAIXO ESTÁ INDENTADO ⬇️
@@ -278,7 +280,6 @@ def st_login(app_name: str = "Painel", show_logo: bool = True):
     st.markdown("<br>", unsafe_allow_html=True) 
     # 🛑 FIM DA EXIBIÇÃO DA LOGO 🛑
     
-    with col_info:
         # A. Logo e Título principal
         st.markdown(f'<h1 style="color: #FFFFFF;">π - Palpites Inteligentes</h1>', unsafe_allow_html=True)
         
