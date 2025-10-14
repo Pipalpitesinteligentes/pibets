@@ -392,7 +392,26 @@ def mostrar_jogos_e_palpites():
             # Botão para aplicar palpite
             st.markdown("<br>", unsafe_allow_html=True)
             if st.button(f"Aplicar Stake com este Palpite →", type="primary", use_container_width=True):
-                st.success(f"Palpite '{palpite_final}' do jogo '{nome_jogo}' considerado para sua estratégia.")
+                # 1. Prepara os dados do palpite para o histórico
+                # Usamos as variáveis conf_val e odd_val que você já tem disponíveis no escopo
+                # Verifica se as variáveis auxiliares de métricas existem (para robustez)
+                conf_val, _ = _get_confidence_display(palpite_selecionado)
+                odd_val, _ = _get_odd_display(palpite_selecionado)
+                novo_registro = {
+                    'Data Registro': pd.Timestamp.now().strftime('%d/%m %H:%M'),
+                    'Jogo': nome_jogo,
+                    'Palpite': palpite_final,
+                    'Confiança (%)': f"{conf_val:.1f}%" if conf_val else 'N/D',
+                    'Odd': f"{odd_val:.2f}" if odd_val else 'N/D',
+                    'Status': 'Pendente',
+                    # Você pode adicionar aqui uma coluna 'Stake Aplicada' se desejar
+            # 2. Inicializa ou adiciona o registro ao histórico no session_state
+            if 'stake_history' not in st.session_state:
+                st.session_state.stake_history = []
+
+                st.session_state.stake_history.append(novo_registro)
+                
+                st.success(f"Palpite '{palpite_final}' do jogo '{nome_jogo}' registrado no Histórico! Acesse a aba 'Histórico de Stakes' para visualizá-lo e acompanhar.")
                 # st.rerun() # Opcional: para forçar re-render se houver mudança de estado
 
 # ====================================================================
@@ -518,62 +537,26 @@ def mostrar_banca():
     st.markdown("---")
     st.info(f"O cálculo assume que: o risco máximo que você tolera é de {risco_max_percent:.1f}% da sua banca (R$ {valor_max_risco:,.2f}). O valor de entrada (stake) é ajustado proporcionalmente à confiança do palpite (entre 50% e 100%).")
 
-def mostrar_proximos_jogos():
-    # Conteúdo da API-Football (MANTIDO para teste de API)
-    st.header("🔎 Próximos jogos (API-Football) - Debug")
-    st.markdown("Use essa seção para *testar e depurar* as chamadas de API, confirmando que sua chave e filtros funcionam.")
-
-    if not API_KEY:
-        st.warning("Chave da API-Football não encontrada.")
+def mostrar_historico_stakes():
+    st.markdown("## ⏱️ Histórico de Stakes Aplicadas")
+    
+    # Inicializa a lista de histórico no session_state se não existir
+    if 'stake_history' not in st.session_state:
+        st.session_state.stake_history = []
+        
+    historico = st.session_state.stake_history
+    
+    if not historico:
+        st.info("Nenhuma stake aplicada ainda. Use o botão 'Aplicar Stake' na aba 'Palpites Prontos' para começar a registrar.")
         return
 
-    # 🛑 ENVOLVENDO O LAYOUT EM UM CONTAINER EXCLUSIVO DA ABA
-    with st.container(): 
-        col1, col2, col3 = st.columns([2,1,1]) # ⬅️ AGORA ISOLADO
-        with col1:
-            league_input = st.text_input("Insira league_id ou nome da liga / país (ex: '39' ou 'Premier League')", value="39", key="search_league_input")
-        with col2:
-            days = st.number_input("Buscar próximos (dias)", min_value=1, max_value=30, value=7, key="search_days")
-        with col3:
-            season_input = st.number_input("Ano da Season", min_value=2000, max_value=datetime.now().year + 1, value=datetime.now().year, key="search_season")
-        
-        # ... (O restante da lógica da função continua aqui, fora do col1, col2, col3) ...
-        n = 0 
-        st.write(" ")
+    # Converte a lista de dicionários para DataFrame para exibição
+    df_historico = pd.DataFrame(historico)
     
-    if st.button("Buscar próximos jogos (API)"):
-        try:
-            league_id = None
-            if str(league_input).strip().isdigit():
-                league_id = int(str(league_input).strip())
-            else:
-                league_id = find_league_id_by_name(country_name=league_input, league_name=league_input)
-                if not league_id:
-                    st.info("Não encontrei a liga automaticamente. Tente com o league_id (ex: 39 para Premier League) ou nome exato.")
-            
-            fixtures = get_upcoming_fixtures(
-                league_id=league_id, 
-                days=int(days), 
-                season=int(season_input) 
-            )
-            
-            if not fixtures:
-                st.info("Nenhum jogo futuro encontrado no período selecionado. Verifique o ID da Liga e o Ano da Season.")
-            else:
-                table = []
-                for f in fixtures:
-                    table.append({
-                        "Data (local)": f["kickoff_local"].strftime("%Y-%m-%d %H:%M"),
-                        "Liga": f["league_name"],
-                        "Mandante": f["home_team"],
-                        "Visitante": f["away_team"],
-                        "Local": f["venue"]
-                    })
-                st.table(table)
-                st.success(f"{len(table)} jogos futuros listados.")
-        except Exception as e:
-            st.error(f"Erro ao buscar jogos: {e}")
-            st.code(traceback.format_exc())
+    st.subheader(f"Total de {len(df_historico)} stakes registradas")
+    
+    # Exibe o histórico de forma interativa
+    st.dataframe(df_historico, use_container_width=True, hide_index=True)
 
 
 def logout():
@@ -627,6 +610,7 @@ if st.session_state.df_palpites.empty:
 tab_jogos, tab_banca, tab_sair = st.tabs([
     "⚽ Palpites Prontos", # Nome da aba alterado
     "📈 Gestão de Banca", 
+    "⏱️ Histórico de Stakes",
     "🚪 Sair"
 ])
 
@@ -636,6 +620,9 @@ with tab_jogos:
     
 with tab_banca:
     mostrar_banca()
+
+with tab_historico: # NOVO BLOCO
+    mostrar_historico_stakes()
 
 with tab_sair:
     st.warning("Clique no botão abaixo para sair da sua sessão.")
@@ -663,6 +650,7 @@ if is_admin:
 # ====================================================================
 # FIM do app_merged.py
 # ====================================================================
+
 
 
 
