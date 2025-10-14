@@ -277,7 +277,7 @@ def mostrar_jogos_e_palpites():
         st.info("Nenhum palpite disponível no momento.")
         return
     
-    st.subheader(f"Palpites Prontos ({len(df_palpites)} jogos futuros)")
+    st.subheader(f"Palpites Prontos")
 
     # Função segura para formatar os itens
     def _format_item_safe(row):
@@ -565,6 +565,7 @@ if is_admin:
 # ====================================================================
 # FIM do app_merged.py
 # ====================================================================
+
 
 
 
