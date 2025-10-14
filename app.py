@@ -257,29 +257,21 @@ def get_upcoming_fixtures(league_id: int | None = None, days: int = 7, season: i
 # ==== 1. FUNÇÕES DE CONTEÚDO (Implementando a lógica dentro) ====
 # ====================================================================
 
+# ====================================================================
+# ==== 1. FUNÇÕES DE CONTEÚDO (Implementando a lógica dentro) ====
+# ====================================================================
+
+# ... (Mantenha as funções api_get, find_league_id_by_name, get_upcoming_fixtures) ...
+# ... (Mantenha a função mostrar_banca/mostrar_calculadora_stake) ...
+
+# Certifique-se de que logos_times está definido globalmente (que já está!)
+
 def mostrar_jogos_e_palpites():
     
     st.title("π - Palpites Inteligentes⚽")
-    st.markdown("Atualize a página para ver novos palpites.")
     st.markdown("---") 
     
-    # 🛑 Pega df do session_state
-    df_palpites = st.session_state.df_palpites
-    sheets_error_message = st.session_state.sheets_error_message
-
-    # Mostra mensagem de erro do Sheets, se houver
-    if sheets_error_message:
-        st.error(f"Erro na Conexão com Google Sheets: {sheets_error_message}")
-        st.warning("Verifique sua Service Account e permissões.")
-        return
-
-    if df_palpites.empty:
-        st.info("Nenhum palpite disponível no momento.")
-        return
-    
-    st.subheader(f"Palpites Prontos")
-
-    # Função segura para formatar os itens
+    # Função segura para formatar os itens (mantida)
     def _format_item_safe(row):
         dt = row.get('Data/Hora') or row.get('Data_Hora') or row.get('DataHora') or row.get('data_hora')
         jogo = row.get('Jogo') or row.get('jogo') or row.get('Partida') or "Jogo sem nome"
@@ -293,75 +285,170 @@ def mostrar_jogos_e_palpites():
         else:
             return f"{jogo}"
 
+    # 🛑 Pega df do session_state
+    df_palpites = st.session_state.df_palpites
+    sheets_error_message = st.session_state.sheets_error_message
+
+    # Mostra mensagem de erro do Sheets, se houver
+    if sheets_error_message:
+        st.error(f"Erro na Conexão com Google Sheets: {sheets_error_message}")
+        st.warning("Verifique sua Service Account e permissões.")
+        return
+
+    if df_palpites.empty:
+        st.info("Nenhum palpite disponível no momento.")
+        return
+        
+    st.subheader(f"Selecione um Palpite (Total: {len(df_palpites)})")
+
     # Lista de jogos para selectbox
     jogos_disponiveis = [_format_item_safe(r) for _, r in df_palpites.iterrows()]
 
-    # Caixa de seleção
-    jogo_escolhido_str = st.selectbox("⚽ Escolha o confronto para visualizar o palpite:", jogos_disponiveis)
+    # Caixa de seleção (mantida na coluna principal)
+    jogo_escolhido_str = st.selectbox(
+        "⚽ Escolha o confronto para visualizar o palpite:", 
+        jogos_disponiveis, 
+        label_visibility="collapsed" # Esconde o label para ficar mais limpo
+    )
 
     if jogo_escolhido_str:
         nome_jogo = jogo_escolhido_str.split('(')[0].strip()
-
+        
+        # Encontra o palpite selecionado (robusto)
         if 'Jogo' in df_palpites.columns:
             palpite_selecionado = df_palpites[df_palpites['Jogo'] == nome_jogo].iloc[0]
         else:
-            palpite_selecionado = df_palpites.iloc[0]
-
-        st.markdown(f"### Palpite Analisado: {palpite_selecionado.get('Jogo', 'Sem nome')}")
-
-        # Data/Hora
-        data_col = palpite_selecionado.get('Data/Hora') or palpite_selecionado.get('Data_Hora')
-        if pd.notna(data_col):
-            try:
-                st.markdown(f"🗓️ **Data/Hora:** {pd.to_datetime(data_col).strftime('%d/%m/%Y %H:%M')}")
-            except Exception:
-                st.markdown("🗓️ **Data/Hora:** formato inválido")
-        else:
-            st.markdown("🗓️ **Data/Hora:** não informada")
-
-        # Exibe métricas do palpite
-        col_p, col_c, col_o = st.columns(3)
-
-        # 1️⃣ Predição IA
-        st.metric(label="Predição IA", value=palpite_selecionado.get('Palpite', 'N/D'))
-
-        # 2️⃣ Confiança (robusto)
-        conf_names = ['Confiança', 'Confiança (%)', 'Confianca', 'confidence']
-        confianca_val = None
-        for name in conf_names:
-            if name in palpite_selecionado:
-                confianca_val = palpite_selecionado[name]
-                break
-        if pd.isna(confianca_val) or confianca_val is None:
-            confianca_val = 'N/D'
-        elif isinstance(confianca_val, (int, float)):
-            # Multiplica por 100 se valor <= 1 (decimais)
-            if confianca_val <= 1:
-                confianca_val = f"{confianca_val*100:.1f}%"
-            else:
-                confianca_val = f"{confianca_val:.1f}%"
-                
-        st.metric(label="Confiança", value=confianca_val)
-
-        # 3️⃣ Odd Sugerida (robusto)
-        odd_names = ['Odd Sugerida', 'Odd', 'odd', 'Odd_Sugerida']
-        odd_val = None
-        for name in odd_names:
-            if name in palpite_selecionado:
-                odd_val = palpite_selecionado[name]
-                break
-        if pd.isna(odd_val) or odd_val is None:
-            odd_val = 'N/D'
-        elif isinstance(odd_val, (int, float)):
-            odd_val = f"{odd_val:.2f}"
-        st.metric(label="Odd Recomendada", value=odd_val)
-
+            palpite_selecionado = df_palpites.iloc[0] # Pega o primeiro se não conseguir filtrar
+        
+        # Extrai os nomes dos times (simplificado: assume "Casa vs Visitante")
+        try:
+            time_casa, time_fora = [t.strip() for t in nome_jogo.split("vs")]
+        except ValueError:
+             time_casa = nome_jogo
+             time_fora = "Visitante"
+        
+        # ====================================================================
+        # ==== NOVO LAYOUT DE DUAS COLUNAS PARA O DESTAQUE DO PALPITE ====
+        # ====================================================================
         st.markdown("---")
+        
+        col_jogo, col_metricas = st.columns([5, 3], gap="large") # Colunas 5/3
 
-        # Botão para aplicar palpite
-        if st.button(f"Aplicar Palpite: {palpite_selecionado.get('Palpite', 'N/D')} ({palpite_selecionado.get('Jogo', 'Sem nome')})"):
-            st.success(f"Palpite registrado para o jogo: {palpite_selecionado.get('Jogo', 'Sem nome')}")
+        # ------------------------------------------------------------------
+        # COLUNA ESQUERDA (JOGO E LOGOS)
+        # ------------------------------------------------------------------
+        with col_jogo:
+            st.markdown(f"### Confronto Analisado: {nome_jogo}")
+            
+            # --- CARD DE DESTAQUE DO JOGO ---
+            col_logo_casa, col_vs, col_logo_fora = st.columns([2, 1, 2])
+            
+            # Logo Casa
+            logo_casa_url = logos_times.get(time_casa, None)
+            with col_logo_casa:
+                if logo_casa_url:
+                    st.image(logo_casa_url, caption=time_casa, width=100)
+                else:
+                    st.markdown(f"#### {time_casa}")
 
+            # VS
+            with col_vs:
+                st.markdown("<h2 style='text-align: center; margin-top: 30px;'>VS</h2>", unsafe_allow_html=True)
+
+            # Logo Fora
+            logo_fora_url = logos_times.get(time_fora, None)
+            with col_logo_fora:
+                if logo_fora_url:
+                    st.image(logo_fora_url, caption=time_fora, width=100)
+                else:
+                    st.markdown(f"#### {time_fora}")
+
+            # Data/Hora
+            data_col = palpite_selecionado.get('Data/Hora') or palpite_selecionado.get('Data_Hora')
+            if pd.notna(data_col):
+                try:
+                    dt_formatado = pd.to_datetime(data_col).strftime('%d/%m/%Y às %H:%M')
+                    st.markdown(f"🗓️ **Kickoff:** {dt_formatado}")
+                except Exception:
+                    st.markdown("🗓️ **Kickoff:** Data inválida")
+        
+        # ------------------------------------------------------------------
+        # COLUNA DIREITA (PALPITE E MÉTRICAS)
+        # ------------------------------------------------------------------
+        with col_metricas:
+            
+            # 1️⃣ Predição IA (Destaque Principal)
+            palpite_final = palpite_selecionado.get('Palpite', 'N/D')
+            
+            st.markdown(f"### 🎯 Palpite Recomendado")
+            
+            # Contêiner para envolver o palpite em um Box de Destaque
+            st.markdown(f"""
+                <div style='background-color: #1a1d33; padding: 20px; border-radius: 10px; text-align: center;'>
+                    <h1 style='color: {LOGO_CYAN}; margin: 0; padding: 0;'>{palpite_final}</h1>
+                </div>
+                """, unsafe_allow_html=True)
+            
+            st.markdown("---") # Separador para métricas
+            
+            # Exibe métricas em linha
+            col_c, col_o = st.columns(2)
+
+            # 2️⃣ Confiança (robusto)
+            conf_val, conf_display = _get_confidence_display(palpite_selecionado)
+            with col_c:
+                st.metric(label="📈 Confiança", value=conf_display)
+
+            # 3️⃣ Odd Sugerida (robusto)
+            odd_val, odd_display = _get_odd_display(palpite_selecionado)
+            with col_o:
+                st.metric(label="📊 Odd Recomendada", value=odd_display)
+
+            # Botão para aplicar palpite
+            st.markdown("<br>", unsafe_allow_html=True)
+            if st.button(f"Aplicar Stake com este Palpite →", type="primary", use_container_width=True):
+                st.success(f"Palpite '{palpite_final}' do jogo '{nome_jogo}' considerado para sua estratégia.")
+                # st.rerun() # Opcional: para forçar re-render se houver mudança de estado
+
+# ====================================================================
+# NOVAS FUNÇÕES AUXILIARES NECESSÁRIAS
+# ====================================================================
+
+# Adicione estas funções auxiliares no seu app.py (próximo das funções mostrar_*)
+
+def _get_confidence_display(palpite_selecionado):
+    """Função auxiliar para padronizar o display da Confiança."""
+    conf_names = ['Confiança', 'Confiança (%)', 'Confianca', 'confidence']
+    confianca_val = None
+    for name in conf_names:
+        if name in palpite_selecionado:
+            confianca_val = palpite_selecionado[name]
+            break
+            
+    if pd.isna(confianca_val) or confianca_val is None:
+        return None, 'N/D'
+    elif isinstance(confianca_val, (int, float)):
+        # Multiplica por 100 se valor <= 1 (decimais)
+        if confianca_val <= 1:
+            confianca_val = confianca_val * 100
+        return confianca_val, f"{confianca_val:.1f}%"
+    return None, str(confianca_val)
+
+def _get_odd_display(palpite_selecionado):
+    """Função auxiliar para padronizar o display da Odd."""
+    odd_names = ['Odd Sugerida', 'Odd', 'odd', 'Odd_Sugerida']
+    odd_val = None
+    for name in odd_names:
+        if name in palpite_selecionado:
+            odd_val = palpite_selecionado[name]
+            break
+            
+    if pd.isna(odd_val) or odd_val is None:
+        return None, 'N/D'
+    elif isinstance(odd_val, (int, float)):
+        return odd_val, f"{odd_val:.2f}"
+    return None, str(odd_val)
+    
 def mostrar_banca():
     st.markdown("## 🧮 Calculadora de Risco (Stake)")
     st.markdown("Use esta ferramenta para determinar a entrada ideal (Stake) com base na sua banca total e na confiança do palpite.")
@@ -591,6 +678,7 @@ if is_admin:
 # ====================================================================
 # FIM do app_merged.py
 # ====================================================================
+
 
 
 
