@@ -532,7 +532,6 @@ st.write(f"DEBUG: df_palpites está vazio? {st.session_state.df_palpites.empty i
 tab_jogos, tab_banca, tab_api, tab_sair = st.tabs([
     "⚽ Palpites Prontos", # Nome da aba alterado
     "📈 Gestão de Banca", 
-    "🔎 API Teste", 
     "🚪 Sair"
 ])
 
@@ -572,6 +571,7 @@ if is_admin:
 # ====================================================================
 # FIM do app_merged.py
 # ====================================================================
+
 
 
 
