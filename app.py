@@ -363,62 +363,88 @@ def mostrar_jogos_e_palpites():
             st.success(f"Palpite registrado para o jogo: {palpite_selecionado.get('Jogo', 'Sem nome')}")
 
 def mostrar_banca():
-    # Conteúdo da Gestão de Banca (INALTERADO)
-    st.markdown("## 📈 Gestão de Banca")
+    st.markdown("## 🧮 Calculadora de Risco (Stake)")
+    st.markdown("Use esta ferramenta para determinar a entrada ideal (Stake) com base na sua banca total e na confiança do palpite.")
+    st.markdown("---")
 
-    banca_inicial = st.number_input("💰 Informe sua Banca Inicial (R$):", min_value=0.0, step=10.0, format="%.2f", key="banca_input")
+    # 1. ENTRADA DA BANCA TOTAL (Persistência básica via st.session_state)
+    banca_total = st.number_input(
+        "💰 1. Sua Banca Total (R$):", 
+        min_value=10.0, 
+        step=50.0, 
+        format="%.2f",
+        value=st.session_state.get('banca_total_stake', 1000.0), # Valor padrão 1000
+        key="banca_total_input"
+    )
+    # Garante que o valor preenchido persista
+    st.session_state['banca_total_stake'] = banca_total
 
-    dias = list(range(1, 31))
-    df_banca = pd.DataFrame({
-        "Dia": dias,
-        "Resultado do Dia (R$)": [0.0] * len(dias),
-        "Resultado em %": ["0%"] * len(dias),
-        "Saque (R$)": [0.0] * len(dias)
-    })
 
-    df_editado = st.data_editor(
-        df_banca,
-        num_rows="fixed",
-        use_container_width=True,
-        hide_index=True,
-        column_config={
-            "Resultado do Dia (R$)": st.column_config.NumberColumn(format="R$ %.2f"),
-            "Saque (R$)": st.column_config.NumberColumn(format="R$ %.2f")
-        },
-        key="gestao_banca"
+    # 2. ENTRADA DA CONFIANÇA
+    confianca_palpite = st.slider(
+        "📈 2. Confiança do Palpite (em %):",
+        min_value=50, 
+        max_value=100, 
+        step=1, 
+        value=85
     )
 
-    # Recalcular a coluna 'Resultado em %'
-    df_editado["Resultado em %"] = df_editado["Resultado do Dia (R$)"].apply(
-        lambda x: f"{(x / banca_inicial * 100):.2f}%" if banca_inicial > 0 else "0%"
+    # 3. ENTRADA DO RISCO MÁXIMO (A porcentagem máxima que você arrisca em 1 unidade)
+    risco_max_percent = st.slider(
+        "⚠️ 3. Risco Máximo por Aposta (Unidade) - % da Banca:",
+        min_value=0.5, 
+        max_value=5.0, 
+        step=0.5, 
+        value=2.0, # Padrão: 2% de risco máximo por aposta
+        format="%.1f%%"
     )
+    
+    # --- LÓGICA DE CÁLCULO (Stake Variável) ---
+    
+    # 1. Calcula o valor máximo de risco (100% da sua unidade, ex: 2% de R$ 1000 = R$ 20)
+    valor_max_risco = banca_total * (risco_max_percent / 100.0)
 
-    # Calcular lucro/prejuízo e saque total
-    lucro_total = sum(df_editado["Resultado do Dia (R$)"])
-    saques_total = sum(df_editado["Saque (R$)"])
-    banca_final = banca_inicial + lucro_total - saques_total
+    # 2. Normaliza a Confiança (50% a 100% vira 0 a 1)
+    # 50% = 0 (Stake 0), 100% = 1 (Stake Máximo)
+    # (Confiança - Mínima) / (Máxima - Mínima)
+    confianca_normalizada = (confianca_palpite - 50) / 50.0
+    
+    # 3. Stake Calculado
+    # Ex: Se a confiança for 85%, confianca_normalizada = 0.7
+    # Stake = R$ 20.00 * 0.7 = R$ 14.00
+    stake_recomendado = valor_max_risco * confianca_normalizada
 
-    # Exibição dos resultados (usa o CSS global)
-    st.markdown(f"""
-    <div class='resultado-container'>
-        <div class='box'>
-            <div class='emoji'>💰</div>
-            <div class='titulo'>Lucro/Prejuízo</div>
-            <div class='valor'>R$ {lucro_total:,.2f}</div>
-        </div>
-        <div class='box'>
-            <div class='emoji'>🏧</div>
-            <div class='titulo'>Saques Totais</div>
-            <div class='valor'>R$ {saques_total:,.2f}</div>
-        </div>
-        <div class='box'>
-            <div class='emoji'>💼</div>
-            <div class='titulo'>Banca Final</div>
-            <div class='valor'>R$ {banca_final:,.2f}</div>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown("---")
+    
+    # --- EXIBIÇÃO DO RESULTADO ---
+    
+    col_stake, col_risco_max = st.columns(2)
+    
+    with col_risco_max:
+        st.metric(
+            label=f"Valor Máximo da Unidade ({risco_max_percent:.1f}%)",
+            value=f"R$ {valor_max_risco:,.2f}"
+        )
 
+    if stake_recomendado <= 0:
+        with col_stake:
+            st.metric(
+                label="Entrada (Stake) Recomendada",
+                value="R$ 0,00",
+                delta="Confiança muito baixa!",
+                delta_color="inverse"
+            )
+        st.warning("A confiança do palpite é inferior a 50%. Aconselhamos a não fazer a entrada.")
+    else:
+        with col_stake:
+            st.metric(
+                label="Entrada (Stake) Recomendada",
+                value=f"R$ {stake_recomendado:,.2f}",
+                delta_color="off"
+            )
+
+    st.markdown("---")
+    st.info(f"O cálculo assume que: o risco máximo que você tolera é de {risco_max_percent:.1f}% da sua banca (R$ {valor_max_risco:,.2f}). O valor de entrada (stake) é ajustado proporcionalmente à confiança do palpite (entre 50% e 100%).")
 
 def mostrar_proximos_jogos():
     # Conteúdo da API-Football (MANTIDO para teste de API)
@@ -565,6 +591,7 @@ if is_admin:
 # ====================================================================
 # FIM do app_merged.py
 # ====================================================================
+
 
 
 
