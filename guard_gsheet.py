@@ -262,12 +262,10 @@ def st_login(app_name: str = "Painel", show_logo: bool = True):
     # 1. COLUNA DA ESQUERDA (Informações / Benefícios)
     # ==========================================================
     with col_info:
-        with col_info:
-    
-    # 🛑 NOVO: INÍCIO DA EXIBIÇÃO DA LOGO 🛑
-    # Usamos 3 colunas para centralizar a logo dentro desta coluna maior
-    # [1] = Espaço esquerdo, [2] = Logo, [1] = Espaço direito (ajuste a proporção se precisar)
-    logo_col1, logo_col2, logo_col3 = st.columns([1, 2, 1])
+            # 🛑 NOVO: INÍCIO DA EXIBIÇÃO DA LOGO 🛑
+            # Usamos 3 colunas para centralizar a logo dentro desta coluna maior
+            # [1] = Espaço esquerdo, [2] = Logo, [1] = Espaço direito (ajuste a proporção se precisar)
+            logo_col1, logo_col2, logo_col3 = st.columns([1, 2, 1])
     with logo_col2:
         # Caminho da sua logo que você enviou
         try:
