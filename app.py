@@ -403,7 +403,8 @@ def mostrar_jogos_e_palpites():
                     'Palpite': palpite_final,
                     'Confiança (%)': f"{conf_val:.1f}%" if conf_val else 'N/D',
                     'Odd': f"{odd_val:.2f}" if odd_val else 'N/D',
-                    'Status': 'Pendente',
+                    'Status': 'Pendente'
+}
                     # Você pode adicionar aqui uma coluna 'Stake Aplicada' se desejar
             # 2. Inicializa ou adiciona o registro ao histórico no session_state
             if 'stake_history' not in st.session_state:
@@ -650,6 +651,7 @@ if is_admin:
 # ====================================================================
 # FIM do app_merged.py
 # ====================================================================
+
 
 
 
