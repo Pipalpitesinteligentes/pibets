@@ -339,41 +339,27 @@ def mostrar_jogos_e_palpites():
         col_jogo, col_metricas = st.columns([5, 3], gap="large") # Colunas 5/3
 
         # ------------------------------------------------------------------
-        # COLUNA ESQUERDA (JOGO E DADOS DA LIGA) - NOVO FOCO
+        # COLUNA ESQUERDA (APENAS CONFRONTO E DATA) - FINAL E SIMPLES
         # ------------------------------------------------------------------
         with col_jogo:
-            # 1. Título do Confronto (Mantido)
+            
+            # 1. Título do Confronto
             st.markdown(f"### Confronto Analisado: {nome_jogo}")
             
-            # --- CARD DE DESTAQUE DA LIGA ---
-            st.markdown("<div class='confronto-card'>", unsafe_allow_html=True)
-            
-            # Tenta encontrar o nome da Liga/Campeonato no palpite selecionado
-            # ⚠️ ATENÇÃO: Confirme se a sua coluna com o nome da liga é 'Liga' ou 'Campeonato'
-            nome_liga = palpite_selecionado.get('Liga') or palpite_selecionado.get('Campeonato') or "Futebol"
-            
-            # Se você tiver um dicionário de logos_ligas, usaremos aqui.
-            # Se não, exibiremos apenas o nome.
-            # Ex: logos_ligas = {"Brasileirão Série A": "URL_DA_LOGO"}
-            logo_liga_url = logos_ligas.get(nome_liga, None) # Assumindo que você criou logos_ligas
-            
-            # 2. Exibição da Logo e Nome da Liga
-            if logo_liga_url:
-                st.image(logo_liga_url, width=120) 
-            
-            # Nome da Liga como destaque
-            st.markdown(f"<h4 style='text-align: center; margin-top: 10px;'>{nome_liga}</h4>", unsafe_allow_html=True)
+            # Linha divisória para separar visualmente do resto
+            st.markdown("---") 
 
-            st.markdown("</div>", unsafe_allow_html=True) # Fecha o card
-
-            # 3. Data/Hora (Abaixo do card)
+            # 2. Data/Hora (Com ênfase)
             data_col = palpite_selecionado.get('Data/Hora') or palpite_selecionado.get('Data_Hora')
             if pd.notna(data_col):
                 try:
                     dt_formatado = pd.to_datetime(data_col).strftime('%d/%m/%Y às %H:%M')
-                    st.markdown(f"🗓️ **Kickoff:** {dt_formatado}")
+                    st.markdown(f"🗓️ **Kickoff:** <span style='font-size: 1.2em;'>{dt_formatado}</span>", unsafe_allow_html=True)
                 except Exception:
                     st.markdown("🗓️ **Kickoff:** Data inválida")
+            
+            # Adiciona um espaço para separar do palpite recomendado na coluna vizinha
+            st.markdown("<br><br>", unsafe_allow_html=True) 
         
         # ------------------------------------------------------------------
         # COLUNA DIREITA (PALPITE E MÉTRICAS)
@@ -681,6 +667,7 @@ if is_admin:
 # ====================================================================
 # FIM do app_merged.py
 # ====================================================================
+
 
 
 
