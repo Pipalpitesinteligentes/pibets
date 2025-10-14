@@ -19,6 +19,10 @@ import hmac
 import hashlib
 import guard_gsheet as guard
 
+# Coloque essas linhas no escopo global do app.py, antes de qualquer função.
+LOGO_CYAN = "#00FFFF" 
+LOGO_DARK_BLUE = "#1a1d33" 
+
 # Configuração de Ambiente
 os.environ["MEMBERS_FILE"] = "secure/members.json"
 APP_INTERNAL_KEY = "pi-internal-123"
@@ -678,6 +682,7 @@ if is_admin:
 # ====================================================================
 # FIM do app_merged.py
 # ====================================================================
+
 
 
 
