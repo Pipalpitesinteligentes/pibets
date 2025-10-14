@@ -329,7 +329,7 @@ def st_login(app_name: str = "Painel", show_logo: bool = True):
         """, unsafe_allow_html=True)
         
         st.markdown(
-            "Não tem acesso? **[Fale com o Suporte](https://seusite.com/suporte)**", 
+            "Não tem acesso? **[Fale com o Suporte](https://t.me/lipetipster)**", 
             unsafe_allow_html=True
         )
 
