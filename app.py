@@ -396,7 +396,7 @@ def mostrar_jogos_e_palpites():
             # 1️⃣ Predição IA (Destaque Principal)
             palpite_final = palpite_selecionado.get('Palpite', 'N/D')
             
-            st.markdown(f"### 🎯 Palpite Recomendado")
+            st.markdown(f"### 🎯 Palpite Gerado pela I.A")
             
             # Contêiner para envolver o palpite em um Box de Destaque
             st.markdown(f"""
@@ -647,6 +647,7 @@ if is_admin:
 # ====================================================================
 # FIM do app_merged.py
 # ====================================================================
+
 
 
 
