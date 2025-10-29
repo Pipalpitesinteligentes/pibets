@@ -3,6 +3,7 @@ import pandas as pd
 from datetime import datetime
 from typing import List, Dict, Any
 
+def main():
 
 # ======================== CONFIG BÁSICA ========================
 st.set_page_config(page_title="Palpites – Cards", layout="wide")
