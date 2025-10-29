@@ -85,7 +85,7 @@ def main():
     letter-spacing:0.5px;
     margin-top: -10px;
 ">
-    ⚡ IA de Palpites em Tempo Real 💡
+    ⚡ IA de Palpites em Tempo Real 
 </h2>
 """, unsafe_allow_html=True)
     #st.caption("Visual em cards integrando df_palpites (e opcionalmente fixtures da API-Football).")
