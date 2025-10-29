@@ -1,106 +1,96 @@
-# app_merged_cards.py – versão com layout em CARDS integrado
-# ==================================================================================
-# Mantém sua estrutura atual e troca o layout antigo (selectbox) pelo ui_cards.main()
-# Requisitos: colocar os arquivos ui_cards.py e ui_cards_helpers.py na mesma pasta.
-# ==================================================================================
-
-
-import os, traceback
-import streamlit as st
-import pandas as pd
-import gspread
-import requests
-import re
-import json
-from datetime import datetime, timedelta
-from zoneinfo import ZoneInfo
-from google.oauth2.service_account import Credentials
-from PIL import Image
-from typing import Optional
-from sheets_reader import read_palpites_from_sheets
-import hmac
-import hashlib
-import guard_gsheet as guard
-
-
-# ⬇️ novo: importa o layout de cards
-import ui_cards
-
-
-# ----------------------------------------------------------------------------------
-# Globais de estilo/cores
-LOGO_CYAN = "#00FFFF"
-LOGO_DARK_BLUE = "#1a1d33"
-
-
-# Config ambiente
-os.environ["MEMBERS_FILE"] = "secure/members.json"
-APP_INTERNAL_KEY = "pi-internal-123"
-
-
-# Credenciais API-Football
-API_KEY = st.secrets.get("API_FOOTBALL_KEY") or os.getenv("API_FOOTBALL_KEY")
-API_BASE = "https://v3.football.api-sports.io"
-HEADERS = {"x-apisports-key": API_KEY} if API_KEY else {}
-st.session_state.API_KEY = API_KEY
-
-
-# Sheets (confirmado pelo usuário)
-SPREADSHEET_ID = "1H-Sy49f5tBV1YCAjd1UX6IKRNRrqr3wzoVSKVWChU00"
-SHEET_NAME_PALPITES = "nova-tentativa"
-
-
-# ----------------------------------------------------------------------------------
-# Topo robusto / endpoints utilitários
-try:
-    _qp = st.query_params
-    getp = _qp.get
-except Exception:
-    _qp = st.experimental_get_query_params()
-    getp = lambda k, d=None: (_qp.get(k, [d]) or [d])[0]
-
-
-if getp("health") == "1":
-st.write("ok"); st.stop()
-
-
-if getp("key") == APP_INTERNAL_KEY:
-cmd = (getp("cmd", "") or "").lower()
-email = (getp("email", "") or "").strip().lower()
-try:
-from guard_gsheet import issue_token, revoke_user
-if cmd == "issue" and email:
-tok = issue_token(email, days=30); st.write(f"issued:{email}:{tok}"); st.stop()
-elif cmd == "revoke" and email:
-revoke_user(email); st.write(f"revoked:{email}"); st.stop()
+# app.py (corrigido)
+confianca_palpite = st.slider("📈 2. Confiança do Palpite (em %):", min_value=50, max_value=100, step=1, value=85)
+risco_max_percent = st.slider("⚠️ 3. Risco Máximo por Aposta (Unidade) - % da Banca:", min_value=0.5, max_value=5.0, step=0.5, value=2.0, format="%.1f%%")
+valor_max_risco = banca_total * (risco_max_percent / 100.0)
+confianca_normalizada = (confianca_palpite - 50) / 50.0
+stake_recomendado = valor_max_risco * confianca_normalizada
+st.markdown("---")
+col_stake, col_risco_max = st.columns(2)
+with col_risco_max:
+st.metric(label=f"Valor Máximo da Unidade ({risco_max_percent:.1f}%)", value=f"R$ {valor_max_risco:,.2f}")
+if stake_recomendado <= 0:
+with col_stake:
+st.metric(label="Entrada (Stake) Recomendada", value="R$ 0,00", delta="Confiança muito baixa!", delta_color="inverse")
+st.warning("A confiança do palpite é inferior a 50%. Aconselhamos a não fazer a entrada.")
 else:
-st.write("bad_command"); st.stop()
+with col_stake:
+st.metric(label="Entrada (Stake) Recomendada", value=f"R$ {stake_recomendado:,.2f}", delta_color="off")
+st.markdown("---")
+st.info(f"Assume risco máximo de {risco_max_percent:.1f}% da banca (R$ {valor_max_risco:,.2f}). Stake varia com a confiança (50% a 100%).")
+
+
+
+
+def logout():
+if 'logado' in st.session_state:
+st.session_state.logado = False
+st.success("Você saiu com sucesso.")
+st.rerun()
+
+
+# ======================== Fluxo principal ========================
+
+
+# (Opcional) bloquear sem API_KEY. Se quiser ver somente cards do DF, você pode mover
+# essa checagem para perto do uso da API-Football. Mantive como no original.
+if not API_KEY:
+st.title("π - Palpites Inteligentes BR ⚽")
+st.error("Chave da API-Football não configurada. Configure `API_FOOTBALL_KEY` em secrets ou env.")
+st.stop()
+
+
+user_email = require_login(app_name="Palpite Inteligente")
+
+
+if 'df_palpites' not in st.session_state:
+st.session_state.df_palpites = pd.DataFrame()
+if 'sheets_error_message' not in st.session_state:
+st.session_state.sheets_error_message = None
+
+
+if st.session_state.df_palpites.empty:
+try:
+df_lido = read_palpites_from_sheets(SPREADSHEET_ID, SHEET_NAME_PALPITES)
+st.session_state.df_palpites = df_lido
+st.session_state.sheets_error_message = st.session_state.get("sheets_error")
+if not df_lido.empty:
+st.session_state.sheets_error_message = None
 except Exception as e:
-st.write("app_exception:", repr(e)); st.write("trace:", traceback.format_exc()); st.stop()
+st.session_state.sheets_error_message = f"Erro geral ao carregar Sheets: {e}"
 
 
-# ----------------------------------------------------------------------------------
-# Config visual
-st.set_page_config(page_title="Palpite Inteligente", page_icon="⚽", layout="wide")
-HIDE_TOOLBAR = """
-<style>
-div[data-testid="stToolbar"] { display: none !important; }
-a[data-testid="toolbar-github-icon"], a[aria-label="Open GitHub Repo"], a[href*="github.com"][target="_blank"] { display: none !important; }
-footer { visibility: hidden; }
-.stApp { background-color: #0A0A23; }
-h1, h2, h3, p, .stMarkdown { color: white; }
-.resultado-container { display:flex; justify-content:space-around; margin-top:40px; gap:40px; flex-wrap:wrap; }
-.box { background:#1a1b2e; padding:20px; border-radius:12px; width:220px; text-align:center; box-shadow:0 0 10px #00FF88; }
-.emoji { font-size:28px; margin-bottom:10px; }
-.titulo { font-size:18px; font-weight:bold; color:#00FF88; }
-.valor { font-size:24px; font-weight:bold; color:#fff; margin-top:5px; }
-@media (max-width: 600px) {
-.resultado-container { gap:20px; flex-direction:column; align-items:center; }
-.box { width:90%; max-width:300px; padding:15px; }
-.valor { font-size:20px; } .titulo { font-size:16px; }
-}
-"""
-# ================================== FIM ================================== #
+# Abas
+_tab_jogos, _tab_banca, _tab_sair = st.tabs(["⚽ Palpites Prontos", "📈 Gestão de Banca", "🚪 Sair"])
 
 
+with _tab_jogos:
+# 👉 Novo layout em cards
+ui_cards.main()
 
+
+with _tab_banca:
+mostrar_banca()
+
+
+with _tab_sair:
+st.warning("Clique no botão abaixo para sair da sua sessão.")
+if st.button("Confirmar Saída"):
+logout()
+
+
+# Rodapé admin
+st.caption(f"Usuário autenticado: {user_email or 'N/D'}")
+ADMINS = {"felipesouzacontatoo@gmail.com"}
+is_admin = (user_email or "").strip().lower() in ADMINS
+st.caption(f"Admin? {'sim' if is_admin else 'não'}")
+if is_admin:
+with st.expander("🔧 Gerar token (ADMIN)"):
+alvo = st.text_input("E-mail do assinante", key="admin_user_email")
+dias = st.number_input("Dias de validade", 1, 365, 30, key="admin_days")
+if st.button("Gerar token para este e-mail", key="admin_issue_token_btn"):
+tok = issue_token(alvo, days=int(dias))
+st.success(f"Token gerado para {alvo}: {tok}")
+st.info("Envie este código ao assinante.")
+
+
+# ======================== FIM ========================
