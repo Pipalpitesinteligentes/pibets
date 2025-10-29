@@ -2,85 +2,105 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime
 from typing import List, Dict, Any
+from zoneinfo import ZoneInfo
+
+
+# ================================================================
+# ==== FUNÇÃO PRINCIPAL (main) – cards integrados ao app principal ====
+# ================================================================
+
 
 def main():
-
-# ======================== CONFIG BÁSICA ========================
-st.set_page_config(page_title="Palpites – Cards", layout="wide")
+st.set_page_config(page_title="Palpites Inteligentes - Cards", layout="wide")
 
 
-# ======================== ESTILOS (CSS) ========================
-CARD_CSS = """
-<style>
-:root {
---card-bg: #0e1117; /* fundo escuro padrão Streamlit */
---card-border: #1f2937;
---chip-bg: #111827;
---chip-txt: #e5e7eb;
---ok: #22c55e; /* verde */
---warn: #f59e0b; /* amarelo */
---bad: #ef4444; /* vermelho */
---brand: #fde047; /* amarelo destaque */
-}
-
-
-.card {
-background: var(--card-bg);
-border: 1px solid var(--card-border);
-border-radius: 16px;
-padding: 16px;
-box-shadow: 0 6px 18px rgba(0,0,0,0.25);
-transition: transform .12s ease, box-shadow .12s ease;
-height: 100%;
-}
-.card:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(0,0,0,0.35); }
-
-
-.card-header{ display:flex; align-items:center; gap:12px; margin-bottom:8px; }
-.badge{ font-size:12px; padding:4px 8px; border-radius:999px; border:1px solid #374151; background:#111827; color:#e5e7eb; }
-.kickoff{ font-size:12px; color:#9ca3af; }
-.teams{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin:6px 0 10px; }
-.team { display:flex; align-items:center; gap:8px; min-width:0; }
-.logo { width:28px; height:28px; border-radius:50%; background:#1f2937; display:flex; align-items:center; justify-content:center; font-size:12px; color:#e5e7eb; border:1px solid #374151; }
-.team-name { font-weight:600; color:#e5e7eb; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-
-
-.pred { margin-top:6px; }
-.pred-row{ display:flex; align-items:center; justify-content:space-between; font-size:12px; color:#e5e7eb; }
-.progress{ width:100%; height:7px; background:#111827; border-radius:999px; overflow:hidden; margin:6px 0 2px; border:1px solid #1f2937; }
-.bar{ height:100%; background:linear-gradient(90deg, #fde047, #22c55e); }
-
-
-.chips{ display:flex; flex-wrap:wrap; gap:6px; margin-top:10px; }
-.chip { background:var(--chip-bg); color:var(--chip-txt); border:1px solid #374151; border-radius:12px; padding:4px 8px; font-size:12px; }
-.chip strong { color:#fde047; }
-
-
-.footer{ display:flex; justify-content:space-between; align-items:center; margin-top:12px; }
-.action{ font-size:12px; color:#111827; background:var(--brand); border:none; padding:8px 10px; border-radius:10px; cursor:pointer; font-weight:700; }
-.action:hover{ filter:brightness(0.95); }
-
-
-/* fix spacing inside columns */
-.block-container{ padding-top: 1.5rem; }
-</style>
-"""
+from ui_cards_helpers import (
+build_records_from_df,
+fetch_matches_api_football,
+to_df,
+render_grid,
+CARD_CSS,
+get_upcoming_fixtures,
+)
 
 
 st.markdown(CARD_CSS, unsafe_allow_html=True)
 
 
-# ======================== MOCK / ADAPTADOR ========================
-# Você pode usar **um** dos dois adaptadores abaixo:
-# A) `build_records_from_df(df_palpites)` – quando você já tem um DataFrame vindo do Sheets/API
-# B) `fetch_matches_api_football()` – quando quiser puxar direto da API-Football (fixtures futuros)
-# Escolha e use **um** na seção "APLICA FILTROS".
+# ===================== FONTES DE DADOS =====================
+records = []
+if 'df_palpites' in st.session_state and isinstance(st.session_state.df_palpites, pd.DataFrame):
+records = build_records_from_df(st.session_state.df_palpites)
 
 
-from zoneinfo import ZoneInfo
+# ⚙️ OPCIONAL: Mesclar jogos futuros via API-Football
+# fixtures = get_upcoming_fixtures(league_id=None, days=7)
+# records += fetch_matches_api_football(fixtures)
 
 
-TEAM_SPLIT_TOKENS = [" x ", " X ", " vs ", " VS ", " x", " vs"]
+df = to_df(records)
 
-pass
 
+# ===================== SIDEBAR =====================
+with st.sidebar:
+st.header("Filtros")
+if not df.empty:
+min_date, max_date = df["date"].min(), df["date"].max()
+else:
+today = datetime.today().date()
+min_date = max_date = today
+
+
+col1, col2 = st.columns(2)
+with col1:
+date_from = st.date_input("De", value=min_date)
+with col2:
+date_to = st.date_input("Até", value=max_date)
+
+
+leagues = sorted(df["league"].dropna().unique()) if not df.empty else []
+selected_leagues = st.multiselect("Competições", leagues, default=leagues)
+
+
+rounds = sorted(df["round"].dropna().unique()) if not df.empty else []
+selected_round = st.selectbox("Rodada", ["Todas"] + [str(x) for x in rounds])
+
+
+status_opts = sorted(df["status"].dropna().unique()) if not df.empty else []
+selected_status = st.multiselect("Status", status_opts, default=status_opts)
+
+
+query = st.text_input("Buscar (time/mercado)")
+cols_grid = st.slider("# de colunas", 2, 4, 3)
+
+
+# ===================== FILTROS =====================
+if not df.empty:
+mask = (df["date"] >= date_from) & (df["date"] <= date_to)
+
+
+if selected_leagues:
+mask &= df["league"].isin(selected_leagues)
+if selected_round != "Todas":
+mask &= df["round"].astype(str) == str(selected_round)
+if selected_status:
+mask &= df["status"].isin(selected_status)
+if query:
+q = query.lower()
+mask &= df.apply(lambda r: q in str(r.to_dict()).lower(), axis=1)
+
+
+df_view = df[mask]
+else:
+df_view = df
+
+
+# ===================== CABEÇALHO =====================
+st.markdown("# ⚽ Palpites Inteligentes – Grade de Jogos")
+st.caption("Visual moderno em cards, integrando df_palpites e API-Football.")
+
+
+c1, c2, c3 = st.columns(3)
+with c1:
+st.metric("Jogos listados", len(df_view))
+main()
