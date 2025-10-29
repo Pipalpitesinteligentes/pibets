@@ -77,7 +77,7 @@ def main():
         df_view = df
 
     # ===================== CABEÇALHO =====================
-    st.markdown("# ⚽ Palpites Inteligentes – Grade de Jogos")
+    st.markdown("<h4 style='color:#00f5ff;opacity:0.85;'>IA de palpites em tempo real 💡</h4>", unsafe_allow_html=True)
     #st.caption("Visual em cards integrando df_palpites (e opcionalmente fixtures da API-Football).")
 
     c1, c2, c3 = st.columns(3)
