@@ -94,11 +94,11 @@ def main():
     # ===================== RENDERIZA CARDS =====================
     render_grid(df_view.reset_index(drop=True), cols=cols_grid)
 
-    with st.expander("Como integrar com sua API"):
-        st.markdown(
-            """
-            1. O app lê `st.session_state.df_palpites`.
-            2. `build_records_from_df()` transforma o DF no formato dos cards.
-            3. Para adicionar fixtures futuros, use `fetch_matches_api_football()` após obter `get_upcoming_fixtures()`.
-            """
-        )
+    #with st.expander("Como integrar com sua API"):
+        #st.markdown(
+            #"""
+            #1. O app lê `st.session_state.df_palpites`.
+            #2. `build_records_from_df()` transforma o DF no formato dos cards.
+            #3. Para adicionar fixtures futuros, use `fetch_matches_api_football()` após obter `get_upcoming_fixtures()`.
+            #"""
+        #)
