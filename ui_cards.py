@@ -115,19 +115,19 @@ def main():
         df_view = df
 
     # ====== Métricas ======
-    c1, c2, c3 = st.columns(3)
-    with c1:
-        st.caption("Jogos listados")
-        st.markdown(f"<h3 style='margin:0'>{len(df_view)}</h3>", unsafe_allow_html=True)
-    with c2:
-        st.caption("Confiança média")
-        avg_conf = (df_view["confidence"].mean() * 100) if not df_view.empty and df_view["confidence"].notna().any() else 0
-        st.markdown(f"<h3 style='margin:0'>{avg_conf:.0f}%</h3>", unsafe_allow_html=True)
-    with c3:
-        st.caption("Competições")
-        st.markdown(f"<h3 style='margin:0'>{len(set(df_view['league'])) if not df_view.empty else 0}</h3>", unsafe_allow_html=True)
+    #c1, c2, c3 = st.columns(3)
+    #with c1:
+        #st.caption("Jogos listados")
+        #st.markdown(f"<h3 style='margin:0'>{len(df_view)}</h3>", unsafe_allow_html=True)
+    #with c2:
+        #st.caption("Confiança média")
+        #avg_conf = (df_view["confidence"].mean() * 100) if not df_view.empty and df_view["confidence"].notna().any() else 0
+        #st.markdown(f"<h3 style='margin:0'>{avg_conf:.0f}%</h3>", unsafe_allow_html=True)
+    #with c3:
+        #st.caption("Competições")
+        #st.markdown(f"<h3 style='margin:0'>{len(set(df_view['league'])) if not df_view.empty else 0}</h3>", unsafe_allow_html=True)
 
-    st.divider()
+    #st.divider()
 
     # ====== Grid de cards ======
     render_grid(df_view.reset_index(drop=True), cols=cols_grid)
