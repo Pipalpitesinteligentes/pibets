@@ -275,9 +275,18 @@ def render_grid(df: pd.DataFrame, cols: int = 3):
     if df.empty:
         st.info("Nenhum jogo encontrado com os filtros.")
         return
+
+    # Ajusta o espaçamento entre linhas de cards
     rows = [df.iloc[i:i+cols] for i in range(0, len(df), cols)]
+
     for chunk in rows:
-        columns = st.columns(len(chunk))
+        # Cria colunas com maior gap horizontal
+        columns = st.columns(len(chunk), gap="large")
         for col, (_, row) in zip(columns, chunk.iterrows()):
             with col:
-                st.markdown(_card_html(row), unsafe_allow_html=True)
+                # Adiciona margem inferior entre os cards
+                st.markdown(
+                    f"<div style='margin-bottom: 25px'>{_card_html(row)}</div>",
+                    unsafe_allow_html=True,
+                )
+
