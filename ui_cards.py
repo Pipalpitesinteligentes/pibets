@@ -90,7 +90,7 @@ def main():
         text-shadow: 0 0 10px rgba(0,245,255,0.8), 0 0 25px rgba(255,45,149,0.4);
         font-weight:800; letter-spacing:0.5px; margin-top:-10px;
     ">
-        ⚡ IA de Palpites em Tempo Real 💡
+        ⚡ I.A Palpites em Tempo Real
     </h2>
     """, unsafe_allow_html=True)
 
