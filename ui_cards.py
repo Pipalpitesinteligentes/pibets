@@ -4,11 +4,9 @@ from datetime import datetime
 from typing import List, Dict, Any
 from zoneinfo import ZoneInfo
 
-
 # ================================================================
 # ==== FUNÇÃO PRINCIPAL (main) – cards integrados ao app principal ====
 # ================================================================
-
 
 def main():
 st.set_page_config(page_title="Palpites Inteligentes - Cards", layout="wide")
