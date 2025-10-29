@@ -288,5 +288,5 @@ def render_grid(df: pd.DataFrame, cols: int = 3):
                 st.markdown(
                     f"<div style='margin-bottom: 25px'>{_card_html(row)}</div>",
                     unsafe_allow_html=True,
-                )
+)
 
