@@ -7,29 +7,130 @@ from typing import List, Dict, Any
 # ================= CSS =================
 CARD_CSS = """
 <style>
-:root { --card-bg:#0e1117; --card-border:#1f2937; --chip-bg:#111827; --chip-txt:#e5e7eb; --brand:#fde047; }
-.card{background:var(--card-bg);border:1px solid var(--card-border);border-radius:16px;padding:16px;
-      box-shadow:0 6px 18px rgba(0,0,0,.25);transition:transform .12s, box-shadow .12s;height:100%}
-.card:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(0,0,0,.35)}
-.card-header{display:flex;align-items:center;gap:12px;margin-bottom:8px}
-.badge{font-size:12px;padding:4px 8px;border-radius:999px;border:1px solid #374151;background:#111827;color:#e5e7eb}
-.kickoff{font-size:12px;color:#9ca3af}
-.teams{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:6px 0 10px}
-.team{display:flex;align-items:center;gap:8px;min-width:0}
-.logo{width:28px;height:28px;border-radius:50%;background:#1f2937;display:flex;align-items:center;justify-content:center;
-      font-size:12px;color:#e5e7eb;border:1px solid #374151}
-.team-name{font-weight:600;color:#e5e7eb;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pred{margin-top:6px}
-.pred-row{display:flex;align-items:center;justify-content:space-between;font-size:12px;color:#e5e7eb}
-.progress{width:100%;height:7px;background:#111827;border-radius:999px;overflow:hidden;margin:6px 0 2px;border:1px solid #1f2937}
-.bar{height:100%;background:linear-gradient(90deg,#fde047,#22c55e)}
-.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
-.chip{background:var(--chip-bg);color:var(--chip-txt);border:1px solid #374151;border-radius:12px;padding:4px 8px;font-size:12px}
-.chip strong{color:#fde047}
-.footer{display:flex;justify-content:space-between;align-items:center;margin-top:12px}
-.action{font-size:12px;color:#111827;background:var(--brand);border:none;padding:8px 10px;border-radius:10px;cursor:pointer;font-weight:700}
-.action:hover{filter:brightness(.95)}
-.block-container{padding-top:1.5rem}
+/* ======= NEON FUTURISTA THEME ======= */
+:root {
+  --bg-app: #050914;
+  --text: #e6f6ff;
+  --muted: #9fb4c8;
+
+  --neon-cyan: #00f5ff;
+  --neon-pink: #ff2d95;
+  --neon-violet: #9a6bff;
+  --neon-lime: #b6ff00;
+
+  --card-bg: #0b1020;
+  --card-grad-a: rgba(0,245,255,0.08);
+  --card-grad-b: rgba(154,107,255,0.06);
+  --card-border: rgba(0,245,255,0.25);
+
+  --chip-bg: rgba(10, 14, 30, 0.75);
+  --chip-border: rgba(0,245,255,0.25);
+
+  --glow-strong: 0 0 16px rgba(0,245,255,0.55), 0 0 42px rgba(255,45,149,0.25);
+  --glow-soft:  0 0 12px rgba(154,107,255,0.35);
+  --shadow-card: 0 10px 30px rgba(0,0,0,0.45);
+}
+
+/* Fundo geral do app (pode sobrepor o HIDE_TOOLBAR do app.py) */
+.stApp { background: radial-gradient(1200px 600px at 20% -10%, rgba(0,245,255,0.06), transparent 50%),
+                         radial-gradient(900px 500px at 120% 10%, rgba(255,45,149,0.05), transparent 55%),
+                         var(--bg-app) !important; }
+h1, h2, h3, p, .stMarkdown { color: var(--text); }
+
+/* ======= Card ======= */
+.card {
+  background:
+    linear-gradient(180deg, var(--card-grad-a), var(--card-grad-b)),
+    var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 18px;
+  padding: 18px;
+  box-shadow: var(--shadow-card);
+  transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+.card::after {
+  content: "";
+  position: absolute; inset: -1px;
+  border-radius: 18px;
+  pointer-events: none;
+  box-shadow: inset 0 0 22px rgba(0,245,255,0.08);
+}
+.card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255,45,149,0.45);
+  box-shadow: var(--shadow-card), 0 0 22px rgba(0,245,255,0.18);
+}
+
+/* ======= Header do card ======= */
+.card-header { display:flex; align-items:center; gap:10px; margin-bottom:6px; }
+.badge {
+  font-size:12px; padding:4px 10px; border-radius:999px;
+  border:1px solid var(--chip-border);
+  background: linear-gradient(90deg, rgba(0,245,255,0.10), rgba(154,107,255,0.08));
+  color: var(--text);
+  text-shadow: 0 0 6px rgba(0,245,255,0.35);
+}
+.kickoff { font-size:12px; color: var(--muted); }
+
+/* ======= Times ======= */
+.teams { display:flex; align-items:center; justify-content:space-between; gap:12px; margin:8px 0 12px; }
+.team { display:flex; align-items:center; gap:10px; min-width:0; }
+.logo {
+  width:30px; height:30px; border-radius:50%;
+  background: radial-gradient(circle at 30% 30%, rgba(0,245,255,0.25), rgba(0,0,0,0.35));
+  border:1px solid rgba(0,245,255,0.35);
+  display:flex; align-items:center; justify-content:center;
+  font-size:12px; color:#dffcff; letter-spacing:.5px;
+  box-shadow: var(--glow-soft);
+}
+.team-name { font-weight:700; color: var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+/* ======= Chips / métricas ======= */
+.chips { display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
+.chip {
+  background: var(--chip-bg);
+  color: var(--text);
+  border: 1px solid var(--chip-border);
+  border-radius: 12px;
+  padding: 5px 10px;
+  font-size: 12px;
+  backdrop-filter: blur(6px);
+  box-shadow: 0 0 0 0 rgba(0,0,0,0);
+  transition: box-shadow .15s ease, transform .12s ease;
+}
+.chip strong { color: var(--neon-cyan); text-shadow: 0 0 8px rgba(0,245,255,0.6); }
+.chip:hover { transform: translateY(-1px); box-shadow: var(--glow-soft); }
+
+/* ======= Barras de probabilidade ======= */
+.pred { margin-top:8px; }
+.pred-row{ display:flex; align-items:center; justify-content:space-between; font-size:12px; color: var(--text); }
+.progress{
+  width:100%; height:8px; background:rgba(0,245,255,0.08);
+  border-radius:999px; overflow:hidden; margin:6px 0 2px;
+  border:1px solid rgba(0,245,255,0.25);
+}
+.bar{
+  height:100%;
+  background: linear-gradient(90deg, var(--neon-cyan), var(--neon-violet), var(--neon-pink));
+  box-shadow: 0 0 18px rgba(0,245,255,0.55);
+}
+
+/* ======= Rodapé / botão ======= */
+.footer{ display:flex; justify-content:space-between; align-items:center; margin-top:14px; }
+.action{
+  font-size:12px; color:#0b1020; font-weight:800; letter-spacing:.2px;
+  background: linear-gradient(90deg, var(--neon-cyan), var(--neon-pink));
+  border:none; padding:9px 12px; border-radius:12px; cursor:pointer;
+  box-shadow: var(--glow-strong);
+  transition: transform .1s ease, filter .15s ease, box-shadow .15s ease;
+}
+.action:hover{ transform: translateY(-1px); filter:brightness(1.05); box-shadow: var(--glow-strong), 0 0 30px rgba(154,107,255,0.25); }
+
+/* ======= Ajustes gerais ======= */
+.block-container{ padding-top: 1.2rem; }
 </style>
 """
 
