@@ -18,7 +18,6 @@ from sheets_reader import read_palpites_from_sheets
 import hmac
 import hashlib
 import guard_gsheet as guard
-import ui_cards  # o nome do arquivo que você salvar
 
 # Coloque essas linhas no escopo global do app.py, antes de qualquer função.
 LOGO_CYAN = "#00FFFF" 
@@ -650,6 +649,7 @@ if is_admin:
 # ====================================================================
 # FIM do app_merged.py
 # ====================================================================
+
 
 
 
