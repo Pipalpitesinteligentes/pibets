@@ -67,7 +67,6 @@ if getp("key") == APP_INTERNAL_KEY:
 
 # ======================== Config visual / CSS ========================
 st.set_page_config(page_title="Palpite Inteligente", page_icon="⚽", layout="wide")
-st.set_page_config(page_title="Palpite Inteligente", page_icon="⚽", layout="wide", initial_sidebar_state="expanded")
 HIDE_TOOLBAR = """
 <style>
 /* Toolbar e rodapé */
@@ -272,6 +271,7 @@ if is_admin:
             st.info("Envie este código ao assinante.")
 
 # ======================== FIM ========================
+
 
 
 
