@@ -17,8 +17,6 @@ from typing import Optional
 from sheets_reader import read_palpites_from_sheets
 import guard_gsheet as guard
 from guard_gsheet import require_login, issue_token
-
-# ⬇️ layout moderno em cards
 import ui_cards
 
 # ======================== Globais ========================
@@ -273,3 +271,4 @@ if is_admin:
             st.info("Envie este código ao assinante.")
 
 # ======================== FIM ========================
+
