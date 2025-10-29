@@ -289,8 +289,6 @@ def get_upcoming_fixtures(league_id: int | None = None, days: int = 7, season: i
     fixtures.sort(key=lambda x: x["kickoff_local"])
     return fixtures
 
-      if menu_option == "📊 Palpites":
-         ui_cards.main()
 # ====================================================================
 # ==== 1. FUNÇÕES DE CONTEÚDO (Implementando a lógica dentro) ====
 # ====================================================================
@@ -333,6 +331,9 @@ def mostrar_jogos_e_palpites():
     if df_palpites.empty:
         st.info("Nenhum palpite disponível no momento.")
         return
+        
+    if menu_option == "📊 Palpites":
+       ui_cards.main()
         
     #st.subheader(f"Selecione um Jogo")
 
@@ -651,6 +652,7 @@ if is_admin:
 # ====================================================================
 # FIM do app_merged.py
 # ====================================================================
+
 
 
 
