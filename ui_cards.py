@@ -1,43 +1,23 @@
-# ui_cards.py
+# ui_cards.py – versão corrigida (com main() e filtros inline/sidebar)
 import streamlit as st
 import pandas as pd
 from typing import List, Dict, Any
 
-# Importa os helpers (CSS, render e adaptadores)
 from ui_cards_helpers import (
     build_records_from_df,
     fetch_matches_api_football,
     to_df,
     render_grid,
     CARD_CSS,
-    # get_upcoming_fixtures,  # use se for mesclar fixtures da API-Football
+    # get_upcoming_fixtures,  # use se quiser mesclar fixtures da API
 )
 
-def main():
-    # NÃO chame st.set_page_config aqui (já é chamado no app.py)
-    st.markdown(CARD_CSS, unsafe_allow_html=True)
-        
-    # ===================== FONTES DE DADOS =====================
-    records: List[Dict[str, Any]] = []
-
-    # Pega do session_state (df_palpites) e adapta para cards
-    if 'df_palpites' in st.session_state and isinstance(st.session_state.df_palpites, pd.DataFrame):
-        records = build_records_from_df(st.session_state.df_palpites)
-
-    # ⚙️ OPCIONAL: Mesclar jogos futuros via API-Football
-    # fixtures = get_upcoming_fixtures(league_id=None, days=7)
-    # records += fetch_matches_api_football(fixtures)
-
-    df = to_df(records)
-
-    # ===================== SIDEBAR =====================
-# ===================== FILTROS (inline OU sidebar) =====================
+# -------------------- Bloco dos filtros (inline OU sidebar) --------------------
 def _filters_block(df: pd.DataFrame):
-    # Estado padrão: inline (aparece um expander no topo)
     if "filters_place" not in st.session_state:
-        st.session_state["filters_place"] = "inline"   # "inline" | "sidebar"
+        st.session_state["filters_place"] = "inline"  # "inline" | "sidebar"
 
-    # Barra de controle para escolher onde renderizar
+    # Barra de controle: onde exibir
     top_left, top_right = st.columns([1, 1])
     with top_right:
         place = st.radio(
@@ -49,7 +29,7 @@ def _filters_block(df: pd.DataFrame):
         )
         st.session_state["filters_place"] = place
 
-    # Valores padrão seguros
+    # Defaults
     if not df.empty:
         min_date, max_date = df["date"].min(), df["date"].max()
         leagues = sorted(df["league"].dropna().unique())
@@ -60,7 +40,6 @@ def _filters_block(df: pd.DataFrame):
         min_date = max_date = date.today()
         leagues, rounds, statuses = [], [], []
 
-    # UI real dos filtros, reaproveitada para inline ou sidebar:
     def _render_controls(container):
         with container:
             if st.session_state["filters_place"] == "sidebar":
@@ -81,23 +60,47 @@ def _filters_block(df: pd.DataFrame):
             return date_from, date_to, selected_leagues, selected_round, selected_status, query, cols_grid
 
     if st.session_state["filters_place"] == "sidebar":
-        # Mesmo que a sidebar esteja colapsada, os filtros continuam lá. Para iniciar aberta:
-        # no app.py use: st.set_page_config(..., initial_sidebar_state="expanded")
         date_from, date_to, selected_leagues, selected_round, selected_status, query, cols_grid = _render_controls(st.sidebar)
     else:
-        # Inline: um expander bonito no topo
         with st.expander("🔎 Filtros", expanded=True):
             date_from, date_to, selected_leagues, selected_round, selected_status, query, cols_grid = _render_controls(st.container())
 
     return date_from, date_to, selected_leagues, selected_round, selected_status, query, cols_grid
 
-# Chame a função e receba os filtros
-date_from, date_to, selected_leagues, selected_round, selected_status, query, cols_grid = _filters_block(df)
+# -------------------- Função principal --------------------
+def main():
+    # CSS Neon
+    st.markdown(CARD_CSS, unsafe_allow_html=True)
 
-    # ===================== FILTROS =====================
+    # ====== Dados → records → df ======
+    records: List[Dict[str, Any]] = []
+    if 'df_palpites' in st.session_state and isinstance(st.session_state.df_palpites, pd.DataFrame):
+        records = build_records_from_df(st.session_state.df_palpites)
+
+    # Opcional: mesclar fixtures da API-Football
+    # fixtures = get_upcoming_fixtures(league_id=None, days=7)
+    # records += fetch_matches_api_football(fixtures)
+
+    df = to_df(records)
+
+    # ====== Título ======
+    st.markdown("""
+    <h2 style="
+        color:#00f5ff;
+        text-shadow: 0 0 10px rgba(0,245,255,0.8), 0 0 25px rgba(255,45,149,0.4);
+        font-weight:800; letter-spacing:0.5px; margin-top:-10px;
+    ">
+        ⚡ IA de Palpites em Tempo Real 💡
+    </h2>
+    """, unsafe_allow_html=True)
+
+    # ====== Filtros (inline ou sidebar) ======
+    (date_from, date_to, selected_leagues, selected_round,
+     selected_status, query, cols_grid) = _filters_block(df)
+
+    # ====== Aplicação dos filtros ======
     if not df.empty:
         mask = (df["date"] >= date_from) & (df["date"] <= date_to)
-
         if selected_leagues:
             mask &= df["league"].isin(selected_leagues)
         if selected_round != "Todas":
@@ -107,44 +110,24 @@ date_from, date_to, selected_leagues, selected_round, selected_status, query, co
         if query:
             q = query.lower()
             mask &= df.apply(lambda r: q in str(r.to_dict()).lower(), axis=1)
-
         df_view = df[mask]
     else:
         df_view = df
 
-    # ===================== CABEÇALHO =====================
-    st.markdown("""
-<h2 style="
-    color:#00f5ff;
-    text-shadow: 0 0 10px rgba(0,245,255,0.8), 0 0 25px rgba(255,45,149,0.4);
-    font-weight:800;
-    letter-spacing:0.5px;
-    margin-top: -10px;
-">
-    ⚡ IA de Palpites em Tempo Real 
-</h2>
-""", unsafe_allow_html=True)
-    #st.caption("Visual em cards integrando df_palpites (e opcionalmente fixtures da API-Football).")
-
+    # ====== Métricas ======
     c1, c2, c3 = st.columns(3)
     with c1:
-        st.metric("Jogos listados", len(df_view))
+        st.caption("Jogos listados")
+        st.markdown(f"<h3 style='margin:0'>{len(df_view)}</h3>", unsafe_allow_html=True)
     with c2:
+        st.caption("Confiança média")
         avg_conf = (df_view["confidence"].mean() * 100) if not df_view.empty and df_view["confidence"].notna().any() else 0
-        st.metric("Confiança média", f"{avg_conf:.0f}%")
+        st.markdown(f"<h3 style='margin:0'>{avg_conf:.0f}%</h3>", unsafe_allow_html=True)
     with c3:
-        st.metric("Competições", len(set(df_view["league"])) if not df_view.empty else 0)
+        st.caption("Competições")
+        st.markdown(f"<h3 style='margin:0'>{len(set(df_view['league'])) if not df_view.empty else 0}</h3>", unsafe_allow_html=True)
 
     st.divider()
 
-    # ===================== RENDERIZA CARDS =====================
+    # ====== Grid de cards ======
     render_grid(df_view.reset_index(drop=True), cols=cols_grid)
-
-    #with st.expander("Como integrar com sua API"):
-        #st.markdown(
-            #"""
-            #1. O app lê `st.session_state.df_palpites`.
-            #2. `build_records_from_df()` transforma o DF no formato dos cards.
-            #3. Para adicionar fixtures futuros, use `fetch_matches_api_football()` após obter `get_upcoming_fixtures()`.
-            #"""
-        #)
