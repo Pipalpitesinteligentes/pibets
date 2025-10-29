@@ -275,10 +275,21 @@ def render_grid(df: pd.DataFrame, cols: int = 3):
     if df.empty:
         st.info("Nenhum jogo encontrado com os filtros.")
         return
+
     rows = [df.iloc[i:i+cols] for i in range(0, len(df), cols)]
+
     for chunk in rows:
-        columns = st.columns(len(chunk))
+        columns = st.columns(len(chunk), gap="large")
         for col, (_, row) in zip(columns, chunk.iterrows()):
             with col:
-                st.markdown(_card_html(row), unsafe_allow_html=True)
+                # Renderiza o HTML do card corretamente (sem escapar o HTML)
+                html = _card_html(row)
+                if isinstance(html, str):
+                    st.markdown(
+                        f"<div style='margin-bottom: 25px'>{html}</div>",
+                        unsafe_allow_html=True
+                    )
+                else:
+                    st.error("Erro ao renderizar card (retorno inválido de _card_html).")
+
 
