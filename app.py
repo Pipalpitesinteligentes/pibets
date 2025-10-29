@@ -379,7 +379,7 @@ def mostrar_jogos_e_palpites():
             # Linha divisória para separar visualmente do resto
             st.markdown("---") 
 
-             2. Data/Hora (Com ênfase)
+             #2. Data/Hora (Com ênfase)
             data_col = palpite_selecionado.get('Data/Hora') or palpite_selecionado.get('Data_Hora')
             if pd.notna(data_col):
                 try:
@@ -650,6 +650,7 @@ if is_admin:
 # ====================================================================
 # FIM do app_merged.py
 # ====================================================================
+
 
 
 
