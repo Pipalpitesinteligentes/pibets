@@ -78,7 +78,7 @@ def main():
 
     # ===================== CABEÇALHO =====================
     st.markdown("# ⚽ Palpites Inteligentes – Grade de Jogos")
-    st.caption("Visual em cards integrando df_palpites (e opcionalmente fixtures da API-Football).")
+    #st.caption("Visual em cards integrando df_palpites (e opcionalmente fixtures da API-Football).")
 
     c1, c2, c3 = st.columns(3)
     with c1:
