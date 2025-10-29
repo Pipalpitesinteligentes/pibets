@@ -31,32 +31,68 @@ def main():
     df = to_df(records)
 
     # ===================== SIDEBAR =====================
-    with st.sidebar:
-        st.header("Filtros")
-        if not df.empty:
-            min_date, max_date = df["date"].min(), df["date"].max()
-        else:
-            from datetime import date
-            today = date.today()
-            min_date = max_date = today
+# ===================== FILTROS (inline OU sidebar) =====================
+def _filters_block(df: pd.DataFrame):
+    # Estado padrão: inline (aparece um expander no topo)
+    if "filters_place" not in st.session_state:
+        st.session_state["filters_place"] = "inline"   # "inline" | "sidebar"
 
-        c1, c2 = st.columns(2)
-        with c1:
-            date_from = st.date_input("De", value=min_date)
-        with c2:
-            date_to = st.date_input("Até", value=max_date)
+    # Barra de controle para escolher onde renderizar
+    top_left, top_right = st.columns([1, 1])
+    with top_right:
+        place = st.radio(
+            "Exibir filtros em:",
+            options=["inline", "sidebar"],
+            index=0 if st.session_state["filters_place"] == "inline" else 1,
+            horizontal=True,
+            format_func=lambda x: "Aqui na página" if x == "inline" else "Menu lateral",
+        )
+        st.session_state["filters_place"] = place
 
-        leagues = sorted(df["league"].dropna().unique()) if not df.empty else []
-        selected_leagues = st.multiselect("Competições", leagues, default=leagues)
+    # Valores padrão seguros
+    if not df.empty:
+        min_date, max_date = df["date"].min(), df["date"].max()
+        leagues = sorted(df["league"].dropna().unique())
+        rounds = sorted([r for r in df["round"].dropna().unique()])
+        statuses = sorted(df["status"].dropna().unique())
+    else:
+        from datetime import date
+        min_date = max_date = date.today()
+        leagues, rounds, statuses = [], [], []
 
-        rounds = sorted([r for r in df["round"].dropna().unique()]) if not df.empty else []
-        selected_round = st.selectbox("Rodada", ["Todas"] + [str(x) for x in rounds])
+    # UI real dos filtros, reaproveitada para inline ou sidebar:
+    def _render_controls(container):
+        with container:
+            if st.session_state["filters_place"] == "sidebar":
+                st.header("Filtros")
 
-        status_opts = sorted(df["status"].dropna().unique()) if not df.empty else []
-        selected_status = st.multiselect("Status", status_opts, default=status_opts)
+            c1, c2 = st.columns(2)
+            with c1:
+                date_from = st.date_input("De", value=min_date, key="flt_date_from")
+            with c2:
+                date_to = st.date_input("Até", value=max_date, key="flt_date_to")
 
-        query = st.text_input("Buscar (time/mercado)")
-        cols_grid = st.slider("# de colunas", 2, 4, 3)
+            selected_leagues = st.multiselect("Competições", leagues, default=leagues, key="flt_leagues")
+            selected_round = st.selectbox("Rodada", ["Todas"] + [str(x) for x in rounds], key="flt_round")
+            selected_status = st.multiselect("Status", statuses, default=statuses, key="flt_status")
+            query = st.text_input("Buscar (time/mercado)", key="flt_query")
+            cols_grid = st.slider("# de colunas", 2, 4, 3, key="flt_cols")
+
+            return date_from, date_to, selected_leagues, selected_round, selected_status, query, cols_grid
+
+    if st.session_state["filters_place"] == "sidebar":
+        # Mesmo que a sidebar esteja colapsada, os filtros continuam lá. Para iniciar aberta:
+        # no app.py use: st.set_page_config(..., initial_sidebar_state="expanded")
+        date_from, date_to, selected_leagues, selected_round, selected_status, query, cols_grid = _render_controls(st.sidebar)
+    else:
+        # Inline: um expander bonito no topo
+        with st.expander("🔎 Filtros", expanded=True):
+            date_from, date_to, selected_leagues, selected_round, selected_status, query, cols_grid = _render_controls(st.container())
+
+    return date_from, date_to, selected_leagues, selected_round, selected_status, query, cols_grid
+
+# Chame a função e receba os filtros
+date_from, date_to, selected_leagues, selected_round, selected_status, query, cols_grid = _filters_block(df)
 
     # ===================== FILTROS =====================
     if not df.empty:
