@@ -1,4 +1,8 @@
 # app.py (corrigido)
+st.markdown("Use esta ferramenta para determinar a entrada ideal (Stake) com base na sua banca total e na confiança do palpite.")
+st.markdown("---")
+banca_total = st.number_input("💰 1. Sua Banca Total (R$):", min_value=10.0, step=50.0, format="%.2f", value=st.session_state.get('banca_total_stake', 1000.0), key="banca_total_input")
+st.session_state['banca_total_stake'] = banca_total
 confianca_palpite = st.slider("📈 2. Confiança do Palpite (em %):", min_value=50, max_value=100, step=1, value=85)
 risco_max_percent = st.slider("⚠️ 3. Risco Máximo por Aposta (Unidade) - % da Banca:", min_value=0.5, max_value=5.0, step=0.5, value=2.0, format="%.1f%%")
 valor_max_risco = banca_total * (risco_max_percent / 100.0)
