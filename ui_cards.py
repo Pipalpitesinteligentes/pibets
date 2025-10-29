@@ -16,7 +16,16 @@ from ui_cards_helpers import (
 def main():
     # NÃO chame st.set_page_config aqui (já é chamado no app.py)
     st.markdown(CARD_CSS, unsafe_allow_html=True)
+    if "show_sidebar" not in st.session_state:
+    st.session_state.show_sidebar = True
 
+toggle = st.toggle("🔧 Mostrar filtros", value=st.session_state.show_sidebar)
+st.session_state.show_sidebar = toggle
+
+if st.session_state.show_sidebar:
+    with st.sidebar:
+        st.header("Filtros")
+        
     # ===================== FONTES DE DADOS =====================
     records: List[Dict[str, Any]] = []
 
