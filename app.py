@@ -53,11 +53,11 @@ SHEET_NAME_PALPITES = "nova-tentativa"
 # ----------------------------------------------------------------------------------
 # Topo robusto / endpoints utilitários
 try:
-_qp = st.query_params
-getp = _qp.get
+    _qp = st.query_params
+    getp = _qp.get
 except Exception:
-_qp = st.experimental_get_query_params()
-getp = lambda k, d=None: (_qp.get(k, [d]) or [d])[0]
+    _qp = st.experimental_get_query_params()
+    getp = lambda k, d=None: (_qp.get(k, [d]) or [d])[0]
 
 
 if getp("health") == "1":
@@ -101,5 +101,6 @@ h1, h2, h3, p, .stMarkdown { color: white; }
 }
 """
 # ================================== FIM ================================== #
+
 
 
