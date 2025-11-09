@@ -266,7 +266,7 @@ def _card_html(row: pd.Series) -> str:
         <div class="chips">{chips}</div>
         <div class="footer">
           <small class="kickoff">Melhor aposta: {row.get('Melhor Aposta','')}</small>
-          <a href="https://seulinkdeafiliado.com" target="_blank" class="action">Detalhes</a>
+          <a href="https://pinbet.bet/cadastro?ref=_jetbet_Lsesportes&c=ia1" target="_blank" class="action">Detalhes</a>
         </div>
       </div>
     """
