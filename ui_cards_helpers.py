@@ -121,7 +121,7 @@ h1, h2, h3, p, .stMarkdown { color: var(--text); }
 /* ======= Rodapé / botão ======= */
 .footer{ display:flex; justify-content:space-between; align-items:center; margin-top:14px; }
 .action{
-  font-size:12px; color:#003355; font-weight:800; letter-spacing:.2px;
+  font-size:12px; color:#001c33; font-weight:800; letter-spacing:.2px;
   background: linear-gradient(90deg, var(--neon-cyan), var(--neon-pink));
   border:none; padding:9px 12px; border-radius:12px; cursor:pointer;
   box-shadow: var(--glow-strong);
@@ -265,7 +265,7 @@ def _card_html(row: pd.Series) -> str:
         {probs_html}
         <div class="chips">{chips}</div>
         <div class="footer">
-          <small class="kickoff">Melhor aposta: {row.get('Melhor Aposta','')}</small>
+          <small class="kickoff">Melhor aposta: {row.get('Palpite','N/D')}</small>
           <a href="https://pinbet.bet/cadastro?ref=_jetbet_Lsesportes&c=ia1" target="_blank" class="action">Bilhete</a>
         </div>
       </div>
