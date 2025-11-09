@@ -120,14 +120,28 @@ h1, h2, h3, p, .stMarkdown { color: var(--text); }
 
 /* ======= Rodapé / botão ======= */
 .footer{ display:flex; justify-content:space-between; align-items:center; margin-top:14px; }
-.action{
-  font-size:12px; color:#001c33; font-weight:800; letter-spacing:.2px;
+
+/* aplica à âncora e evita que :link / :visited sobrescrevam a cor */
+.action, .action:link, .action:visited{
+  font-size:12px; 
+  color:#003355 !important;   /* azul-escuro legível */
+  font-weight:800; 
+  letter-spacing:.2px;
   background: linear-gradient(90deg, var(--neon-cyan), var(--neon-pink));
-  border:none; padding:9px 12px; border-radius:12px; cursor:pointer;
+  border:none; 
+  padding:9px 12px; 
+  border-radius:12px; 
+  cursor:pointer;
   box-shadow: var(--glow-strong);
-  transition: transform .1s ease, filter .15s ease, box-shadow .15s ease;
+  transition: transform .1s ease, filter .15s ease, box-shadow .15s ease, color .15s ease;
 }
-.action:hover{ transform: translateY(-1px); filter:brightness(1.05); box-shadow: var(--glow-strong), 0 0 30px rgba(154,107,255,0.25); }
+
+.action:hover{
+  transform: translateY(-1px); 
+  filter:brightness(1.05); 
+  box-shadow: var(--glow-strong), 0 0 30px rgba(154,107,255,0.25);
+  color:#001a2a !important;   /* um pouco mais escuro no hover */
+}
 
 /* ======= Ajustes gerais ======= */
 .block-container{ padding-top: 1.2rem; }
@@ -265,8 +279,8 @@ def _card_html(row: pd.Series) -> str:
         {probs_html}
         <div class="chips">{chips}</div>
         <div class="footer">
-          <small class="kickoff">Melhor aposta: {row.get('Palpite','')}</small>
-          <a href="https://pinbet.bet/cadastro?ref=_jetbet_Lsesportes&c=ia1" target="_blank" class="action">Bilhete</a>
+          <small class="kickoff">Melhor aposta: <strong>{row.get('Palpite','N/D')}</strong></small>
+          <a href="https://pinbet.bet/cadastro?ref=_jetbet_Lsesportes&c=ia1" target="_blank" class="action">Bilhete ↗️</a>
         </div>
       </div>
     """
