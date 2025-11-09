@@ -121,7 +121,7 @@ h1, h2, h3, p, .stMarkdown { color: var(--text); }
 /* ======= Rodapé / botão ======= */
 .footer{ display:flex; justify-content:space-between; align-items:center; margin-top:14px; }
 .action{
-  font-size:12px; color:#0b1020; font-weight:800; letter-spacing:.2px;
+  font-size:12px; color:#003355; font-weight:800; letter-spacing:.2px;
   background: linear-gradient(90deg, var(--neon-cyan), var(--neon-pink));
   border:none; padding:9px 12px; border-radius:12px; cursor:pointer;
   box-shadow: var(--glow-strong);
