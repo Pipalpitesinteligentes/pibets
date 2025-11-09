@@ -279,7 +279,7 @@ def _card_html(row: pd.Series) -> str:
         {probs_html}
         <div class="chips">{chips}</div>
         <div class="footer">
-          <small class="kickoff">Melhor aposta: <strong>{row.get('Palpite','N/D')}</strong></small>
+          <small class="kickoff">Melhor aposta: <strong>{row.get('best_bet') or row.get('Palpite') or 'N/D'}</strong></small>
           <a href="https://pinbet.bet/cadastro?ref=_jetbet_Lsesportes&c=ia1" target="_blank" class="action">Bilhete </a>
         </div>
       </div>
