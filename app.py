@@ -252,7 +252,7 @@ with _tab_jogos:
     st.markdown("## ⚽ Palpites Prontos")
 
     # Envia o estado pro layout
-    ui_cards.main(show_ticket=st.session_state.show_ticket)
+    ui_cards.main()
 
 with _tab_banca:
     mostrar_banca()
@@ -277,6 +277,7 @@ if is_admin:
             st.info("Envie este código ao assinante.")
 
 # ======================== FIM ========================
+
 
 
 
