@@ -1,4 +1,4 @@
-# ui_cards.py – REESCRITO (com show_ticket + filtros inline/sidebar + ocultar “miolo”)
+# ui_cards.py – (REESCRITO e COMPATÍVEL com toggle por card no helpers)
 import streamlit as st
 import pandas as pd
 from typing import List, Dict, Any, Tuple
@@ -65,48 +65,8 @@ def _filters_block(df: pd.DataFrame) -> Tuple:
             return _render_controls(st.container())
 
 
-# -------------------- Ocultar só o “miolo” (bilhete/mercado/odd etc.) --------------------
-def _apply_ticket_visibility(df_in: pd.DataFrame, show_ticket: bool) -> pd.DataFrame:
-    """
-    Mantém o título do jogo visível e só “mascara” campos sensíveis do bilhete.
-    Não quebra mesmo se as colunas não existirem.
-    """
-    if df_in is None or df_in.empty:
-        return df_in
-
-    df = df_in.copy()
-
-    # Campos que normalmente representam o “miolo” do card (aposta / mercado / odd / confiança / stake etc.)
-    # (a gente NÃO mexe em time/data/liga/rodada/status)
-    SENSITIVE_COLS = [
-        # palpite/bilhete
-        "best_bet", "melhor_palpite", "palpite", "bilhete", "aposta", "pick", "tip", "bet",
-        # mercado/linha
-        "market", "mercado", "linha", "line",
-        # odds
-        "odd", "odds",
-        # confiança/prob
-        "confidence", "confianca", "prob", "probabilidade",
-        # stake/entrada
-        "stake", "entrada",
-        # extras comuns
-        "reason", "rationale", "motivo", "explicacao", "explanation",
-    ]
-
-    if show_ticket:
-        return df
-
-    placeholder = "🔒 Oculto — clique em VER BILHETE"
-
-    for col in SENSITIVE_COLS:
-        if col in df.columns:
-            df[col] = placeholder
-
-    return df
-
-
 # -------------------- Função principal --------------------
-def main(show_ticket: bool = False):
+def main():
     # CSS Neon
     st.markdown(CARD_CSS, unsafe_allow_html=True)
 
@@ -120,6 +80,8 @@ def main(show_ticket: bool = False):
         records = []
 
     # Opcional: mesclar fixtures da API-Football (se você usar)
+    # Ex.: records += fetch_matches_api_football(fixtures)
+    # (mantive aqui para você ativar depois)
     # try:
     #     fixtures = get_upcoming_fixtures(league_id=None, days=7)
     #     records += fetch_matches_api_football(fixtures)
@@ -142,7 +104,7 @@ def main(show_ticket: bool = False):
         unsafe_allow_html=True,
     )
 
-    # ====== Filtros (inline ou sidebar) ======
+    # ====== Filtros ======
     (date_from, date_to, selected_leagues, selected_round,
      selected_status, query, cols_grid) = _filters_block(df)
 
@@ -178,9 +140,9 @@ def main(show_ticket: bool = False):
             st.warning(f"Falha ao aplicar filtros (mostrando tudo): {e}")
             df_view = df
 
-    # ====== Ocultar/mostrar só o “miolo” ======
+    # ====== Renderização ======
+    # IMPORTANTE:
+    # NÃO existe show_ticket aqui.
+    # O "Ver bilhete / Ocultar" é por card e está dentro do render_grid (helpers).
     df_grid = df_view.reset_index(drop=True)
-    df_grid = _apply_ticket_visibility(df_grid, show_ticket=show_ticket)
-
-    # ====== Grid de cards ======
-    render_grid(df_grid, cols=cols_grid)
+    render_grid(df_grid, cols=int(cols_grid))
