@@ -143,7 +143,9 @@ if not show_ticket and not df_grid.empty:
     for col in possible_ticket_cols:
         if col in df_grid.columns:
             df_grid[col] = "🔒 Bilhete oculto (clique em VER BILHETE)"
-            
+
+st.write("COLUNAS DO CARD:", list(df_view.columns))
+
 # ====== Grid de cards ======
 df_grid = df_view.reset_index(drop=True).copy()
 
