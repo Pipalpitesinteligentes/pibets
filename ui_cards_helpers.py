@@ -2,6 +2,7 @@
 from __future__ import annotations
 import streamlit as st
 import pandas as pd
+import hashlib
 from typing import List, Dict, Any
 
 # ================= CSS =================
@@ -285,14 +286,43 @@ def _card_html(row: pd.Series) -> str:
       </div>
     """
 
+def _make_card_id(row: pd.Series) -> str:
+    # tenta usar fixture_id (melhor), senão monta com data+times
+    base = str(row.get("fixture_id") or "") \
+        + "|" + str(row.get("date") or "") \
+        + "|" + str(row.get("home_team") or row.get("home") or "") \
+        + "|" + str(row.get("away_team") or row.get("away") or "")
+    return hashlib.md5(base.encode("utf-8")).hexdigest()[:12]
+
+
 def render_grid(df: pd.DataFrame, cols: int = 3):
     if df.empty:
         st.info("Nenhum jogo encontrado com os filtros.")
         return
+
+    # estado por card
+    if "ticket_open" not in st.session_state:
+        st.session_state.ticket_open = {}  # dict: {card_id: bool}
+
     rows = [df.iloc[i:i+cols] for i in range(0, len(df), cols)]
     for chunk in rows:
         columns = st.columns(len(chunk))
         for col, (_, row) in zip(columns, chunk.iterrows()):
+            card_id = _make_card_id(row)
+            is_open = st.session_state.ticket_open.get(card_id, False)
+
             with col:
-                st.markdown(_card_html(row), unsafe_allow_html=True)
+                # Botões por card
+                b1, b2 = st.columns([1, 1])
+                with b1:
+                    if st.button("👁️ Ver bilhete", key=f"open_{card_id}", disabled=is_open):
+                        st.session_state.ticket_open[card_id] = True
+                        st.rerun()
+                with b2:
+                    if st.button("🙈 Ocultar", key=f"close_{card_id}", disabled=not is_open):
+                        st.session_state.ticket_open[card_id] = False
+                        st.rerun()
+
+                # Card HTML (título sempre aparece, miolo depende do is_open)
+                st.markdown(_card_html(row, show_ticket=is_open), unsafe_allow_html=True)
 
