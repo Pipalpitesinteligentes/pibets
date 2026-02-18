@@ -8,7 +8,6 @@ import pandas as pd
 import streamlit as st
 
 
-# ================= CSS =================
 CARD_CSS = """
 <style>
 :root {
@@ -41,7 +40,6 @@ CARD_CSS = """
 }
 h1, h2, h3, p, .stMarkdown { color: var(--text); }
 
-/* ======= Card ======= */
 .card{
   background:
     linear-gradient(180deg, var(--card-grad-a), var(--card-grad-b)),
@@ -105,10 +103,11 @@ h1, h2, h3, p, .stMarkdown { color: var(--text); }
   text-decoration:none;
 }
 
-/* ===== Botão toggle (igual ao action Bilhete) ===== */
+/* ===== FORÇA BRUTA: Botão toggle igual ao action, sem afetar o resto ===== */
 .ticket-btn-wrap { display:flex; justify-content:flex-end; margin-top:10px; }
 
-.ticket-btn-wrap div.stButton > button{
+/* Pega qualquer botão do Streamlit dentro do wrapper */
+.ticket-btn-wrap button{
   width: auto !important;
   padding: 9px 12px !important;
   border-radius: 12px !important;
@@ -124,7 +123,7 @@ h1, h2, h3, p, .stMarkdown { color: var(--text); }
   transition: transform .1s ease, filter .15s ease, box-shadow .15s ease !important;
 }
 
-.ticket-btn-wrap div.stButton > button:hover{
+.ticket-btn-wrap button:hover{
   transform: translateY(-1px) !important;
   filter: brightness(1.05) !important;
   box-shadow: var(--glow-strong), 0 0 30px rgba(154,107,255,0.25) !important;
@@ -133,8 +132,6 @@ h1, h2, h3, p, .stMarkdown { color: var(--text); }
 </style>
 """
 
-
-# ============= Adaptadores de dados =============
 TEAM_SPLIT_TOKENS = [" x ", " X ", " vs ", " VS ", " x", " vs"]
 
 
@@ -233,36 +230,7 @@ def build_records_from_df(df: pd.DataFrame) -> List[Dict[str, Any]]:
                 "odds": {"Odd": odd} if odd not in (None, "") else {},
                 "status": "Agendado",
                 "best_bet": r.get("Melhor Palpite", r.get("Palpite", "")),
-                "confidence": (conf / 100.0) if conf is not None else None,  # 0-1
-            }
-        )
-
-    return recs
-
-
-def fetch_matches_api_football(api_fixtures: List[Dict[str, Any]] | None = None) -> List[Dict[str, Any]]:
-    if not api_fixtures:
-        return []
-    recs: List[Dict[str, Any]] = []
-    for f in api_fixtures:
-        try:
-            dt_iso = f.get("kickoff_iso") or pd.to_datetime(f.get("kickoff_local")).isoformat()
-        except Exception:
-            dt_iso = ""
-        recs.append(
-            {
-                "id": f"fx-{f.get('fixture_id')}",
-                "league": f.get("league_name", "—"),
-                "round": f.get("round"),
-                "kickoff": dt_iso,
-                "home": f.get("home_team", "Time A"),
-                "away": f.get("away_team", "Time B"),
-                "pred_label": "—",
-                "pred_probs": {},
-                "odds": {},
-                "status": f.get("status", "NS"),
-                "best_bet": "",
-                "confidence": None,
+                "confidence": (conf / 100.0) if conf is not None else None,
             }
         )
     return recs
@@ -373,11 +341,11 @@ def render_grid(df: pd.DataFrame, cols: int = 3) -> None:
             is_open = st.session_state.ticket_open.get(card_id, False)
 
             with col:
-    st.markdown(_card_html(row, show_ticket=is_open), unsafe_allow_html=True)
+                st.markdown(_card_html(row, show_ticket=is_open), unsafe_allow_html=True)
 
-    st.markdown('<div class="ticket-btn-wrap">', unsafe_allow_html=True)
-    label = "Ocultar" if is_open else "Ver bilhete"
-    if st.button(label, key=f"toggle_{card_id}"):
-        st.session_state.ticket_open[card_id] = not is_open
-        st.rerun()
-    st.markdown('</div>', unsafe_allow_html=True)
+                st.markdown('<div class="ticket-btn-wrap">', unsafe_allow_html=True)
+                label = "Ocultar" if is_open else "Ver bilhete"
+                if st.button(label, key=f"toggle_{card_id}"):
+                    st.session_state.ticket_open[card_id] = not is_open
+                    st.rerun()
+                st.markdown("</div>", unsafe_allow_html=True)
