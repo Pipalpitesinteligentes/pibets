@@ -120,6 +120,8 @@ h1, h2, h3, p, .stMarkdown { color: var(--text); }
   border-color: rgba(255,45,149,0.45) !important;
   box-shadow: 0 0 18px rgba(0,245,255,0.25) !important;
 }
+</style>
+"""
 
 
 # ============= Adaptadores de dados =============
@@ -277,17 +279,22 @@ def _card_html(row: pd.Series, show_ticket: bool = False) -> str:
     kickoff_dt = row.get("kickoff_dt")
     kickoff_fmt = kickoff_dt.strftime("%d/%m/%Y %H:%M") if pd.notna(kickoff_dt) else "-"
 
-    conf_raw = row.get("confidence")
-    conf_float = _safe_float(conf_raw)
-    conf_pct = 0
-    if conf_float is not None:
-        conf_pct = int(round(conf_float * 100)) if conf_float <= 1.0 else int(round(conf_float))
-
     if show_ticket:
         palpite_txt = row.get("pred_label", "-")
-        conf_txt = f"{conf_pct}%"
+
+        conf_float = _safe_float(row.get("confidence"))
+        if conf_float is None:
+            conf_txt = "--"
+        else:
+            conf_pct = int(round(conf_float * 100)) if conf_float <= 1.0 else int(round(conf_float))
+            conf_txt = f"{conf_pct}%"
+
         odds_dict = _ensure_dict(row.get("odds"))
-        chips_odds = "".join([f'<span class="chip"><strong>{k}</strong> {v}</span>' for k, v in odds_dict.items()])
+        odds_dict = {k: v for k, v in odds_dict.items() if v not in (None, "", "—", "-", "nan")}
+        chips_odds = ""
+        if odds_dict:
+            chips_odds = "".join([f'<span class="chip"><strong>{k}</strong> {v}</span>' for k, v in odds_dict.items()])
+
         best_bet_txt = row.get("best_bet") or row.get("pred_label") or "N/D"
         action_html = '<a href="https://pinbet.bet/cadastro?ref=_jetbet_Lsesportes&c=ia1" target="_blank" class="action">Bilhete</a>'
     else:
@@ -295,7 +302,7 @@ def _card_html(row: pd.Series, show_ticket: bool = False) -> str:
         conf_txt = "🔒"
         chips_odds = '<span class="chip"><strong>Odd</strong> 🔒</span>'
         best_bet_txt = "🔒 Oculto"
-        action_html = ""  # pode deixar o link oculto quando fechado
+        action_html = ""
 
     return f"""
       <div class="card">
@@ -328,7 +335,15 @@ def _card_html(row: pd.Series, show_ticket: bool = False) -> str:
 
 
 def _make_card_id(row: pd.Series) -> str:
-    base = str(row.get("id") or "") + "|" + str(row.get("date") or "") + "|" + str(row.get("home") or "") + "|" + str(row.get("away") or "")
+    base = (
+        str(row.get("id") or "")
+        + "|"
+        + str(row.get("date") or "")
+        + "|"
+        + str(row.get("home") or "")
+        + "|"
+        + str(row.get("away") or "")
+    )
     return hashlib.md5(base.encode("utf-8")).hexdigest()[:12]
 
 
@@ -349,7 +364,13 @@ def render_grid(df: pd.DataFrame, cols: int = 3) -> None:
 
             with col:
                 st.markdown(_card_html(row, show_ticket=is_open), unsafe_allow_html=True)
-                label = "🙈 Ocultar" if is_open else "👁️ Ver bilhete"
-                if st.button(label, key=f"toggle_{card_id}"):
-                    st.session_state.ticket_open[card_id] = not is_open
-                    st.rerun()
+
+                # botão pequeno, alinhado à direita
+                left, right = st.columns([3, 1])
+                with right:
+                    st.markdown('<div class="ticket-btn-wrap">', unsafe_allow_html=True)
+                    label = "🙈 Ocultar" if is_open else "👁️ Ver bilhete"
+                    if st.button(label, key=f"toggle_{card_id}"):
+                        st.session_state.ticket_open[card_id] = not is_open
+                        st.rerun()
+                    st.markdown("</div>", unsafe_allow_html=True)
