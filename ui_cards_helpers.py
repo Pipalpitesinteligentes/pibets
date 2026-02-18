@@ -181,7 +181,21 @@ def _safe_float(x) -> float | None:
         return float(s)
     except Exception:
         return None
-
+      
+def _ensure_dict(x):
+    """Garante que x seja dict. Se vier string/número, transforma num dict simples."""
+    if x is None:
+        return {}
+    if isinstance(x, dict):
+        return x
+    # se vier como lista/tupla de pares
+    if isinstance(x, (list, tuple)):
+        try:
+            return dict(x)
+        except Exception:
+            return {}
+    # fallback: vira um campo único
+    return {"Odd": x}
 
 def build_records_from_df(df: pd.DataFrame) -> List[Dict[str, Any]]:
     if df is None or df.empty:
@@ -309,7 +323,10 @@ def _card_html(row, show_ticket: bool = False):
         palpite_txt = row.get("pred_label", "-")
         conf_txt = f"{conf_pct_real}%"
         probs_html = "".join(_prob_bar_html(k, float(v)) for k, v in (row.get("pred_probs") or {}).items())
-        chips_odds = "".join([f'<span class="chip"><strong>{k}</strong> {v}</span>' for k, v in (row.get("odds") or {}).items()])
+        odds_dict = _ensure_dict(row.get("odds"))
+chips_odds = "".join(
+    [f'<span class="chip"><strong>{k}</strong> {v}</span>' for k, v in odds_dict.items()]
+)
         best_bet_txt = row.get('best_bet') or row.get('pred_label') or 'N/D'
         action_html = '<a href="https://pinbet.bet/cadastro?ref=_jetbet_Lsesportes&c=ia1" target="_blank" class="action">Bilhete</a>'
     else:
@@ -317,7 +334,7 @@ def _card_html(row, show_ticket: bool = False):
         conf_txt = "🔒"
         probs_html = ""
         chips_odds = '<span class="chip"><strong>Odd</strong> 🔒</span>'
-        best_bet_txt = "🔒 Bilhete oculto (clique em Ver bilhete)"
+        best_bet_txt = "🔒 Oculto"
         action_html = ""  # se quiser sempre visível, me diga
 
     return f"""
@@ -372,16 +389,11 @@ def render_grid(df: pd.DataFrame, cols: int = 3):
             is_open = st.session_state.ticket_open.get(card_id, False)
 
             with col:
-                # Card primeiro
+                # Card
                 st.markdown(_card_html(row, show_ticket=is_open), unsafe_allow_html=True)
 
-                # Botões por card (abaixo)
-                b1, b2 = st.columns(2)
-                with b1:
-                    if st.button("👁️ Ver bilhete", key=f"open_{card_id}", disabled=is_open):
-                        st.session_state.ticket_open[card_id] = True
-                        st.rerun()
-                with b2:
-                    if st.button("🙈 Ocultar", key=f"close_{card_id}", disabled=not is_open):
-                        st.session_state.ticket_open[card_id] = False
-                        st.rerun()
+                # 1 botão toggle (fica bem mais limpo)
+                label = "🙈 Ocultar" if is_open else "👁️ Ver bilhete"
+                if st.button(label, key=f"toggle_{card_id}"):
+                    st.session_state.ticket_open[card_id] = not is_open
+                    st.rerun()
