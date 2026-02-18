@@ -1,6 +1,5 @@
-# ui_cards_helpers.py – helpers do layout em cards (REESCRITO baseado no seu arquivo)
+# ui_cards_helpers.py – helpers do layout em cards (baseado no seu, com ocultar por card)
 from __future__ import annotations
-
 import streamlit as st
 import pandas as pd
 import hashlib
@@ -33,7 +32,7 @@ CARD_CSS = """
   --shadow-card: 0 10px 30px rgba(0,0,0,0.45);
 }
 
-/* Fundo geral do app (pode sobrepor o HIDE_TOOLBAR do app.py) */
+/* Fundo geral do app */
 .stApp { background: radial-gradient(1200px 600px at 20% -10%, rgba(0,245,255,0.06), transparent 50%),
                          radial-gradient(900px 500px at 120% 10%, rgba(255,45,149,0.05), transparent 55%),
                          var(--bg-app) !important; }
@@ -126,7 +125,7 @@ h1, h2, h3, p, .stMarkdown { color: var(--text); }
 /* aplica à âncora e evita que :link / :visited sobrescrevam a cor */
 .action, .action:link, .action:visited{
   font-size:12px;
-  color:#003355 !important;   /* azul-escuro legível */
+  color:#003355 !important;
   font-weight:800;
   letter-spacing:.2px;
   background: linear-gradient(90deg, var(--neon-cyan), var(--neon-pink));
@@ -137,15 +136,12 @@ h1, h2, h3, p, .stMarkdown { color: var(--text); }
   box-shadow: var(--glow-strong);
   transition: transform .1s ease, filter .15s ease, box-shadow .15s ease, color .15s ease;
 }
-
 .action:hover{
   transform: translateY(-1px);
   filter:brightness(1.05);
   box-shadow: var(--glow-strong), 0 0 30px rgba(154,107,255,0.25);
   color:#001a2a !important;
 }
-
-/* ======= Ajustes gerais ======= */
 .block-container{ padding-top: 1.2rem; }
 </style>
 """
@@ -165,6 +161,28 @@ def _split_teams(jogo: str) -> tuple[str, str]:
     return (" ".join(parts[:mid]) or "Time A", " ".join(parts[mid:]) or "Time B")
 
 
+def _safe_float(x) -> float | None:
+    """Converte número/string em float (aceita '91%', '1,66', '-', 'nan')."""
+    if x is None:
+        return None
+    # pandas NaN
+    try:
+        if pd.isna(x):
+            return None
+    except Exception:
+        pass
+    if isinstance(x, (int, float)):
+        return float(x)
+    s = str(x).strip()
+    if not s or s.lower() in ("nan", "none", "-", "n/d"):
+        return None
+    s = s.replace("%", "").replace(",", ".")
+    try:
+        return float(s)
+    except Exception:
+        return None
+
+
 def build_records_from_df(df: pd.DataFrame) -> List[Dict[str, Any]]:
     if df is None or df.empty:
         return []
@@ -173,7 +191,6 @@ def build_records_from_df(df: pd.DataFrame) -> List[Dict[str, Any]]:
         jogo = r.get('Jogo') or r.get('Partida') or 'Jogo sem nome'
         home, away = _split_teams(str(jogo))
 
-        # data/hora
         dt_raw = r.get('Data/Hora') or r.get('Data_Hora') or r.get('DataHora') or r.get('data_hora')
         kickoff_iso = ''
         if pd.notna(dt_raw):
@@ -183,24 +200,21 @@ def build_records_from_df(df: pd.DataFrame) -> List[Dict[str, Any]]:
             except Exception:
                 kickoff_iso = ''
 
-        # confiança
         conf = None
         for k in ['Confiança', 'Confiança (%)', 'Confianca', 'confidence']:
             if k in r and pd.notna(r[k]):
-                try:
-                    v = float(r[k])
-                    conf = v*100 if v <= 1 else v
-                except Exception:
-                    pass
+                conf = _safe_float(r[k])
+                # se vier 0-1 vira %
+                if conf is not None and conf <= 1.0:
+                    conf = conf * 100.0
                 break
 
-        # odd
         odd = None
         for k in ['Odd Sugerida', 'Odd', 'odd', 'Odd_Sugerida']:
             if k in r and pd.notna(r[k]):
-                try:
-                    odd = float(r[k])
-                except Exception:
+                odd = _safe_float(r[k])
+                if odd is None:
+                    # mantém como string se não der pra converter
                     odd = str(r[k])
                 break
 
@@ -215,9 +229,10 @@ def build_records_from_df(df: pd.DataFrame) -> List[Dict[str, Any]]:
             'home': home, 'away': away,
             'pred_label': r.get('Palpite', '—'),
             'pred_probs': {},
-            'odds': ({'Odd': odd} if odd else {}),
+            'odds': ({'Odd': odd} if odd not in (None, "") else {}),
             'status': 'Agendado',
             'best_bet': r.get('Melhor Palpite', r.get('Palpite', '')),
+            # guarda como 0-1 (igual seu original)
             'confidence': (conf/100.0) if conf is not None else None,
         })
     return recs
@@ -247,7 +262,6 @@ def fetch_matches_api_football(api_fixtures: List[Dict[str, Any]] | None = None)
             'confidence': None,
         })
     return recs
-
 
 # ============= Renderização =============
 def to_df(records: List[Dict[str, Any]]) -> pd.DataFrame:
@@ -279,26 +293,32 @@ def _logo_block(name: str) -> str:
 
 
 def _card_html(row, show_ticket: bool = False):
-    # Header/Times sempre visível
     kickoff_fmt = row["kickoff_dt"].strftime("%d/%m/%Y %H:%M") if pd.notna(row.get("kickoff_dt")) else "-"
-    conf_pct_real = int(round(float(row.get("confidence") or 0) * 100)) if row.get("confidence") is not None else 0
 
-    # Conteúdos sensíveis (miolo)
+    # confidence vem 0-1 (se vier string, a gente trata)
+    conf_raw = row.get("confidence")
+    conf_float = _safe_float(conf_raw)
+    if conf_float is None:
+        conf_pct_real = 0
+    else:
+        # se vier 0-1, converte; se vier 0-100 mantém
+        conf_pct_real = int(round(conf_float * 100)) if conf_float <= 1.0 else int(round(conf_float))
+
+    # miolo sensível
     if show_ticket:
         palpite_txt = row.get("pred_label", "-")
         conf_txt = f"{conf_pct_real}%"
-        # barras só quando aberto
         probs_html = "".join(_prob_bar_html(k, float(v)) for k, v in (row.get("pred_probs") or {}).items())
         chips_odds = "".join([f'<span class="chip"><strong>{k}</strong> {v}</span>' for k, v in (row.get("odds") or {}).items()])
-        best_bet_txt = row.get('best_bet') or row.get('Palpite') or 'N/D'
+        best_bet_txt = row.get('best_bet') or row.get('pred_label') or 'N/D'
         action_html = '<a href="https://pinbet.bet/cadastro?ref=_jetbet_Lsesportes&c=ia1" target="_blank" class="action">Bilhete</a>'
     else:
         palpite_txt = "🔒 Oculto"
         conf_txt = "🔒"
-        probs_html = ""  # some com as barras
+        probs_html = ""
         chips_odds = '<span class="chip"><strong>Odd</strong> 🔒</span>'
         best_bet_txt = "🔒 Bilhete oculto (clique em Ver bilhete)"
-        action_html = ""  # esconde o link também (se quiser mostrar sempre, me fala)
+        action_html = ""  # se quiser sempre visível, me diga
 
     return f"""
       <div class="card">
@@ -307,23 +327,18 @@ def _card_html(row, show_ticket: bool = False):
           <span class="badge">Rodada {row.get('round','-') if pd.notna(row.get('round')) else '-'}</span>
           <span class="kickoff">{kickoff_fmt}</span>
         </div>
-
         <div class="teams">
           <div class="team">{_logo_block(row.get('home',''))}<span class="team-name">{row.get('home','')}</span></div>
           <span>vs</span>
           <div class="team">{_logo_block(row.get('away',''))}<span class="team-name">{row.get('away','')}</span></div>
         </div>
-
         <div class="chips">
           <span class="chip"><strong>Palpite</strong> {palpite_txt}</span>
           <span class="chip"><strong>Confiança</strong> {conf_txt}</span>
           <span class="chip"><strong>Status</strong> {row.get('status','-')}</span>
         </div>
-
         {probs_html}
-
         <div class="chips">{chips_odds}</div>
-
         <div class="footer">
           <small class="kickoff">Melhor aposta: <strong>{best_bet_txt}</strong></small>
           {action_html}
@@ -333,7 +348,7 @@ def _card_html(row, show_ticket: bool = False):
 
 
 def _make_card_id(row: pd.Series) -> str:
-    # use id (estável), senão fallback
+    # usa o id que você já cria (estável). fallback com data+times.
     base = str(row.get("id") or "") \
         + "|" + str(row.get("date") or "") \
         + "|" + str(row.get("home") or "") \
@@ -346,9 +361,8 @@ def render_grid(df: pd.DataFrame, cols: int = 3):
         st.info("Nenhum jogo encontrado com os filtros.")
         return
 
-    # estado por card (abre/fecha)
     if "ticket_open" not in st.session_state:
-        st.session_state.ticket_open = {}  # dict: {card_id: bool}
+        st.session_state.ticket_open = {}
 
     rows = [df.iloc[i:i+cols] for i in range(0, len(df), cols)]
     for chunk in rows:
@@ -358,10 +372,10 @@ def render_grid(df: pd.DataFrame, cols: int = 3):
             is_open = st.session_state.ticket_open.get(card_id, False)
 
             with col:
-                # Card primeiro (layout fica lindo, sem botão duplicado no topo da grade)
+                # Card primeiro
                 st.markdown(_card_html(row, show_ticket=is_open), unsafe_allow_html=True)
 
-                # Botões por card (abaixo do card, 1 único lugar)
+                # Botões por card (abaixo)
                 b1, b2 = st.columns(2)
                 with b1:
                     if st.button("👁️ Ver bilhete", key=f"open_{card_id}", disabled=is_open):
@@ -371,4 +385,3 @@ def render_grid(df: pd.DataFrame, cols: int = 3):
                     if st.button("🙈 Ocultar", key=f"close_{card_id}", disabled=not is_open):
                         st.session_state.ticket_open[card_id] = False
                         st.rerun()
-
