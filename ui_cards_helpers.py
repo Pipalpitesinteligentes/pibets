@@ -105,15 +105,21 @@ h1, h2, h3, p, .stMarkdown { color: var(--text); }
   text-decoration:none;
 }
 
-div.stButton > button{
-  width: 100%;
-  border-radius: 12px !important;
-  border: 1px solid rgba(0,245,255,0.25) !important;
-  background: rgba(10, 14, 30, 0.65) !important;
+/* ===== Botão do bilhete (somente ele) ===== */
+.ticket-btn-wrap div.stButton > button{
+  width: auto !important;
+  padding: 6px 12px !important;
+  border-radius: 999px !important;
+  border: 1px solid rgba(0,245,255,0.35) !important;
+  background: rgba(10, 14, 30, 0.55) !important;
   color: var(--text) !important;
+  font-size: 12px !important;
+  box-shadow: 0 0 10px rgba(0,245,255,0.15) !important;
 }
-</style>
-"""
+.ticket-btn-wrap div.stButton > button:hover{
+  border-color: rgba(255,45,149,0.45) !important;
+  box-shadow: 0 0 18px rgba(0,245,255,0.25) !important;
+}
 
 
 # ============= Adaptadores de dados =============
