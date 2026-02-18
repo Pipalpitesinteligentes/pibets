@@ -105,20 +105,30 @@ h1, h2, h3, p, .stMarkdown { color: var(--text); }
   text-decoration:none;
 }
 
-/* ===== Botão do bilhete (somente ele) ===== */
+/* ===== Botão toggle (igual ao action Bilhete) ===== */
+.ticket-btn-wrap { display:flex; justify-content:flex-end; margin-top:10px; }
+
 .ticket-btn-wrap div.stButton > button{
   width: auto !important;
-  padding: 6px 12px !important;
-  border-radius: 999px !important;
-  border: 1px solid rgba(0,245,255,0.35) !important;
-  background: rgba(10, 14, 30, 0.55) !important;
-  color: var(--text) !important;
+  padding: 9px 12px !important;
+  border-radius: 12px !important;
+  border: none !important;
+
+  background: linear-gradient(90deg, var(--neon-cyan), var(--neon-pink)) !important;
+  color: #003355 !important;
+  font-weight: 800 !important;
   font-size: 12px !important;
-  box-shadow: 0 0 10px rgba(0,245,255,0.15) !important;
+  letter-spacing: .2px !important;
+
+  box-shadow: var(--glow-strong) !important;
+  transition: transform .1s ease, filter .15s ease, box-shadow .15s ease !important;
 }
+
 .ticket-btn-wrap div.stButton > button:hover{
-  border-color: rgba(255,45,149,0.45) !important;
-  box-shadow: 0 0 18px rgba(0,245,255,0.25) !important;
+  transform: translateY(-1px) !important;
+  filter: brightness(1.05) !important;
+  box-shadow: var(--glow-strong), 0 0 30px rgba(154,107,255,0.25) !important;
+  color: #001a2a !important;
 }
 </style>
 """
@@ -369,7 +379,7 @@ def render_grid(df: pd.DataFrame, cols: int = 3) -> None:
                 left, right = st.columns([3, 1])
                 with right:
                     st.markdown('<div class="ticket-btn-wrap">', unsafe_allow_html=True)
-                    label = "🙈 Ocultar" if is_open else "👁️ Ver bilhete"
+                    label = "Ocultar" if is_open else "Ver bilhete"
                     if st.button(label, key=f"toggle_{card_id}"):
                         st.session_state.ticket_open[card_id] = not is_open
                         st.rerun()
