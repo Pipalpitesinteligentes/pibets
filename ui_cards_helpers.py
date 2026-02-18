@@ -105,9 +105,7 @@ h1, h2, h3, p, .stMarkdown { color: var(--text); }
   text-decoration:none;
 }
 
-/* ===== Botão toggle (igual ao action Bilhete) ===== */
-.ticket-btn-wrap { display:flex; justify-content:flex-end; margin-top:10px; }
-
+/* ===== Botão toggle igual ao botão Bilhete ===== */
 .ticket-btn-wrap div.stButton > button{
   width: auto !important;
   padding: 9px 12px !important;
@@ -373,14 +371,11 @@ def render_grid(df: pd.DataFrame, cols: int = 3) -> None:
             is_open = st.session_state.ticket_open.get(card_id, False)
 
             with col:
-                st.markdown(_card_html(row, show_ticket=is_open), unsafe_allow_html=True)
+    st.markdown(_card_html(row, show_ticket=is_open), unsafe_allow_html=True)
 
-                # botão pequeno, alinhado à direita
-                left, right = st.columns([3, 1])
-                with right:
-                    st.markdown('<div class="ticket-btn-wrap">', unsafe_allow_html=True)
-                    label = "Ocultar" if is_open else "Ver bilhete"
-                    if st.button(label, key=f"toggle_{card_id}"):
-                        st.session_state.ticket_open[card_id] = not is_open
-                        st.rerun()
-                    st.markdown("</div>", unsafe_allow_html=True)
+    st.markdown('<div class="ticket-btn-wrap">', unsafe_allow_html=True)
+    label = "Ocultar" if is_open else "Ver bilhete"
+    if st.button(label, key=f"toggle_{card_id}"):
+        st.session_state.ticket_open[card_id] = not is_open
+        st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
