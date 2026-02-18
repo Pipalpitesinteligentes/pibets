@@ -145,4 +145,21 @@ if not show_ticket and not df_grid.empty:
             df_grid[col] = "🔒 Bilhete oculto (clique em VER BILHETE)"
             
 # ====== Grid de cards ======
+df_grid = df_view.reset_index(drop=True).copy()
+
+# Colunas que normalmente são "conteúdo do bilhete" (miolo do card)
+SENSITIVE_COLS = [
+    "best_bet", "melhor_palpite", "palpite", "bilhete", "aposta", "pick", "tip",
+    "market", "mercado",
+    "odd", "odds",
+    "confidence", "confianca",
+    "stake", "entrada",
+    "prob", "probabilidade"
+]
+
+if not show_ticket and not df_grid.empty:
+    for col in SENSITIVE_COLS:
+        if col in df_grid.columns:
+            df_grid[col] = "🔒 Oculto — clique em VER BILHETE"
+
 render_grid(df_grid, cols=cols_grid)
