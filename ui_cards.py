@@ -68,7 +68,7 @@ def _filters_block(df: pd.DataFrame):
     return date_from, date_to, selected_leagues, selected_round, selected_status, query, cols_grid
 
 # -------------------- Função principal --------------------
-def main():
+def main(show_ticket: bool = False):
     # CSS Neon
     st.markdown(CARD_CSS, unsafe_allow_html=True)
 
@@ -129,5 +129,20 @@ def main():
 
     #st.divider()
 
-    # ====== Grid de cards ======
-    render_grid(df_view.reset_index(drop=True), cols=cols_grid)
+    # ====== Bilhete: ocultar/revelar ======
+df_grid = df_view.reset_index(drop=True).copy()
+
+# Aqui você precisa escolher quais colunas "revelam o bilhete".
+# Vou deixar uma lista com nomes comuns — o código só altera se existir no DF.
+possible_ticket_cols = [
+    "best_bet", "melhor_palpite", "palpite", "bet", "bilhete",
+    "market", "mercado", "pick", "aposta", "tip"
+]
+
+if not show_ticket and not df_grid.empty:
+    for col in possible_ticket_cols:
+        if col in df_grid.columns:
+            df_grid[col] = "🔒 Bilhete oculto (clique em VER BILHETE)"
+            
+# ====== Grid de cards ======
+render_grid(df_grid, cols=cols_grid)
