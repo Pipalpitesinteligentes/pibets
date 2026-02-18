@@ -1,5 +1,6 @@
-# ui_cards_helpers.py – helpers do layout em cards
+# ui_cards_helpers.py – helpers do layout em cards (REESCRITO baseado no seu arquivo)
 from __future__ import annotations
+
 import streamlit as st
 import pandas as pd
 import hashlib
@@ -124,24 +125,24 @@ h1, h2, h3, p, .stMarkdown { color: var(--text); }
 
 /* aplica à âncora e evita que :link / :visited sobrescrevam a cor */
 .action, .action:link, .action:visited{
-  font-size:12px; 
+  font-size:12px;
   color:#003355 !important;   /* azul-escuro legível */
-  font-weight:800; 
+  font-weight:800;
   letter-spacing:.2px;
   background: linear-gradient(90deg, var(--neon-cyan), var(--neon-pink));
-  border:none; 
-  padding:9px 12px; 
-  border-radius:12px; 
+  border:none;
+  padding:9px 12px;
+  border-radius:12px;
   cursor:pointer;
   box-shadow: var(--glow-strong);
   transition: transform .1s ease, filter .15s ease, box-shadow .15s ease, color .15s ease;
 }
 
 .action:hover{
-  transform: translateY(-1px); 
-  filter:brightness(1.05); 
+  transform: translateY(-1px);
+  filter:brightness(1.05);
   box-shadow: var(--glow-strong), 0 0 30px rgba(154,107,255,0.25);
-  color:#001a2a !important;   /* um pouco mais escuro no hover */
+  color:#001a2a !important;
 }
 
 /* ======= Ajustes gerais ======= */
@@ -153,20 +154,25 @@ h1, h2, h3, p, .stMarkdown { color: var(--text); }
 TEAM_SPLIT_TOKENS = [" x ", " X ", " vs ", " VS ", " x", " vs"]
 
 def _split_teams(jogo: str) -> tuple[str, str]:
-    if not isinstance(jogo, str): return ("Time A", "Time B")
+    if not isinstance(jogo, str):
+        return ("Time A", "Time B")
     for tok in TEAM_SPLIT_TOKENS:
         if tok in jogo:
             a, b = jogo.split(tok, 1)
             return a.strip(), b.strip()
-    parts = jogo.split(); mid = len(parts)//2 or 1
+    parts = jogo.split()
+    mid = len(parts)//2 or 1
     return (" ".join(parts[:mid]) or "Time A", " ".join(parts[mid:]) or "Time B")
 
+
 def build_records_from_df(df: pd.DataFrame) -> List[Dict[str, Any]]:
-    if df is None or df.empty: return []
+    if df is None or df.empty:
+        return []
     recs: List[Dict[str, Any]] = []
     for i, r in df.reset_index(drop=True).iterrows():
         jogo = r.get('Jogo') or r.get('Partida') or 'Jogo sem nome'
         home, away = _split_teams(str(jogo))
+
         # data/hora
         dt_raw = r.get('Data/Hora') or r.get('Data_Hora') or r.get('DataHora') or r.get('data_hora')
         kickoff_iso = ''
@@ -176,23 +182,31 @@ def build_records_from_df(df: pd.DataFrame) -> List[Dict[str, Any]]:
                 kickoff_iso = dt.isoformat()
             except Exception:
                 kickoff_iso = ''
+
         # confiança
         conf = None
         for k in ['Confiança', 'Confiança (%)', 'Confianca', 'confidence']:
             if k in r and pd.notna(r[k]):
                 try:
-                    v = float(r[k]); conf = v*100 if v <= 1 else v
-                except Exception: pass
+                    v = float(r[k])
+                    conf = v*100 if v <= 1 else v
+                except Exception:
+                    pass
                 break
+
         # odd
         odd = None
         for k in ['Odd Sugerida', 'Odd', 'odd', 'Odd_Sugerida']:
             if k in r and pd.notna(r[k]):
-                try: odd = float(r[k])
-                except Exception: odd = str(r[k])
+                try:
+                    odd = float(r[k])
+                except Exception:
+                    odd = str(r[k])
                 break
+
         league = r.get('Liga') or r.get('Competição') or '—'
         rodada = r.get('Rodada') if 'Rodada' in df.columns else None
+
         recs.append({
             'id': f'df-{i}',
             'league': league,
@@ -208,12 +222,16 @@ def build_records_from_df(df: pd.DataFrame) -> List[Dict[str, Any]]:
         })
     return recs
 
+
 def fetch_matches_api_football(api_fixtures: List[Dict[str, Any]] | None = None) -> List[Dict[str, Any]]:
-    if not api_fixtures: return []
+    if not api_fixtures:
+        return []
     recs: List[Dict[str, Any]] = []
     for f in api_fixtures:
-        try: dt_iso = f.get('kickoff_iso') or pd.to_datetime(f.get('kickoff_local')).isoformat()
-        except Exception: dt_iso = ''
+        try:
+            dt_iso = f.get('kickoff_iso') or pd.to_datetime(f.get('kickoff_local')).isoformat()
+        except Exception:
+            dt_iso = ''
         recs.append({
             'id': f"fx-{f.get('fixture_id')}",
             'league': f.get('league_name', '—'),
@@ -230,6 +248,7 @@ def fetch_matches_api_football(api_fixtures: List[Dict[str, Any]] | None = None)
         })
     return recs
 
+
 # ============= Renderização =============
 def to_df(records: List[Dict[str, Any]]) -> pd.DataFrame:
     df = pd.DataFrame(records)
@@ -239,8 +258,10 @@ def to_df(records: List[Dict[str, Any]]) -> pd.DataFrame:
         df["time"] = df["kickoff_dt"].dt.strftime("%H:%M")
         for col, default in [("confidence", None), ("status", "Agendado"),
                              ("league", "—"), ("round", None)]:
-            if col not in df.columns: df[col] = default
+            if col not in df.columns:
+                df[col] = default
     return df
+
 
 def _prob_bar_html(label: str, p: float) -> str:
     pct = int(round(float(p) * 100))
@@ -251,15 +272,34 @@ def _prob_bar_html(label: str, p: float) -> str:
       </div>
     """
 
+
 def _logo_block(name: str) -> str:
-    initials = "".join([w[0] for w in name.split()][:2]).upper() or "?"
+    initials = "".join([w[0] for w in str(name).split()][:2]).upper() or "?"
     return f'<div class="logo" title="{name}">{initials}</div>'
 
+
 def _card_html(row, show_ticket: bool = False):
-    kickoff_fmt = row["kickoff_dt"].strftime("%d/%m/%Y %H:%M") if pd.notna(row["kickoff_dt"]) else "-"
-    conf_pct = int(round(float(row.get("confidence") or 0) * 100)) if row.get("confidence") is not None else 0
-    probs_html = "".join(_prob_bar_html(k, float(v)) for k, v in (row.get("pred_probs") or {}).items())
-    chips = "".join([f'<span class="chip"><strong>{k}</strong> {v}</span>' for k, v in (row.get("odds") or {}).items()])
+    # Header/Times sempre visível
+    kickoff_fmt = row["kickoff_dt"].strftime("%d/%m/%Y %H:%M") if pd.notna(row.get("kickoff_dt")) else "-"
+    conf_pct_real = int(round(float(row.get("confidence") or 0) * 100)) if row.get("confidence") is not None else 0
+
+    # Conteúdos sensíveis (miolo)
+    if show_ticket:
+        palpite_txt = row.get("pred_label", "-")
+        conf_txt = f"{conf_pct_real}%"
+        # barras só quando aberto
+        probs_html = "".join(_prob_bar_html(k, float(v)) for k, v in (row.get("pred_probs") or {}).items())
+        chips_odds = "".join([f'<span class="chip"><strong>{k}</strong> {v}</span>' for k, v in (row.get("odds") or {}).items()])
+        best_bet_txt = row.get('best_bet') or row.get('Palpite') or 'N/D'
+        action_html = '<a href="https://pinbet.bet/cadastro?ref=_jetbet_Lsesportes&c=ia1" target="_blank" class="action">Bilhete</a>'
+    else:
+        palpite_txt = "🔒 Oculto"
+        conf_txt = "🔒"
+        probs_html = ""  # some com as barras
+        chips_odds = '<span class="chip"><strong>Odd</strong> 🔒</span>'
+        best_bet_txt = "🔒 Bilhete oculto (clique em Ver bilhete)"
+        action_html = ""  # esconde o link também (se quiser mostrar sempre, me fala)
+
     return f"""
       <div class="card">
         <div class="card-header">
@@ -267,40 +307,46 @@ def _card_html(row, show_ticket: bool = False):
           <span class="badge">Rodada {row.get('round','-') if pd.notna(row.get('round')) else '-'}</span>
           <span class="kickoff">{kickoff_fmt}</span>
         </div>
+
         <div class="teams">
-          <div class="team">{_logo_block(row['home'])}<span class="team-name">{row['home']}</span></div>
+          <div class="team">{_logo_block(row.get('home',''))}<span class="team-name">{row.get('home','')}</span></div>
           <span>vs</span>
-          <div class="team">{_logo_block(row['away'])}<span class="team-name">{row['away']}</span></div>
+          <div class="team">{_logo_block(row.get('away',''))}<span class="team-name">{row.get('away','')}</span></div>
         </div>
+
         <div class="chips">
-          <span class="chip"><strong>Palpite</strong> {row.get('pred_label','-')}</span>
-          <span class="chip"><strong>Confiança</strong> {conf_pct}%</span>
+          <span class="chip"><strong>Palpite</strong> {palpite_txt}</span>
+          <span class="chip"><strong>Confiança</strong> {conf_txt}</span>
           <span class="chip"><strong>Status</strong> {row.get('status','-')}</span>
         </div>
+
         {probs_html}
-        <div class="chips">{chips}</div>
+
+        <div class="chips">{chips_odds}</div>
+
         <div class="footer">
-          <small class="kickoff">Melhor aposta: <strong>{row.get('best_bet') or row.get('Palpite') or 'N/D'}</strong></small>
-          <a href="https://pinbet.bet/cadastro?ref=_jetbet_Lsesportes&c=ia1" target="_blank" class="action">Bilhete </a>
+          <small class="kickoff">Melhor aposta: <strong>{best_bet_txt}</strong></small>
+          {action_html}
         </div>
       </div>
     """
 
+
 def _make_card_id(row: pd.Series) -> str:
-    # tenta usar fixture_id (melhor), senão monta com data+times
-    base = str(row.get("fixture_id") or "") \
+    # use id (estável), senão fallback
+    base = str(row.get("id") or "") \
         + "|" + str(row.get("date") or "") \
-        + "|" + str(row.get("home_team") or row.get("home") or "") \
-        + "|" + str(row.get("away_team") or row.get("away") or "")
+        + "|" + str(row.get("home") or "") \
+        + "|" + str(row.get("away") or "")
     return hashlib.md5(base.encode("utf-8")).hexdigest()[:12]
 
 
 def render_grid(df: pd.DataFrame, cols: int = 3):
-    if df.empty:
+    if df is None or df.empty:
         st.info("Nenhum jogo encontrado com os filtros.")
         return
 
-    # estado por card
+    # estado por card (abre/fecha)
     if "ticket_open" not in st.session_state:
         st.session_state.ticket_open = {}  # dict: {card_id: bool}
 
@@ -312,8 +358,11 @@ def render_grid(df: pd.DataFrame, cols: int = 3):
             is_open = st.session_state.ticket_open.get(card_id, False)
 
             with col:
-                # Botões por card
-                b1, b2 = st.columns([1, 1])
+                # Card primeiro (layout fica lindo, sem botão duplicado no topo da grade)
+                st.markdown(_card_html(row, show_ticket=is_open), unsafe_allow_html=True)
+
+                # Botões por card (abaixo do card, 1 único lugar)
+                b1, b2 = st.columns(2)
                 with b1:
                     if st.button("👁️ Ver bilhete", key=f"open_{card_id}", disabled=is_open):
                         st.session_state.ticket_open[card_id] = True
@@ -322,7 +371,4 @@ def render_grid(df: pd.DataFrame, cols: int = 3):
                     if st.button("🙈 Ocultar", key=f"close_{card_id}", disabled=not is_open):
                         st.session_state.ticket_open[card_id] = False
                         st.rerun()
-
-                # Card HTML (título sempre aparece, miolo depende do is_open)
-                st.markdown(_card_html(row, show_ticket=is_open), unsafe_allow_html=True)
 
