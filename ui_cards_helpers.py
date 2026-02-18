@@ -255,7 +255,7 @@ def _logo_block(name: str) -> str:
     initials = "".join([w[0] for w in name.split()][:2]).upper() or "?"
     return f'<div class="logo" title="{name}">{initials}</div>'
 
-def _card_html(row: pd.Series) -> str:
+def _card_html(row, show_ticket: bool = False):
     kickoff_fmt = row["kickoff_dt"].strftime("%d/%m/%Y %H:%M") if pd.notna(row["kickoff_dt"]) else "-"
     conf_pct = int(round(float(row.get("confidence") or 0) * 100)) if row.get("confidence") is not None else 0
     probs_html = "".join(_prob_bar_html(k, float(v)) for k, v in (row.get("pred_probs") or {}).items())
