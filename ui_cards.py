@@ -3,20 +3,14 @@ import streamlit as st
 import pandas as pd
 from typing import List, Dict, Any, Tuple
 
-from ui_cards_helpers import (
-    build_records_from_df,
-    fetch_matches_api_football,
-    to_df,
-    render_grid,
-    CARD_CSS,
-)
+import ui_cards_helpers as h
+
 
 # -------------------- Bloco dos filtros (inline OU sidebar) --------------------
 def _filters_block(df: pd.DataFrame) -> Tuple:
     if "filters_place" not in st.session_state:
         st.session_state["filters_place"] = "inline"  # "inline" | "sidebar"
 
-    # Barra de controle: onde exibir
     _l, _r = st.columns([1, 1])
     with _r:
         place = st.radio(
@@ -28,7 +22,6 @@ def _filters_block(df: pd.DataFrame) -> Tuple:
         )
         st.session_state["filters_place"] = place
 
-    # Defaults
     if not df.empty and "date" in df.columns:
         min_date, max_date = df["date"].min(), df["date"].max()
         leagues = sorted(df["league"].dropna().unique()) if "league" in df.columns else []
@@ -67,30 +60,18 @@ def _filters_block(df: pd.DataFrame) -> Tuple:
 
 # -------------------- Função principal --------------------
 def main():
-    # CSS Neon
-    st.markdown(CARD_CSS, unsafe_allow_html=True)
+    st.markdown(h.CARD_CSS, unsafe_allow_html=True)
 
-    # ====== Dados → records → df ======
     records: List[Dict[str, Any]] = []
     try:
         if "df_palpites" in st.session_state and isinstance(st.session_state.df_palpites, pd.DataFrame):
-            records = build_records_from_df(st.session_state.df_palpites)
+            records = h.build_records_from_df(st.session_state.df_palpites)
     except Exception as e:
         st.error(f"Erro ao montar records do DF: {e}")
         records = []
 
-    # Opcional: mesclar fixtures da API-Football (se você usar)
-    # Ex.: records += fetch_matches_api_football(fixtures)
-    # (mantive aqui para você ativar depois)
-    # try:
-    #     fixtures = get_upcoming_fixtures(league_id=None, days=7)
-    #     records += fetch_matches_api_football(fixtures)
-    # except Exception:
-    #     pass
+    df = h.to_df(records)
 
-    df = to_df(records)
-
-    # ====== Título ======
     st.markdown(
         """
         <h2 style="
@@ -104,33 +85,26 @@ def main():
         unsafe_allow_html=True,
     )
 
-    # ====== Filtros ======
     (date_from, date_to, selected_leagues, selected_round,
      selected_status, query, cols_grid) = _filters_block(df)
 
-    # ====== Aplicação dos filtros ======
     df_view = df
     if not df.empty:
         try:
             mask = pd.Series([True] * len(df), index=df.index)
 
-            # datas
             if "date" in df.columns:
                 mask &= (df["date"] >= date_from) & (df["date"] <= date_to)
 
-            # competição
             if selected_leagues and "league" in df.columns:
                 mask &= df["league"].isin(selected_leagues)
 
-            # rodada
             if selected_round != "Todas" and "round" in df.columns:
                 mask &= df["round"].astype(str) == str(selected_round)
 
-            # status
             if selected_status and "status" in df.columns:
                 mask &= df["status"].isin(selected_status)
 
-            # busca
             if query:
                 q = query.lower()
                 mask &= df.apply(lambda r: q in str(r.to_dict()).lower(), axis=1)
@@ -140,9 +114,5 @@ def main():
             st.warning(f"Falha ao aplicar filtros (mostrando tudo): {e}")
             df_view = df
 
-    # ====== Renderização ======
-    # IMPORTANTE:
-    # NÃO existe show_ticket aqui.
-    # O "Ver bilhete / Ocultar" é por card e está dentro do render_grid (helpers).
     df_grid = df_view.reset_index(drop=True)
-    render_grid(df_grid, cols=int(cols_grid))
+    h.render_grid(df_grid, cols=int(cols_grid))
