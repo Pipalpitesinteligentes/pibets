@@ -1,7 +1,7 @@
-# ui_cards.py – versão corrigida (com main() e filtros inline/sidebar)
+# ui_cards.py – REESCRITO (com show_ticket + filtros inline/sidebar + ocultar “miolo”)
 import streamlit as st
 import pandas as pd
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Tuple
 
 from ui_cards_helpers import (
     build_records_from_df,
@@ -9,17 +9,16 @@ from ui_cards_helpers import (
     to_df,
     render_grid,
     CARD_CSS,
-    # get_upcoming_fixtures,  # use se quiser mesclar fixtures da API
 )
 
 # -------------------- Bloco dos filtros (inline OU sidebar) --------------------
-def _filters_block(df: pd.DataFrame):
+def _filters_block(df: pd.DataFrame) -> Tuple:
     if "filters_place" not in st.session_state:
         st.session_state["filters_place"] = "inline"  # "inline" | "sidebar"
 
     # Barra de controle: onde exibir
-    top_left, top_right = st.columns([1, 1])
-    with top_right:
+    _l, _r = st.columns([1, 1])
+    with _r:
         place = st.radio(
             "Exibir filtros em:",
             options=["inline", "sidebar"],
@@ -30,11 +29,11 @@ def _filters_block(df: pd.DataFrame):
         st.session_state["filters_place"] = place
 
     # Defaults
-    if not df.empty:
+    if not df.empty and "date" in df.columns:
         min_date, max_date = df["date"].min(), df["date"].max()
-        leagues = sorted(df["league"].dropna().unique())
-        rounds = sorted([r for r in df["round"].dropna().unique()])
-        statuses = sorted(df["status"].dropna().unique())
+        leagues = sorted(df["league"].dropna().unique()) if "league" in df.columns else []
+        rounds = sorted([r for r in df["round"].dropna().unique()]) if "round" in df.columns else []
+        statuses = sorted(df["status"].dropna().unique()) if "status" in df.columns else []
     else:
         from datetime import date
         min_date = max_date = date.today()
@@ -60,12 +59,51 @@ def _filters_block(df: pd.DataFrame):
             return date_from, date_to, selected_leagues, selected_round, selected_status, query, cols_grid
 
     if st.session_state["filters_place"] == "sidebar":
-        date_from, date_to, selected_leagues, selected_round, selected_status, query, cols_grid = _render_controls(st.sidebar)
+        return _render_controls(st.sidebar)
     else:
         with st.expander("🔎 Filtros", expanded=True):
-            date_from, date_to, selected_leagues, selected_round, selected_status, query, cols_grid = _render_controls(st.container())
+            return _render_controls(st.container())
 
-    return date_from, date_to, selected_leagues, selected_round, selected_status, query, cols_grid
+
+# -------------------- Ocultar só o “miolo” (bilhete/mercado/odd etc.) --------------------
+def _apply_ticket_visibility(df_in: pd.DataFrame, show_ticket: bool) -> pd.DataFrame:
+    """
+    Mantém o título do jogo visível e só “mascara” campos sensíveis do bilhete.
+    Não quebra mesmo se as colunas não existirem.
+    """
+    if df_in is None or df_in.empty:
+        return df_in
+
+    df = df_in.copy()
+
+    # Campos que normalmente representam o “miolo” do card (aposta / mercado / odd / confiança / stake etc.)
+    # (a gente NÃO mexe em time/data/liga/rodada/status)
+    SENSITIVE_COLS = [
+        # palpite/bilhete
+        "best_bet", "melhor_palpite", "palpite", "bilhete", "aposta", "pick", "tip", "bet",
+        # mercado/linha
+        "market", "mercado", "linha", "line",
+        # odds
+        "odd", "odds",
+        # confiança/prob
+        "confidence", "confianca", "prob", "probabilidade",
+        # stake/entrada
+        "stake", "entrada",
+        # extras comuns
+        "reason", "rationale", "motivo", "explicacao", "explanation",
+    ]
+
+    if show_ticket:
+        return df
+
+    placeholder = "🔒 Oculto — clique em VER BILHETE"
+
+    for col in SENSITIVE_COLS:
+        if col in df.columns:
+            df[col] = placeholder
+
+    return df
+
 
 # -------------------- Função principal --------------------
 def main(show_ticket: bool = False):
@@ -74,93 +112,75 @@ def main(show_ticket: bool = False):
 
     # ====== Dados → records → df ======
     records: List[Dict[str, Any]] = []
-    if 'df_palpites' in st.session_state and isinstance(st.session_state.df_palpites, pd.DataFrame):
-        records = build_records_from_df(st.session_state.df_palpites)
+    try:
+        if "df_palpites" in st.session_state and isinstance(st.session_state.df_palpites, pd.DataFrame):
+            records = build_records_from_df(st.session_state.df_palpites)
+    except Exception as e:
+        st.error(f"Erro ao montar records do DF: {e}")
+        records = []
 
-    # Opcional: mesclar fixtures da API-Football
-    # fixtures = get_upcoming_fixtures(league_id=None, days=7)
-    # records += fetch_matches_api_football(fixtures)
+    # Opcional: mesclar fixtures da API-Football (se você usar)
+    # try:
+    #     fixtures = get_upcoming_fixtures(league_id=None, days=7)
+    #     records += fetch_matches_api_football(fixtures)
+    # except Exception:
+    #     pass
 
     df = to_df(records)
 
     # ====== Título ======
-    st.markdown("""
-    <h2 style="
-        color:#00f5ff;
-        text-shadow: 0 0 10px rgba(0,245,255,0.8), 0 0 25px rgba(255,45,149,0.4);
-        font-weight:800; letter-spacing:0.5px; margin-top:-10px;
-    ">
-        ⚡ I.A Palpites em Tempo Real
-    </h2>
-    """, unsafe_allow_html=True)
+    st.markdown(
+        """
+        <h2 style="
+            color:#00f5ff;
+            text-shadow: 0 0 10px rgba(0,245,255,0.8), 0 0 25px rgba(255,45,149,0.4);
+            font-weight:800; letter-spacing:0.5px; margin-top:-10px;
+        ">
+            ⚡ I.A Palpites em Tempo Real
+        </h2>
+        """,
+        unsafe_allow_html=True,
+    )
 
     # ====== Filtros (inline ou sidebar) ======
     (date_from, date_to, selected_leagues, selected_round,
      selected_status, query, cols_grid) = _filters_block(df)
 
     # ====== Aplicação dos filtros ======
+    df_view = df
     if not df.empty:
-        mask = (df["date"] >= date_from) & (df["date"] <= date_to)
-        if selected_leagues:
-            mask &= df["league"].isin(selected_leagues)
-        if selected_round != "Todas":
-            mask &= df["round"].astype(str) == str(selected_round)
-        if selected_status:
-            mask &= df["status"].isin(selected_status)
-        if query:
-            q = query.lower()
-            mask &= df.apply(lambda r: q in str(r.to_dict()).lower(), axis=1)
-        df_view = df[mask]
-    else:
-        df_view = df
+        try:
+            mask = pd.Series([True] * len(df), index=df.index)
 
-    # ====== Métricas ======
-    #c1, c2, c3 = st.columns(3)
-    #with c1:
-        #st.caption("Jogos listados")
-        #st.markdown(f"<h3 style='margin:0'>{len(df_view)}</h3>", unsafe_allow_html=True)
-    #with c2:
-        #st.caption("Confiança média")
-        #avg_conf = (df_view["confidence"].mean() * 100) if not df_view.empty and df_view["confidence"].notna().any() else 0
-        #st.markdown(f"<h3 style='margin:0'>{avg_conf:.0f}%</h3>", unsafe_allow_html=True)
-    #with c3:
-        #st.caption("Competições")
-        #st.markdown(f"<h3 style='margin:0'>{len(set(df_view['league'])) if not df_view.empty else 0}</h3>", unsafe_allow_html=True)
+            # datas
+            if "date" in df.columns:
+                mask &= (df["date"] >= date_from) & (df["date"] <= date_to)
 
-    #st.divider()
+            # competição
+            if selected_leagues and "league" in df.columns:
+                mask &= df["league"].isin(selected_leagues)
 
-    # ====== Bilhete: ocultar/revelar ======
-df_grid = df_view.reset_index(drop=True).copy()
+            # rodada
+            if selected_round != "Todas" and "round" in df.columns:
+                mask &= df["round"].astype(str) == str(selected_round)
 
-# Aqui você precisa escolher quais colunas "revelam o bilhete".
-# Vou deixar uma lista com nomes comuns — o código só altera se existir no DF.
-possible_ticket_cols = [
-    "best_bet", "melhor_palpite", "palpite", "bet", "bilhete",
-    "market", "mercado", "pick", "aposta", "tip"
-]
+            # status
+            if selected_status and "status" in df.columns:
+                mask &= df["status"].isin(selected_status)
 
-if not show_ticket and not df_grid.empty:
-    for col in possible_ticket_cols:
-        if col in df_grid.columns:
-            df_grid[col] = "🔒 Bilhete oculto (clique em VER BILHETE)"
+            # busca
+            if query:
+                q = query.lower()
+                mask &= df.apply(lambda r: q in str(r.to_dict()).lower(), axis=1)
 
-st.write("COLUNAS DO CARD:", list(df_view.columns))
+            df_view = df[mask]
+        except Exception as e:
+            st.warning(f"Falha ao aplicar filtros (mostrando tudo): {e}")
+            df_view = df
+
+    # ====== Ocultar/mostrar só o “miolo” ======
+    df_grid = df_view.reset_index(drop=True)
+    df_grid = _apply_ticket_visibility(df_grid, show_ticket=show_ticket)
 
     # ====== Grid de cards ======
-    df_grid = df_view.reset_index(drop=True).copy()
-
-    SENSITIVE_COLS = [
-        "best_bet", "melhor_palpite", "palpite", "bilhete", "aposta", "pick", "tip",
-        "market", "mercado",
-        "odd", "odds",
-        "confidence", "confianca",
-        "stake", "entrada",
-        "prob", "probabilidade"
-    ]
-
-    if not show_ticket and not df_grid.empty:
-        for col in SENSITIVE_COLS:
-            if col in df_grid.columns:
-                df_grid[col] = "🔒 Oculto — clique em VER BILHETE"
-
     render_grid(df_grid, cols=cols_grid)
