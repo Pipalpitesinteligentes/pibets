@@ -241,12 +241,31 @@ if st.session_state.df_palpites.empty:
     except Exception as e:
         st.session_state.sheets_error_message = f"Erro geral ao carregar Sheets: {e}"
 
+# Estado do bilhete (oculto por padrão)
+if "show_ticket" not in st.session_state:
+    st.session_state.show_ticket = False
+
 # Abas
 _tab_jogos, _tab_banca, _tab_sair = st.tabs(["⚽ Palpites Prontos", "📈 Gestão de Banca", "🚪 Sair"])
 
 with _tab_jogos:
-    # 👉 Novo layout em cards
-    ui_cards.main()
+    st.markdown("## ⚽ Palpites Prontos")
+
+    # Botões Ver/Ocultar
+    c1, c2, c3 = st.columns([1, 1, 6])
+    with c1:
+        if st.button("👁️ Ver bilhete", disabled=st.session_state.show_ticket):
+            st.session_state.show_ticket = True
+            st.rerun()
+    with c2:
+        if st.button("🙈 Ocultar", disabled=not st.session_state.show_ticket):
+            st.session_state.show_ticket = False
+            st.rerun()
+
+    st.divider()
+
+    # Envia o estado pro layout
+    ui_cards.main(show_ticket=st.session_state.show_ticket)
 
 with _tab_banca:
     mostrar_banca()
@@ -271,6 +290,7 @@ if is_admin:
             st.info("Envie este código ao assinante.")
 
 # ======================== FIM ========================
+
 
 
 
