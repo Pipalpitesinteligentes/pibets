@@ -105,8 +105,11 @@ h1, h2, h3, p, .stMarkdown { color: var(--text); }
   text-decoration:none;
 }
 
-/* ===== Botão toggle igual ao botão Bilhete ===== */
-.ticket-btn-wrap div.stButton > button{
+/* ===== FORÇA BRUTA: botão toggle igual ao action, só dentro do ticket-scope ===== */
+.ticket-btn-wrap { display:flex; justify-content:flex-end; margin-top:10px; }
+
+/* Streamlit usa data-testid="stBaseButton-secondary" em muitos casos */
+.ticket-scope button[data-testid^="stBaseButton"]{
   width: auto !important;
   padding: 9px 12px !important;
   border-radius: 12px !important;
@@ -122,7 +125,7 @@ h1, h2, h3, p, .stMarkdown { color: var(--text); }
   transition: transform .1s ease, filter .15s ease, box-shadow .15s ease !important;
 }
 
-.ticket-btn-wrap div.stButton > button:hover{
+.ticket-scope button[data-testid^="stBaseButton"]:hover{
   transform: translateY(-1px) !important;
   filter: brightness(1.05) !important;
   box-shadow: var(--glow-strong), 0 0 30px rgba(154,107,255,0.25) !important;
@@ -373,9 +376,9 @@ def render_grid(df: pd.DataFrame, cols: int = 3) -> None:
             with col:
     st.markdown(_card_html(row, show_ticket=is_open), unsafe_allow_html=True)
 
-    st.markdown('<div class="ticket-btn-wrap">', unsafe_allow_html=True)
+    st.markdown('<div class="ticket-btn-wrap"><div class="ticket-scope">', unsafe_allow_html=True)
     label = "Ocultar" if is_open else "Ver bilhete"
     if st.button(label, key=f"toggle_{card_id}"):
         st.session_state.ticket_open[card_id] = not is_open
         st.rerun()
-    st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('</div></div>', unsafe_allow_html=True)
